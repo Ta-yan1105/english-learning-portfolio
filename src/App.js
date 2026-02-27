@@ -354,4 +354,4 @@ export default function App() {
       <footer style={{ textAlign: 'center', padding: '40px 0', color: '#cbd5e1', fontSize: '10px', fontWeight: 'bold' }}>PORTFOLIO © 2026</footer>
     </div>
   );
-}
+}　
