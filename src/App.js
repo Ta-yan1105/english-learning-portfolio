@@ -9,12 +9,12 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 // 【セキュリティ改善】APIキーの環境変数化（Create React App版）
 // ==========================================
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyAMvD6g3pTmneNad4-h8ZT_rzfZfn3T2YM",
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "my-english-log-app.firebaseapp.com",
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "my-english-log-app",
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "my-english-log-app.firebasestorage.app",
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "693893816448",
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:693893816448:web:3c6bfac6dc4dffaa8a0665"
 };
 
 const app = initializeApp(firebaseConfig);
