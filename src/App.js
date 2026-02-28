@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const firebaseConfig = {
@@ -135,6 +135,8 @@ export default function App() {
   const [timerTimeLeft, setTimerTimeLeft] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [laps, setLaps] = useState([]);
+  // --- フルスクリーンモード用State ---
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     let interval = null;
@@ -543,9 +545,12 @@ export default function App() {
       </section>
 
       <section style={{ ...cardStyle, textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative' }}>
           <Timer size={24} color="#4f46e5" style={{ marginRight: '8px' }} />
           <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
+          <button onClick={() => setIsFullscreen(true)} style={{ position: 'absolute', right: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="全画面表示">
+            <Maximize size={20} />
+          </button>
         </div>
 
         <div style={{
@@ -579,7 +584,6 @@ export default function App() {
           <button onClick={resetTimer} style={{ padding: '15px 25px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <RefreshCw size={18} /> リセット
           </button>
-          {/* カウントダウンが進行し、かつ一時停止している場合にラップ記録ボタンを表示 */}
           {!isTimerRunning && timerTimeLeft !== timerInputMinutes * 60 && (
             <button onClick={recordLap} style={{ padding: '15px 25px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <List size={18} /> ラップ記録
@@ -1012,6 +1016,72 @@ export default function App() {
               />
             );
           })}
+        </div>
+      )}
+
+      {/* --- 追加：全画面表示時のタイマーオーバーレイ --- */}
+      {isFullscreen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}>
+          <button onClick={() => setIsFullscreen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+            <Minimize size={20} />
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+            <Timer size={32} color="#4f46e5" style={{ marginRight: '10px' }} />
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
+          </div>
+
+          <div style={{
+            fontSize: isMobile ? '100px' : '180px',
+            fontWeight: '900',
+            color: timerTimeLeft === 0 ? '#10b981' : '#4f46e5',
+            lineHeight: '1',
+            margin: '30px 0',
+            fontVariantNumeric: 'tabular-nums',
+            fontFamily: "'Helvetica Neue', Arial, sans-serif",
+            letterSpacing: '-0.02em',
+            wordBreak: 'keep-all',
+            whiteSpace: 'nowrap'
+          }}>
+            {formatTimerDisplay(timerTimeLeft)}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '30px', flexWrap: 'wrap' }}>
+            <button onClick={() => handleTimerAdjust(-1)} disabled={isTimerRunning} style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', color: '#64748b', fontWeight: 'bold', cursor: isTimerRunning ? 'not-allowed' : 'pointer', fontSize: '16px' }}>
+              - 1分
+            </button>
+            <button onClick={() => handleTimerAdjust(1)} disabled={isTimerRunning} style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', color: '#64748b', fontWeight: 'bold', cursor: isTimerRunning ? 'not-allowed' : 'pointer', fontSize: '16px' }}>
+              + 1分
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <button onClick={toggleTimer} style={{ padding: '18px 45px', borderRadius: '50px', border: 'none', background: isTimerRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+              {isTimerRunning ? <><Pause size={24} /> 一時停止</> : <><Play size={24} /> スタート</>}
+            </button>
+            <button onClick={resetTimer} style={{ padding: '18px 30px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <RefreshCw size={20} /> リセット
+            </button>
+            {!isTimerRunning && timerTimeLeft !== timerInputMinutes * 60 && (
+              <button onClick={recordLap} style={{ padding: '18px 30px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <List size={20} /> ラップ記録
+              </button>
+            )}
+          </div>
+
+          {laps.length > 0 && (
+            <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              <div style={{ width: '100%', maxWidth: '350px', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: '25vh', overflowY: 'auto' }}>
+                <div style={{ fontSize: '14px', fontWeight: '900', color: '#94a3b8', marginBottom: '15px', textAlign: 'left' }}>ラップ記録</div>
+                {laps.map((lap, index) => (
+                  <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', padding: '8px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
+                    <span>ラップ {index + 1}</span>
+                    <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontVariantNumeric: 'tabular-nums' }}>{lap}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
