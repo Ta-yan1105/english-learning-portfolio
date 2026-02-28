@@ -5,13 +5,17 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
+// ==========================================
+// 【改善反映】Firebase設定の環境変数化
+// 本来は .env ファイルで管理することを推奨します
+// ==========================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAMvD6g3pTmneNad4-h8ZT_rzfZfn3T2YM",
-  authDomain: "my-english-log-app.firebaseapp.com",
-  projectId: "my-english-log-app",
-  storageBucket: "my-english-log-app.firebasestorage.app",
-  messagingSenderId: "693893816448",
-  appId: "1:693893816448:web:3c6bfac6dc4dffaa8a0665"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAMvD6g3pTmneNad4-h8ZT_rzfZfn3T2YM",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "my-english-log-app.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "my-english-log-app",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "my-english-log-app.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "693893816448",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:693893816448:web:3c6bfac6dc4dffaa8a0665"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -198,8 +202,12 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
+    // 【改善反映】エラーハンドリングとクリーンアップを追加
     const q = query(collection(db, 'logs'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
-    onSnapshot(q, (s) => setLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const unsubscribe = onSnapshot(q, 
+      (s) => setLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))),
+      (error) => console.error("ログ取得エラー:", error)
+    );
     
     getDoc(doc(db, 'profile', user.uid)).then(async d => {
       let currentProfile = d.exists() ? d.data() : {};
@@ -209,11 +217,17 @@ export default function App() {
         const nextDate = await fetchNextEikenDate();
         if (nextDate) {
           currentProfile.eikenDate = nextDate;
-          setDoc(doc(db, 'profile', user.uid), currentProfile, { merge: true });
+          try {
+            await setDoc(doc(db, 'profile', user.uid), currentProfile, { merge: true });
+          } catch (e) {
+            console.error("プロファイル保存エラー", e);
+          }
         }
       }
       setProfile(p => ({...p, ...currentProfile}));
-    });
+    }).catch(e => console.error("プロファイル取得エラー", e));
+
+    return () => unsubscribe();
   }, [user]);
 
   const filteredLogs = useMemo(() => {
@@ -312,10 +326,16 @@ export default function App() {
     return [];
   }, [selectedRange, logs, stats.skillMap, date]);
 
-  const handleProfileUpdate = (field, value) => {
+  const handleProfileUpdate = async (field, value) => {
     const newProfile = { ...profile, [field]: value };
     setProfile(newProfile);
-    if (user) setDoc(doc(db, 'profile', user.uid), newProfile);
+    if (user) {
+      try {
+        await setDoc(doc(db, 'profile', user.uid), newProfile);
+      } catch (error) {
+        console.error("プロファイル更新エラー:", error);
+      }
+    }
   };
 
   const handleSave = async (e) => {
@@ -337,23 +357,29 @@ export default function App() {
       logData.speakingType = null;
     }
 
-    if (editingLogId) {
-      await updateDoc(doc(db, 'logs', editingLogId), logData);
-      setEditingLogId(null);
-    } else {
-      logData.uid = auth.currentUser.uid;
-      logData.timestamp = Date.now();
-      await addDoc(collection(db, 'logs'), logData);
+    // 【改善反映】エラーハンドリング追加
+    try {
+      if (editingLogId) {
+        await updateDoc(doc(db, 'logs', editingLogId), logData);
+        setEditingLogId(null);
+      } else {
+        logData.uid = auth.currentUser.uid;
+        logData.timestamp = Date.now();
+        await addDoc(collection(db, 'logs'), logData);
+      }
+      
+      setMinutes(25); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); 
+      
+      setPraiseSubText("保存完了！学習記録が追加されました");
+      setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
+      setShowPraise(true);
+      setTimeout(() => {
+        setShowPraise(false);
+      }, 2500);
+    } catch (error) {
+      console.error("保存エラー:", error);
+      alert("学習記録の保存に失敗しました。通信環境を確認してください。");
     }
-    
-    setMinutes(25); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); 
-    
-    setPraiseSubText("保存完了！学習記録が追加されました");
-    setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
-    setShowPraise(true);
-    setTimeout(() => {
-      setShowPraise(false);
-    }, 2500);
   };
 
   const handleEdit = (log) => {
@@ -370,10 +396,16 @@ export default function App() {
 
   const handleDelete = async (logId) => {
     if (window.confirm('この学習記録を削除してもよろしいですか？')) {
-      await deleteDoc(doc(db, 'logs', logId));
-      if (editingLogId === logId) {
-        setEditingLogId(null);
-        setMinutes(25); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80);
+      // 【改善反映】エラーハンドリング追加
+      try {
+        await deleteDoc(doc(db, 'logs', logId));
+        if (editingLogId === logId) {
+          setEditingLogId(null);
+          setMinutes(25); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80);
+        }
+      } catch (error) {
+        console.error("削除エラー:", error);
+        alert("削除に失敗しました。");
       }
     }
   };
@@ -425,6 +457,7 @@ export default function App() {
   }, [logs]);
 
   const headerStyle = { fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' };
+  const unitSmallStyle = { fontSize: '14px', fontWeight: '900' };
 
   const todayDate = new Date();
   const todayYear = todayDate.getFullYear();
@@ -471,15 +504,15 @@ export default function App() {
           </h1>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px', flex: 1, width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '10px', flex: 1, width: '100%' }}>
           <div style={{ background: 'white', padding: '10px', borderRadius: '18px', border: '1px solid #4f46e522', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '10px', fontWeight: '900', color: '#4f46e5', marginBottom: '4px' }}>TODAY</div>
-            <div style={{ fontSize: '10px', fontWeight: '900', color: '#1e293b', opacity: 0.6 }}>{todayYear}</div>
-            <div style={{ fontSize: '12px', fontWeight: '900', color: '#4f46e5' }}>{todayMonthDay}</div>
+            <div style={{ fontSize: '10px', fontWeight: '900', color: '#1e293b', opacity: 0.6 }}>{todayYear}年</div>
+            <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e293b' }}>{todayMonthDay}</div>
           </div>
 
-          {['eiken', 'other', 'other2'].map(k => {
-            const color = k === 'eiken' ? '#ef4444' : k === 'other' ? '#f59e0b' : '#3b82f6';
+          {['eiken', 'other'].map(k => {
+            const color = k === 'eiken' ? '#ef4444' : '#f59e0b';
             const days = profile[`${k}Date`] ? Math.ceil((new Date(profile[`${k}Date`]) - new Date().setHours(0,0,0,0)) / 86400000) : null;
             return (
               <div key={k} style={{ background: 'white', padding: '10px', borderRadius: '18px', border: `1px solid ${color}22`, textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
@@ -490,8 +523,8 @@ export default function App() {
                 </div>
                 <input type="date" style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'center', fontSize: '10px', margin: '4px 0' }} value={profile[`${k}Date`] || ''} onChange={e => handleProfileUpdate(`${k}Date`, e.target.value)} />
                 {days !== null ? (
-                  <div style={{ fontSize: '16px', fontWeight: '900', color: '#1e293b' }}>
-                    <span style={{ fontSize: '10px' }}>あと</span>{days}<span style={{ fontSize: '10px' }}>日</span>
+                  <div style={{ fontSize: '16px', fontWeight: '900', color: '#ef4444' }}>
+                    <span style={{ fontSize: '10px', fontWeight: '900' }}>残り</span>{days}<span style={{ fontSize: '10px', fontWeight: '900' }}>日!!</span>
                   </div>
                 ) : (
                   <div style={{ fontSize: '10px', color: '#cbd5e1', fontWeight: '900' }}>未設定</div>
@@ -688,7 +721,7 @@ export default function App() {
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ fontSize: '24px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '70px' }}>
-                  {minutes}<span style={{ fontSize: '14px', fontWeight: '900', color: '#4f46e5' }}>分</span>
+                  {minutes}<span style={{...unitSmallStyle, color: '#4f46e5'}}>分</span>
                 </div>
                 <input type="range" min="1" max="120" style={{ width: '100%', accentColor: getSliderColor(minutes, 120), cursor: 'pointer' }} value={minutes} onChange={e => setMinutes(e.target.value)} />
               </div>
@@ -705,7 +738,7 @@ export default function App() {
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ fontSize: '24px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '70px' }}>
-                  {quality}<span style={{ fontSize: '14px', fontWeight: '900', color: '#4f46e5' }}>%</span>
+                  {quality}<span style={{...unitSmallStyle, color: '#4f46e5'}}>%</span>
                 </div>
                 <input type="range" min="0" max="100" style={{ width: '100%', accentColor: getSliderColor(quality, 100), cursor: 'pointer' }} value={quality} onChange={e => setQuality(e.target.value)} />
               </div>
@@ -746,42 +779,21 @@ export default function App() {
       </div>
 
       <section style={cardStyle}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', gap: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
           <h2 style={{ ...headerStyle, margin: 0 }}><Zap size={18} color="#4f46e5" /> 学習状況</h2>
-          
-          <div style={{ display: 'flex', gap: '40px', marginLeft: 'auto' }}>
-            <div style={{ textAlign: 'center' }}>
-              <h2 style={{ ...labelStyle, justifyContent: 'center' }}><Clock size={12} color="#94a3b8" />学習時間</h2>
-              <div style={{ fontSize: '42px', fontWeight: '900', color: '#000', lineHeight: 1 }}>
-                {formatMinutes(stats.total)}<span style={{ fontSize: '16px' }}>{getUnit(stats.total)}</span>
-              </div>
-            </div>
-            <div style={{ textAlign: 'center', borderLeft: '1px solid #f1f5f9', paddingLeft: '40px' }}>
-              <h2 style={{ ...labelStyle, justifyContent: 'center' }}><Zap size={12} color="#94a3b8" />継続</h2>
-              <div style={{ fontSize: '42px', fontWeight: '900', color: '#000', lineHeight: 1 }}>
-                {stats.streak}<span style={{ fontSize: '16px' }}>日</span>
-              </div>
-            </div>
+          <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b' }}>
+            学習時間合計: {formatMinutes(stats.total)}<span style={{ fontSize: '12px', marginLeft: '2px' }}>{getUnit(stats.total)}</span>
           </div>
         </div>
 
-        <div style={{ width: '100%', marginBottom: '25px' }}>
-          <h2 style={labelStyle}><Sparkles size={12} color="#94a3b8" />AIフィードバック</h2>
-          <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, fontWeight: 'bold', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-            {aiFeedbackMessage}
-          </div>
-        </div>
-
-        <div style={{ paddingTop: '20px', borderTop: '1px dashed #e2e8f0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '28px' }}>🏔️</span>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b' }}>
-                  立山登頂チャレンジ <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'bold' }}>(標高3,015m)</span>
-                  {Math.floor(stats.total / 60) >= 3015 && <span style={{ color: '#ef4444', marginLeft: '6px' }}>🎉 登頂達成！</span>}
-                </div>
-                <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#94a3b8', marginTop: '2px' }}>1時間の学習で1歩（1m）進む！</div>
+        <div style={{ marginBottom: '30px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '20px' }}>🏔️</span>
+              <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span>立山登頂チャレンジ <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'bold' }}>(標高3,015m)</span></span>
+                <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#94a3b8' }}>1時間の学習で1歩（1m）進む！</span>
+                {Math.floor(stats.total / 60) >= 3015 && <span style={{ color: '#ef4444' }}>🎉 登頂達成！</span>}
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -790,24 +802,31 @@ export default function App() {
             </div>
           </div>
           
-          <div style={{ position: 'relative', width: '100%' }}>
-            <div style={{ position: 'absolute', right: '-4px', top: '-18px', fontSize: '18px', zIndex: 1, opacity: 0.8 }}>🗻</div>
+          <div style={{ position: 'relative', width: '100%', height: '50px', marginTop: '10px' }}>
+            <div style={{ position: 'absolute', right: '-4px', top: '-15px', fontSize: '20px', zIndex: 1, opacity: 0.8 }}>🗻</div>
             
             <div style={{ 
               position: 'absolute', 
-              left: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}% - 8px)`, 
-              top: '-16px', 
-              fontSize: '16px', 
-              transition: 'left 1s ease-out', 
-              zIndex: 2,
-              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.2))'
+              left: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}% - 10px)`, 
+              bottom: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}% - 4px)`, 
+              fontSize: '18px', 
+              transition: 'all 1s ease-out', 
+              zIndex: 3,
+              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))'
             }}>
               {Math.floor(stats.total / 60) >= 3015 ? '🚩' : '🧗'}
             </div>
 
-            <div style={{ width: '100%', height: '14px', backgroundColor: '#f1f5f9', borderRadius: '7px', overflow: 'hidden' }}>
-              <div style={{ width: `${Math.min((stats.total / 60 / 3015) * 100, 100)}%`, height: '100%', backgroundColor: '#10b981', transition: 'width 1s ease-out', borderRadius: '7px' }}></div>
+            <div style={{ width: '100%', height: '100%', backgroundColor: '#f1f5f9', clipPath: 'polygon(0 100%, 100% 0, 100% 100%)', borderRadius: '4px' }}>
+              <div style={{ width: `${Math.min((stats.total / 60 / 3015) * 100, 100)}%`, height: '100%', backgroundColor: '#10b981', transition: 'width 1s ease-out' }}></div>
             </div>
+          </div>
+        </div>
+
+        <div style={{ paddingTop: '20px', borderTop: '1px dashed #e2e8f0', width: '100%' }}>
+          <h2 style={labelStyle}><Sparkles size={12} color="#94a3b8" />AIフィードバック</h2>
+          <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, fontWeight: 'bold', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+            {aiFeedbackMessage}
           </div>
         </div>
       </section>
@@ -1045,7 +1064,7 @@ export default function App() {
           </div>
 
           <div style={{
-            fontSize: isMobile ? '100px' : '180px',
+            fontSize: isMobile ? '140px' : '260px',
             fontWeight: '900',
             color: timerTimeLeft === 0 ? '#10b981' : '#4f46e5',
             lineHeight: '1',
