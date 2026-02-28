@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const firebaseConfig = {
@@ -128,6 +128,52 @@ export default function App() {
 
   const [showPraise, setShowPraise] = useState(false);
   const [praiseText, setPraiseText] = useState("");
+  const [editingLogId, setEditingLogId] = useState(null);
+
+  // --- タイマー用のStateとロジック ---
+  const [timerInputMinutes, setTimerInputMinutes] = useState(25);
+  const [timerTimeLeft, setTimerTimeLeft] = useState(25 * 60);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [laps, setLaps] = useState([]);
+
+  useEffect(() => {
+    let interval = null;
+    if (isTimerRunning && timerTimeLeft > 0) {
+      interval = setInterval(() => {
+        setTimerTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timerTimeLeft === 0) {
+      setIsTimerRunning(false);
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning, timerTimeLeft]);
+
+  const formatTimerDisplay = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const handleTimerAdjust = (amount) => {
+    if (isTimerRunning) return;
+    const newMins = Math.max(1, timerInputMinutes + amount);
+    setTimerInputMinutes(newMins);
+    setTimerTimeLeft(newMins * 60);
+    setLaps([]);
+  };
+
+  const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
+
+  const resetTimer = () => {
+    setIsTimerRunning(false);
+    setTimerTimeLeft(timerInputMinutes * 60);
+    setLaps([]);
+  };
+
+  const recordLap = () => {
+    setLaps(prev => [...prev, formatTimerDisplay(timerTimeLeft)]);
+  };
+  // ------------------------------------
 
   const dailyQuote = useMemo(() => {
     const dayIndex = new Date().getDate() % DAILY_QUOTES.length;
@@ -268,21 +314,28 @@ export default function App() {
     if (!auth.currentUser || !minutes || selectedCats.length === 0) return;
     
     const logData = { 
-      uid: auth.currentUser.uid, 
       date, 
       minutes: Number(minutes), 
       categories: selectedCats, 
       content, 
       reflection, 
-      quality: Number(quality), 
-      timestamp: Date.now() 
+      quality: Number(quality)
     };
     
     if (selectedCats.includes('Speaking') && speakingType) {
       logData.speakingType = speakingType;
+    } else {
+      logData.speakingType = null;
     }
-    
-    await addDoc(collection(db, 'logs'), logData);
+
+    if (editingLogId) {
+      await updateDoc(doc(db, 'logs', editingLogId), logData);
+      setEditingLogId(null);
+    } else {
+      logData.uid = auth.currentUser.uid;
+      logData.timestamp = Date.now();
+      await addDoc(collection(db, 'logs'), logData);
+    }
     
     setMinutes(30); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); 
     
@@ -291,6 +344,28 @@ export default function App() {
     setTimeout(() => {
       setShowPraise(false);
     }, 2500);
+  };
+
+  const handleEdit = (log) => {
+    setEditingLogId(log.id);
+    setDate(log.date);
+    setMinutes(log.minutes);
+    setSelectedCats(log.categories || []);
+    setSpeakingType(log.speakingType || '');
+    setContent(log.content || '');
+    setReflection(log.reflection || '');
+    setQuality(log.quality || 80);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (logId) => {
+    if (window.confirm('この学習記録を削除してもよろしいですか？')) {
+      await deleteDoc(doc(db, 'logs', logId));
+      if (editingLogId === logId) {
+        setEditingLogId(null);
+        setMinutes(30); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80);
+      }
+    }
   };
 
   const handleExport = (format) => {
@@ -440,7 +515,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* --- アップデート箇所：本日の名言（Daily Quote）セクションのフォントサイズと位置変更 --- */}
       <section style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
           <Sparkles size={18} color="#f59e0b" style={{ marginRight: '8px' }} />
@@ -466,6 +540,66 @@ export default function App() {
             <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', lineHeight: 1.4 }}>{dailyQuote.bio}</div>
           </div>
         </div>
+      </section>
+
+      <section style={{ ...cardStyle, textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px' }}>
+          <Timer size={24} color="#4f46e5" style={{ marginRight: '8px' }} />
+          <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
+        </div>
+
+        <div style={{
+          fontSize: isMobile ? '80px' : '120px',
+          fontWeight: '900',
+          color: timerTimeLeft === 0 ? '#10b981' : '#4f46e5',
+          lineHeight: '1',
+          margin: '20px 0',
+          fontVariantNumeric: 'tabular-nums',
+          fontFamily: "'Helvetica Neue', Arial, sans-serif",
+          letterSpacing: '-0.02em',
+          wordBreak: 'keep-all',
+          whiteSpace: 'nowrap'
+        }}>
+          {formatTimerDisplay(timerTimeLeft)}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
+          <button onClick={() => handleTimerAdjust(-1)} disabled={isTimerRunning} style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', color: '#64748b', fontWeight: 'bold', cursor: isTimerRunning ? 'not-allowed' : 'pointer', fontSize: '14px' }}>
+            - 1分
+          </button>
+          <button onClick={() => handleTimerAdjust(1)} disabled={isTimerRunning} style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', color: '#64748b', fontWeight: 'bold', cursor: isTimerRunning ? 'not-allowed' : 'pointer', fontSize: '14px' }}>
+            + 1分
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <button onClick={toggleTimer} style={{ padding: '15px 40px', borderRadius: '50px', border: 'none', background: isTimerRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+            {isTimerRunning ? <><Pause size={20} /> 一時停止</> : <><Play size={20} /> スタート</>}
+          </button>
+          <button onClick={resetTimer} style={{ padding: '15px 25px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <RefreshCw size={18} /> リセット
+          </button>
+          {/* カウントダウンが進行し、かつ一時停止している場合にラップ記録ボタンを表示 */}
+          {!isTimerRunning && timerTimeLeft !== timerInputMinutes * 60 && (
+            <button onClick={recordLap} style={{ padding: '15px 25px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <List size={18} /> ラップ記録
+            </button>
+          )}
+        </div>
+
+        {laps.length > 0 && (
+          <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '300px', backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', border: '1px solid #f1f5f9' }}>
+              <div style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', marginBottom: '10px', textAlign: 'left' }}>ラップ記録</div>
+              {laps.map((lap, index) => (
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', color: '#1e293b', padding: '6px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
+                  <span>ラップ {index + 1}</span>
+                  <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontVariantNumeric: 'tabular-nums' }}>{lap}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <section style={{ ...cardStyle, border: '2px solid #4f46e5' }}>
@@ -509,9 +643,19 @@ export default function App() {
             )}
           </div>
 
-          <button onClick={handleSave} style={{ alignSelf: isMobile ? 'flex-end' : 'auto', padding: '8px 16px', background: '#4f46e5', color: 'white', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-            <Send size={14} /> 登録
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignSelf: isMobile ? 'flex-end' : 'auto', flexShrink: 0 }}>
+            {editingLogId && (
+              <button type="button" onClick={() => {
+                setEditingLogId(null);
+                setMinutes(30); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); setDate(getLocalDateString(new Date()));
+              }} style={{ padding: '8px 16px', background: '#f1f5f9', color: '#64748b', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center' }}>
+                キャンセル
+              </button>
+            )}
+            <button onClick={handleSave} style={{ padding: '8px 16px', background: '#4f46e5', color: 'white', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Send size={14} /> {editingLogId ? '更新' : '登録'}
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSave}>
@@ -795,13 +939,20 @@ export default function App() {
             <div key={log.id} style={{ 
               padding: '16px', 
               backgroundColor: '#f8fafc', 
-              backgroundImage: 'linear-gradient(90deg, transparent 16px, #fda4af 16px, #fda4af 17px, transparent 17px), repeating-linear-gradient(transparent, transparent 27px, #e2e8f0 27px, #e2e8f0 28px)',
-              backgroundSize: '100% 100%, 100% 28px',
-              backgroundPosition: '0 0, 0 8px',
               borderRadius: '16px', 
               border: '1px solid #f1f5f9' 
             }}>
-              <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '900', marginBottom: '8px' }}>{log.date}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '900' }}>{log.date}</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => handleEdit(log)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', color: '#64748b' }}>
+                    <Edit size={14} />
+                  </button>
+                  <button onClick={() => handleDelete(log.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', color: '#ef4444' }}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
                 <div style={{ backgroundColor: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '900', whiteSpace: 'nowrap' }}>
                   {(log.categories || []).map(c => c === 'Speaking' && log.speakingType ? `${c}(${log.speakingType})` : c).join("/")}
