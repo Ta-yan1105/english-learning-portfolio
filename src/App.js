@@ -5,7 +5,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
-// // ==========================================
+// ==========================================
 // 【セキュリティ改善】APIキーの環境変数化（Create React App版）
 // ==========================================
 const firebaseConfig = {
@@ -142,6 +142,9 @@ export default function App() {
   const [laps, setLaps] = useState([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // 【新機能②用State】 音声入力の対象フィールドを管理
+  const [recordingField, setRecordingField] = useState(null);
+
   useEffect(() => {
     let interval = null;
     if (isTimerRunning && timerTimeLeft > 0) {
@@ -185,6 +188,50 @@ export default function App() {
 
   const recordLap = () => {
     setLaps(prev => [...prev, formatTimerDisplay(timerTimeLeft)]);
+  };
+
+  // 【新機能①】直近のログから入力内容をコピーする
+  const handleCopyRecent = () => {
+    if (logs && logs.length > 0) {
+      const lastLog = logs[0]; // 常に最新（一番上）のログを使用
+      setMinutes(lastLog.minutes || 25);
+      setSelectedCats(lastLog.categories || []);
+      setSpeakingType(lastLog.speakingType || '');
+      setContent(lastLog.content || '');
+      setReflection(lastLog.reflection || '');
+      setQuality(lastLog.quality || 80);
+    }
+  };
+
+  // 【新機能②】Web Speech APIによる音声入力
+  const handleVoiceInput = (setter, fieldName) => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('お使いのブラウザは音声入力に対応していません。(Chrome/Safari等をご利用ください)');
+      return;
+    }
+
+    setRecordingField(fieldName);
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ja-JP';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setter(prev => prev ? prev + ' ' + transcript : transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error", event.error);
+      setRecordingField(null);
+    };
+
+    recognition.onend = () => {
+      setRecordingField(null);
+    };
+
+    recognition.start();
   };
 
   const dailyQuote = useMemo(() => {
@@ -689,6 +736,12 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', alignSelf: isMobile ? 'flex-end' : 'auto', flexShrink: 0 }}>
+            {/* 【新機能①】前回をコピー ボタン */}
+            {!editingLogId && logs.length > 0 && (
+              <button type="button" onClick={handleCopyRecent} style={{ padding: '8px 16px', background: '#e0e7ff', color: '#4f46e5', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <RefreshCw size={14} /> 前回をコピー
+              </button>
+            )}
             {editingLogId && (
               <button type="button" onClick={() => {
                 setEditingLogId(null);
@@ -744,27 +797,48 @@ export default function App() {
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '4fr 6fr', gap: '15px' }}>
             <div>
-              <label style={{ ...labelStyle, flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-                  学習内容
-                </span>
-                <span style={{ fontWeight: 'bold', color: '#cbd5e1', marginLeft: '4px' }}>
-                  ※具体的に書くことで振り返りの質が高まります
-                </span>
-              </label>
+              {/* 【新機能②】音声入力ボタン */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <label style={{ ...labelStyle, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                    学習内容
+                  </span>
+                  <span style={{ fontWeight: 'bold', color: '#cbd5e1', marginLeft: '4px' }}>
+                    ※具体的に書くことで振り返りの質が高まります
+                  </span>
+                </label>
+                <button type="button" onClick={() => handleVoiceInput(setContent, 'content')} style={{ background: recordingField === 'content' ? '#f43f5e' : '#f1f5f9', color: recordingField === 'content' ? 'white' : '#64748b', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginLeft: '8px', transition: 'all 0.2s' }} title="音声で入力">
+                  <Mic size={12} />
+                </button>
+              </div>
               <textarea style={{ ...inputStyle, height: '100px' }} value={content} onChange={e => setContent(e.target.value)} placeholder="例：&#10;・英検長文問題演習" />
             </div>
             
             <div>
-              <label style={{ ...labelStyle, flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-                  内省
-                </span>
-                <span style={{ fontWeight: 'bold', color: '#cbd5e1', marginLeft: '4px' }}>
-                  ※自分の課題や成長に気づく重要なステップです
-                </span>
-              </label>
+              {/* 【新機能②】音声入力ボタン */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <label style={{ ...labelStyle, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                    内省
+                  </span>
+                  <span style={{ fontWeight: 'bold', color: '#cbd5e1', marginLeft: '4px' }}>
+                    ※自分の課題や成長に気づく重要なステップです
+                  </span>
+                </label>
+                <button type="button" onClick={() => handleVoiceInput(setReflection, 'reflection')} style={{ background: recordingField === 'reflection' ? '#f43f5e' : '#f1f5f9', color: recordingField === 'reflection' ? 'white' : '#64748b', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginLeft: '8px', transition: 'all 0.2s' }} title="音声で入力">
+                  <Mic size={12} />
+                </button>
+              </div>
               <textarea style={{ ...inputStyle, height: '100px' }} value={reflection} onChange={e => setReflection(e.target.value)} placeholder="例：&#10;・語彙不足を実感" />
+              
+              {/* 【新機能③】ワンタップ入力用タグ */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                {["集中できた", "単語が難しかった", "眠かった", "新しい表現を覚えた", "楽しくできた"].map(tag => (
+                  <button key={tag} type="button" onClick={() => setReflection(prev => prev ? prev + ' / ' + tag : tag)} style={{ padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
+                    + {tag}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </form>
