@@ -142,7 +142,7 @@ export default function App() {
   const [laps, setLaps] = useState([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // 【新機能②用State】 音声入力の対象フィールドを管理
+  // 音声入力の対象フィールドを管理
   const [recordingField, setRecordingField] = useState(null);
 
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function App() {
     setLaps(prev => [...prev, formatTimerDisplay(timerTimeLeft)]);
   };
 
-  // 【新機能①】直近のログから入力内容をコピーする
+  // 直近のログから入力内容をコピーする
   const handleCopyRecent = () => {
     if (logs && logs.length > 0) {
       const lastLog = logs[0]; // 常に最新（一番上）のログを使用
@@ -203,7 +203,7 @@ export default function App() {
     }
   };
 
-  // 【新機能②】Web Speech APIによる音声入力
+  // Web Speech APIによる音声入力
   const handleVoiceInput = (setter, fieldName) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -736,7 +736,7 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', alignSelf: isMobile ? 'flex-end' : 'auto', flexShrink: 0 }}>
-            {/* 【新機能①】前回をコピー ボタン */}
+            {/* 前回の記録をコピーするボタン */}
             {!editingLogId && logs.length > 0 && (
               <button type="button" onClick={handleCopyRecent} style={{ padding: '8px 16px', background: '#e0e7ff', color: '#4f46e5', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <RefreshCw size={14} /> 前回をコピー
@@ -797,7 +797,6 @@ export default function App() {
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '4fr 6fr', gap: '15px' }}>
             <div>
-              {/* 【新機能②】音声入力ボタン */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <label style={{ ...labelStyle, flexWrap: 'wrap' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
@@ -812,10 +811,17 @@ export default function App() {
                 </button>
               </div>
               <textarea style={{ ...inputStyle, height: '100px' }} value={content} onChange={e => setContent(e.target.value)} placeholder="例：&#10;・英検長文問題演習" />
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                {["教科書", "単語学習", "英検参考書", "TOEIC"].map(tag => (
+                  <button key={tag} type="button" onClick={() => setContent(prev => prev ? prev + ' / ' + tag : tag)} style={{ padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
+                    + {tag}
+                  </button>
+                ))}
+              </div>
             </div>
             
             <div>
-              {/* 【新機能②】音声入力ボタン */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <label style={{ ...labelStyle, flexWrap: 'wrap' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
@@ -831,7 +837,6 @@ export default function App() {
               </div>
               <textarea style={{ ...inputStyle, height: '100px' }} value={reflection} onChange={e => setReflection(e.target.value)} placeholder="例：&#10;・語彙不足を実感" />
               
-              {/* 【新機能③】ワンタップ入力用タグ */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
                 {["集中できた", "単語が難しかった", "眠かった", "新しい表現を覚えた", "楽しくできた"].map(tag => (
                   <button key={tag} type="button" onClick={() => setReflection(prev => prev ? prev + ' / ' + tag : tag)} style={{ padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
@@ -867,7 +872,8 @@ export default function App() {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '24px', fontWeight: '900', color: '#10b981' }}>{Math.floor(stats.total / 60)}</span>
+              {/* 【変更箇所】 歩数の数値を48pxに拡大し、lineHeight: 1を追加して目立たせました */}
+              <span style={{ fontSize: '48px', fontWeight: '900', color: '#10b981', lineHeight: 1 }}>{Math.floor(stats.total / 60)}</span>
               <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}> / 3,015歩</span>
             </div>
           </div>
