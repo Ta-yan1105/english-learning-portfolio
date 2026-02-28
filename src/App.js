@@ -66,6 +66,52 @@ const getSliderColor = (val, max) => {
   return '#ef4444'; 
 };
 
+// --- 日替わりの名言データ ---
+const DAILY_QUOTES = [
+  {
+    en: "The only way to do great work is to love what you do.",
+    ja: "素晴らしい仕事をする唯一の方法は、自分のしていることを愛することだ。",
+    author: "スティーブ・ジョブズ (Steve Jobs)",
+    bio: "Appleの共同創業者。数々の困難や失敗を乗り越え、革新的な製品で世界を変えた情熱の持ち主。"
+  },
+  {
+    en: "It always seems impossible until it's done.",
+    ja: "何事も達成するまでは不可能に見えるものである。",
+    author: "ネルソン・マンデラ (Nelson Mandela)",
+    bio: "南アフリカ初の黒人大統領。27年間の投獄に耐え、不屈の精神で困難な壁を打ち破った。"
+  },
+  {
+    en: "I have not failed. I've just found 10,000 ways that won't work.",
+    ja: "私は失敗したことがない。ただ、うまくいかない1万の方法を見つけただけだ。",
+    author: "トーマス・エジソン (Thomas Edison)",
+    bio: "発明王。生涯に1,300以上の発明を行い、失敗を恐れず挑戦し続けることの大切さを体現した。"
+  },
+  {
+    en: "Anyone who has never made a mistake has never tried anything new.",
+    ja: "一度も失敗をしたことがない人は、何も新しいことに挑戦したことがない人だ。",
+    author: "アルベルト・アインシュタイン (Albert Einstein)",
+    bio: "理論物理学者。好奇心と探求心を持ち続け、常識を疑うことで歴史的な発見を生み出した。"
+  },
+  {
+    en: "All our dreams can come true, if we have the courage to pursue them.",
+    ja: "追い求める勇気があれば、すべての夢は叶う。",
+    author: "ウォルト・ディズニー (Walt Disney)",
+    bio: "ミッキーマウスの生みの親。幾度の挫折を乗り越え、想像力で世界中に夢と魔法を届けた。"
+  },
+  {
+    en: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+    ja: "成功は決定的ではなく、失敗は致命的ではない。大切なのは続ける勇気だ。",
+    author: "ウィンストン・チャーチル (Winston Churchill)",
+    bio: "イギリスの元首相。困難な時期に国を導き、決して諦めない姿勢と継続する力を説いた。"
+  },
+  {
+    en: "It does not matter how slowly you go as long as you do not stop.",
+    ja: "止まりさえしなければ、どんなにゆっくりでも進めばよい。",
+    author: "孔子 (Confucius)",
+    bio: "古代中国の思想家。日々の小さな積み重ねが、やがて大きな成長や成功に繋がることを教えた。"
+  }
+];
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -82,6 +128,11 @@ export default function App() {
 
   const [showPraise, setShowPraise] = useState(false);
   const [praiseText, setPraiseText] = useState("");
+
+  const dailyQuote = useMemo(() => {
+    const dayIndex = new Date().getDate() % DAILY_QUOTES.length;
+    return DAILY_QUOTES[dayIndex];
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -257,6 +308,9 @@ export default function App() {
   const labelStyle = { fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' };
   const tabStyle = (r) => ({ padding: '8px 16px', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', border: 'none', backgroundColor: selectedRange === r ? '#4f46e5' : '#f1f5f9', color: selectedRange === r ? 'white' : '#94a3b8' });
 
+  const topSkillId = Object.entries(stats.skillMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || '';
+  const topSkillLabel = CATEGORIES.find(c => c.id === topSkillId)?.label || 'なし';
+
   const aiFeedbackMessage = useMemo(() => {
     if (!logs || logs.length === 0) return '学習データを蓄積すると分析が表示されます。';
 
@@ -319,7 +373,6 @@ export default function App() {
         marginBottom: '40px' 
       }}>
         <div style={{ borderLeft: '5px solid #4f46e5', paddingLeft: '20px', flexShrink: 0 }}>
-          {/* --- アップデート箇所：タイトルのフォントデザインを洗練されたスタイルに変更 --- */}
           <h1 style={{ 
             fontSize: '32px', 
             fontWeight: '900', 
@@ -384,6 +437,34 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
           <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap' }}>目標</label>
           <input style={{ ...inputStyle, flex: 1 }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
+        </div>
+      </section>
+
+      {/* --- アップデート箇所：本日の名言（Daily Quote）セクションのフォントサイズと位置変更 --- */}
+      <section style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+          <Sparkles size={18} color="#f59e0b" style={{ marginRight: '8px' }} />
+          <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#1e293b', margin: 0 }}>本日の名言 - Daily Quote</h2>
+        </div>
+        <div style={{ textAlign: 'left', padding: '10px 0' }}>
+          <p style={{ 
+            fontSize: isMobile ? '24px' : '30px', 
+            fontWeight: '900', 
+            color: '#4f46e5', 
+            fontStyle: 'italic', 
+            marginBottom: '12px', 
+            lineHeight: 1.4,
+            fontFamily: "'Helvetica Neue', Arial, sans-serif"
+          }}>
+            "{dailyQuote.en}"
+          </p>
+          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', marginBottom: '16px' }}>
+            {dailyQuote.ja}
+          </p>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b', marginBottom: '4px' }}>— {dailyQuote.author}</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', lineHeight: 1.4 }}>{dailyQuote.bio}</div>
+          </div>
         </div>
       </section>
 
