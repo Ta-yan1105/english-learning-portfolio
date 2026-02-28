@@ -257,11 +257,9 @@ export default function App() {
   const labelStyle = { fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' };
   const tabStyle = (r) => ({ padding: '8px 16px', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', border: 'none', backgroundColor: selectedRange === r ? '#4f46e5' : '#f1f5f9', color: selectedRange === r ? 'white' : '#94a3b8' });
 
-  // --- アップデート箇所：学習時間と集中度を分析するAIフィードバック ---
   const aiFeedbackMessage = useMemo(() => {
     if (!logs || logs.length === 0) return '学習データを蓄積すると分析が表示されます。';
 
-    // 直近7日間のデータを取得して分析
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const thisWeekStart = new Date(today);
@@ -276,7 +274,6 @@ export default function App() {
     const recentTotalMinutes = recentLogs.reduce((sum, l) => sum + Number(l.minutes), 0);
     const recentAvgQuality = Math.round(recentLogs.reduce((sum, l) => sum + Number(l.quality), 0) / recentLogs.length);
 
-    // 時間と集中度のバランスに基づくフィードバック
     if (recentTotalMinutes >= 120 && recentAvgQuality >= 80) {
       return `直近7日間で${formatMinutes(recentTotalMinutes)}${getUnit(recentTotalMinutes)}学習し、集中度も${recentAvgQuality}%と非常に高く維持できています！最高の状態です🔥`;
     } else if (recentTotalMinutes < 120 && recentAvgQuality >= 80) {
@@ -322,7 +319,19 @@ export default function App() {
         marginBottom: '40px' 
       }}>
         <div style={{ borderLeft: '5px solid #4f46e5', paddingLeft: '20px', flexShrink: 0 }}>
-          <h1 style={{ fontSize: '32px', fontWeight: '900', color: '#1e293b', margin: 0 }}>ENGLISH LEARNING<br /><span style={{ color: '#4f46e5' }}>PORTFOLIO</span></h1>
+          {/* --- アップデート箇所：タイトルのフォントデザインを洗練されたスタイルに変更 --- */}
+          <h1 style={{ 
+            fontSize: '32px', 
+            fontWeight: '900', 
+            color: '#1e293b', 
+            margin: 0,
+            fontFamily: "'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif",
+            letterSpacing: '0.06em',
+            lineHeight: '1.15'
+          }}>
+            ENGLISH LEARNING<br />
+            <span style={{ color: '#4f46e5' }}>PORTFOLIO</span>
+          </h1>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px', flex: 1, width: '100%' }}>
@@ -367,7 +376,8 @@ export default function App() {
             <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}>組</span>
             <input style={{ ...inputStyle, width: '60px', padding: '8px 10px', fontSize: '12px' }} value={profile.studentNum || ''} onChange={e => handleProfileUpdate('studentNum', e.target.value)} placeholder="番号" />
             <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}>番</span>
-            <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="名前" />
+            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}>氏名</span>
+            <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
           </div>
         </div>
         
@@ -432,7 +442,7 @@ export default function App() {
                   <Clock size={12} color="#94a3b8" /> 学習時間
                 </span>
                 <span style={{ fontWeight: 'bold', color: '#cbd5e1', marginLeft: '4px' }}>
-                  ※ポモドーロを活用すると効果的です
+                  ※ポモドーロ（25分学習＋5分休憩）を活用すると効果的です
                 </span>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -495,32 +505,33 @@ export default function App() {
       </div>
 
       <section style={cardStyle}>
-        <h2 style={{ ...headerStyle, marginBottom: '20px' }}><Zap size={18} color="#4f46e5" /> 学習状況</h2>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '40px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', gap: '20px' }}>
+          <h2 style={{ ...headerStyle, margin: 0 }}><Zap size={18} color="#4f46e5" /> 学習状況</h2>
+          
+          <div style={{ display: 'flex', gap: '40px', marginLeft: 'auto' }}>
             <div style={{ textAlign: 'center' }}>
-              <h2 style={labelStyle}><Clock size={12} style={{marginRight:4}}/>学習時間</h2>
-              <div style={{ fontSize: '42px', fontWeight: '900', color: '#000' }}>
+              <h2 style={{ ...labelStyle, justifyContent: 'center' }}><Clock size={12} color="#94a3b8" />学習時間</h2>
+              <div style={{ fontSize: '42px', fontWeight: '900', color: '#000', lineHeight: 1 }}>
                 {formatMinutes(stats.total)}<span style={{ fontSize: '16px' }}>{getUnit(stats.total)}</span>
               </div>
             </div>
             <div style={{ textAlign: 'center', borderLeft: '1px solid #f1f5f9', paddingLeft: '40px' }}>
-              <h2 style={labelStyle}><Zap size={12} style={{marginRight:4}}/>継続</h2>
-              <div style={{ fontSize: '42px', fontWeight: '900', color: '#000' }}>
+              <h2 style={{ ...labelStyle, justifyContent: 'center' }}><Zap size={12} color="#94a3b8" />継続</h2>
+              <div style={{ fontSize: '42px', fontWeight: '900', color: '#000', lineHeight: 1 }}>
                 {stats.streak}<span style={{ fontSize: '16px' }}>日</span>
               </div>
             </div>
           </div>
-          <div style={{ flex: 1, paddingLeft: '40px', borderLeft: '1px solid #f1f5f9', minHeight: '60px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#4f46e5', marginBottom: '8px' }}>AIフィードバック</h2>
-            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, fontWeight: 'bold' }}>
-              <Sparkles size={14} color="#4f46e5" style={{display:'inline', marginRight:6, verticalAlign:'text-bottom'}} />
-              {aiFeedbackMessage}
-            </div>
+        </div>
+
+        <div style={{ width: '100%', marginBottom: '25px' }}>
+          <h2 style={labelStyle}><Sparkles size={12} color="#94a3b8" />AIフィードバック</h2>
+          <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, fontWeight: 'bold', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+            {aiFeedbackMessage}
           </div>
         </div>
 
-        <div style={{ marginTop: '25px', paddingTop: '20px', borderTop: '1px dashed #e2e8f0' }}>
+        <div style={{ paddingTop: '20px', borderTop: '1px dashed #e2e8f0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '28px' }}>🏔️</span>
@@ -567,7 +578,7 @@ export default function App() {
           {selectedRange === 'day' ? (
             <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', width: '100%', height: '100%', alignItems: 'center' }}>
               
-              <div style={{ flex: 1, width: '100%', height: isMobile ? '280px' : '100%' }}>
+              <div style={{ flex: 1, minWidth: 0, width: '100%', height: isMobile ? '280px' : '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={isDayEmpty ? 0 : 5} dataKey="value" stroke="none">
@@ -583,17 +594,19 @@ export default function App() {
 
               <div style={{ 
                 flex: 1, 
+                minWidth: 0, 
+                alignSelf: 'stretch',
+                overflowY: 'auto',
                 width: '100%', 
-                padding: isMobile ? '10px 0 0 0' : '0 0 0 20px', 
+                padding: isMobile ? '10px 0 0 0' : '0 5px 0 20px', 
                 display: 'flex', 
                 flexDirection: 'column', 
-                justifyContent: 'center', 
-                gap: '10px' 
+                justifyContent: 'flex-start', 
+                gap: '8px' 
               }}>
-                <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e293b', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e293b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Sparkles size={14} color="#4f46e5" /> スキル別 AIアドバイス
                 </div>
-                {/* --- アップデート箇所：各技能に特化した学習法略のAIフィードバック --- */}
                 {CATEGORIES.map(cat => {
                   const t = stats.skillMap[cat.id] || 0;
                   let msg = '本日は未実施です。少しでも触れてみましょう！';
@@ -606,14 +619,14 @@ export default function App() {
                   }
                   
                   return (
-                    <div key={cat.id} style={{ backgroundColor: '#f8fafc', padding: '10px 14px', borderRadius: '12px', borderLeft: `4px solid ${cat.color}` }}>
+                    <div key={cat.id} style={{ backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '12px', borderLeft: `4px solid ${cat.color}` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                         <div style={{ fontSize: '12px', fontWeight: '900', color: cat.color }}>{cat.label}</div>
                         <div style={{ fontSize: '11px', fontWeight: '900', color: '#1e293b' }}>
                           {formatMinutes(t)}<span style={{ fontSize: '9px', marginLeft: '1px' }}>{getUnit(t)}</span>
                         </div>
                       </div>
-                      <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', lineHeight: 1.3, wordBreak: 'break-word' }}>
                         {msg}
                       </div>
                     </div>
