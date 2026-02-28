@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const firebaseConfig = {
@@ -136,7 +136,7 @@ export default function App() {
   };
 
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!auth.currentUser || !minutes || selectedCats.length === 0) return;
     await addDoc(collection(db, 'logs'), { uid: auth.currentUser.uid, date, minutes: Number(minutes), categories: selectedCats, content, reflection, quality: Number(quality), timestamp: Date.now() });
     setMinutes(30); setSelectedCats([]); setContent(''); setReflection(''); setQuality(80); alert("保存完了！");
@@ -151,14 +151,19 @@ export default function App() {
 
   const cardStyle = { background: 'white', borderRadius: '24px', padding: '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' };
   const inputStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 'bold', boxSizing: 'border-box', outline: 'none' };
-  const labelStyle = { fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'block', marginBottom: '8px' };
+  const labelStyle = { fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' };
   const tabStyle = (r) => ({ padding: '8px 16px', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', border: 'none', backgroundColor: selectedRange === r ? '#4f46e5' : '#f1f5f9', color: selectedRange === r ? 'white' : '#94a3b8' });
 
   const topSkillId = Object.entries(stats.skillMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || '';
   const topSkillLabel = CATEGORIES.find(c => c.id === topSkillId)?.label || 'なし';
 
-  const headerStyle = { fontSize: '16px', fontWeight: '900', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' };
+  const headerStyle = { fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' };
   const unitSmallStyle = { fontSize: '14px', fontWeight: '900' };
+
+  // 本日の日付取得用（西暦と月日を分ける）
+  const todayDate = new Date();
+  const todayYear = todayDate.getFullYear();
+  const todayMonthDay = todayDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
 
   return (
     <div style={{ maxWidth: '950px', margin: '0 auto', padding: '30px 20px', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -168,7 +173,7 @@ export default function App() {
 
       {/* 学習者情報 */}
       <section style={cardStyle}>
-        <h2 style={headerStyle}><User size={18} color="#4f46e5" /> 学習者情報・目標・試験日設定</h2>
+        <h2 style={{ ...headerStyle, marginBottom: '20px' }}><User size={18} color="#4f46e5" /> 学習者情報・目標・試験日設定</h2>
         <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
           <div style={{ flex: '0 0 200px', minWidth: '150px' }}>
             <label style={labelStyle}>あなたの名前</label>
@@ -179,18 +184,28 @@ export default function App() {
             <input style={inputStyle} value={profile.goal} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '10px' }}>
+          {/* 本日の日付：背景色を試験カードと統一 */}
+          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '18px', border: '1px solid #4f46e522', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ fontSize: '10px', fontWeight: '900', color: '#4f46e5', marginBottom: '4px' }}>TODAY</div>
+            <div style={{ fontSize: '10px', fontWeight: '900', color: '#1e293b', opacity: 0.6 }}>{todayYear}</div>
+            <div style={{ fontSize: '12px', fontWeight: '900', color: '#4f46e5' }}>{todayMonthDay}</div>
+          </div>
+
           {['toeic', 'eiken', 'other'].map(k => {
             const color = k === 'toeic' ? '#3b82f6' : k === 'eiken' ? '#ef4444' : '#f59e0b';
             const days = profile[`${k}Date`] ? Math.ceil((new Date(profile[`${k}Date`]) - new Date().setHours(0,0,0,0)) / 86400000) : null;
             return (
               <div key={k} style={{ background: '#f8fafc', padding: '10px', borderRadius: '18px', border: `1px solid ${color}22`, textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', fontWeight: '900', color }}>{k === 'eiken' ? '英検' : k === 'other' ? (<input style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '10px', fontWeight: '900', color, textAlign: 'center', outline: 'none' }} value={profile.otherName} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="OTHER" />) : k.toUpperCase()}</div>
-                <input type="date" style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'center', fontSize: '10px' }} value={profile[`${k}Date`] || ''} onChange={e => handleProfileUpdate(`${k}Date`, e.target.value)} />
-                {days !== null && (
-                  <div style={{ fontSize: '18px', fontWeight: '900' }}>
-                    <span style={unitSmallStyle}>あと</span>{days}<span style={unitSmallStyle}>日</span>
+                <input type="date" style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'center', fontSize: '10px', margin: '4px 0' }} value={profile[`${k}Date`] || ''} onChange={e => handleProfileUpdate(`${k}Date`, e.target.value)} />
+                {days !== null ? (
+                  <div style={{ fontSize: '16px', fontWeight: '900', color: '#1e293b' }}>
+                    <span style={{ fontSize: '10px' }}>あと</span>{days}<span style={{ fontSize: '10px' }}>日</span>
                   </div>
+                ) : (
+                  <div style={{ fontSize: '10px', color: '#cbd5e1', fontWeight: '900' }}>未設定</div>
                 )}
               </div>
             );
@@ -200,33 +215,50 @@ export default function App() {
 
       {/* 登録セクション */}
       <section style={{ ...cardStyle, border: '2px solid #4f46e5' }}>
-        <h2 style={headerStyle}><Clipboard size={18} color="#4f46e5" /> 学習内容を内省する</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <h2 style={headerStyle}><Clipboard size={18} color="#4f46e5" /> 学習内容を内省する</h2>
+          <button onClick={handleSave} style={{ padding: '8px 16px', background: '#4f46e5', color: 'white', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Send size={14} /> 登録
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          {CATEGORIES.map(cat => (
+            <button key={cat.id} type="button" onClick={() => setSelectedCats(prev => prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id])}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', borderRadius: '10px', border: 'none', backgroundColor: selectedCats.includes(cat.id) ? cat.color : '#f1f5f9', color: selectedCats.includes(cat.id) ? 'white' : '#64748b', fontSize: '12px', fontWeight: '900', cursor: 'pointer', transition: 'all 0.2s' }}>
+              {cat.icon} {cat.label}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={handleSave}>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={labelStyle}>学習時間</label>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <div style={{ fontSize: '24px', fontWeight: '900' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
+            <div>
+              <label style={labelStyle}><Clock size={12} color="#94a3b8" /> 学習時間</label>
+              <div style={{ fontSize: '24px', fontWeight: '900', marginBottom: '8px' }}>
                 {minutes}<span style={unitSmallStyle}>分</span>
               </div>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                {CATEGORIES.map(cat => (
-                  <button key={cat.id} type="button" onClick={() => setSelectedCats(prev => prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id])}
-                    style={{ padding: '6px', borderRadius: '8px', border: 'none', backgroundColor: selectedCats.includes(cat.id) ? cat.color : '#f1f5f9', color: selectedCats.includes(cat.id) ? 'white' : '#64748b' }}>{cat.icon}</button>
-                ))}
+              <input type="range" min="1" max="120" style={{ width: '100%' }} value={minutes} onChange={e => setMinutes(e.target.value)} />
+            </div>
+            <div>
+              <label style={labelStyle}><Zap size={12} color="#94a3b8" /> 集中度</label>
+              <div style={{ fontSize: '24px', fontWeight: '900', marginBottom: '8px' }}>
+                {quality}<span style={unitSmallStyle}>%</span>
               </div>
+              <input type="range" min="0" max="100" style={{ width: '100%' }} value={quality} onChange={e => setQuality(e.target.value)} />
             </div>
-            <input type="range" min="1" max="120" style={{ width: '100%' }} value={minutes} onChange={e => setMinutes(e.target.value)} />
           </div>
-          <div style={{ marginBottom: '15px' }}><label style={labelStyle}>勉強内容</label><textarea style={{ ...inputStyle, height: '80px' }} value={content} onChange={e => setContent(e.target.value)} placeholder="例：&#10;・英検長文問題演習&#10;・TEDリスニング" /></div>
-          <div style={{ marginBottom: '15px' }}><label style={labelStyle}>内省</label><textarea style={{ ...inputStyle, height: '80px' }} value={reflection} onChange={e => setReflection(e.target.value)} placeholder="例：&#10;・語彙不足を実感&#10;・リスニング集中維持できた" /></div>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={labelStyle}>集中度</label>
-            <div style={{ fontSize: '24px', fontWeight: '900', marginBottom: '8px' }}>
-              {quality}<span style={unitSmallStyle}>%</span>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '4fr 6fr', gap: '15px' }}>
+            <div>
+              <label style={labelStyle}>勉強内容</label>
+              <textarea style={{ ...inputStyle, height: '100px' }} value={content} onChange={e => setContent(e.target.value)} placeholder="例：&#10;・英検長文問題演習" />
             </div>
-            <input type="range" min="0" max="100" style={{ width: '100%' }} value={quality} onChange={e => setQuality(e.target.value)} />
+            <div>
+              <label style={labelStyle}>内省</label>
+              <textarea style={{ ...inputStyle, height: '100px' }} value={reflection} onChange={e => setReflection(e.target.value)} placeholder="例：&#10;・語彙不足を実感" />
+            </div>
           </div>
-          <button type="submit" style={{ width: '100%', padding: '16px', background: '#4f46e5', color: 'white', borderRadius: '14px', fontWeight: '900', border: 'none', cursor: 'pointer' }}>登録</button>
         </form>
       </section>
 
@@ -236,7 +268,7 @@ export default function App() {
 
       {/* 学習状況 */}
       <section style={cardStyle}>
-        <h2 style={headerStyle}><Zap size={18} color="#4f46e5" /> 学習状況</h2>
+        <h2 style={{ ...headerStyle, marginBottom: '20px' }}><Zap size={18} color="#4f46e5" /> 学習状況</h2>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '40px' }}>
             <div style={{ textAlign: 'center' }}>
@@ -256,7 +288,7 @@ export default function App() {
             <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#4f46e5', marginBottom: '8px' }}>AIフィードバック</h2>
             <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, fontWeight: 'bold' }}>
               <Sparkles size={14} color="#4f46e5" style={{display:'inline', marginRight:6, verticalAlign:'text-bottom'}} />
-              {topSkillLabel !== 'なし' ? `${topSkillLabel}に重点を置いて学習できています。` : '学習データを蓄積すると分析が表示されます。'}
+              {topSkillLabel !== 'なし' ? `${topSkillLabel}に重点を置いて学習できています.` : '学習データを蓄積すると分析が表示されます。'}
             </div>
           </div>
         </div>
@@ -264,7 +296,7 @@ export default function App() {
 
       {/* 学習傾向の分析 */}
       <section style={cardStyle} key={selectedRange}>
-        <h2 style={headerStyle}><Activity size={18} color="#4f46e5" /> 学習傾向の分析</h2>
+        <h2 style={{ ...headerStyle, marginBottom: '20px' }}><Activity size={18} color="#4f46e5" /> 学習傾向の分析</h2>
         <div style={{ height: '280px', width: '100%' }}>
           {dashboardChartData.length > 0 && dashboardChartData.some(d => d.value > 0) ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -307,70 +339,26 @@ export default function App() {
           </div>
         </div>
 
-        {/* リスト表示をカード型に変更 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {logs.map((log) => (
-            <div key={log.id} style={{ 
-              padding: '16px', 
-              backgroundColor: '#f8fafc', 
-              borderRadius: '16px', 
-              border: '1px solid #f1f5f9' 
-            }}>
-              {/* 日付 */}
+            <div key={log.id} style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
               <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '900', marginBottom: '8px' }}>{log.date}</div>
-
-              {/* 勉強内容（項目と内容を同列に配置） */}
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
-                <div style={{ 
-                  backgroundColor: '#e0e7ff', 
-                  color: '#4f46e5', 
-                  padding: '2px 8px', 
-                  borderRadius: '6px', 
-                  fontSize: '11px', 
-                  fontWeight: '900',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {(log.categories || []).join("/")}
-                </div>
+                <div style={{ backgroundColor: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '900', whiteSpace: 'nowrap' }}>{(log.categories || []).join("/")}</div>
                 <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#1e293b', flex: 1 }}>{log.content}</div>
               </div>
-
-              {/* 学習時間と集中度（同列に配置） */}
-              <div style={{ 
-                display: 'flex', 
-                gap: '20px', 
-                paddingTop: '10px', 
-                borderTop: '1px dashed #e2e8f0',
-                alignItems: 'center'
-              }}>
+              <div style={{ display: 'flex', gap: '20px', paddingTop: '10px', borderTop: '1px dashed #e2e8f0', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Clock size={14} color="#64748b" />
-                  <span style={{ fontSize: '14px', fontWeight: '900' }}>
-                    {formatMinutes(log.minutes)}<span style={{ fontSize: '10px' }}>{getUnit(log.minutes)}</span>
-                  </span>
+                  <span style={{ fontSize: '14px', fontWeight: '900' }}>{formatMinutes(log.minutes)}<span style={{ fontSize: '10px' }}>{getUnit(log.minutes)}</span></span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Zap size={14} color="#f59e0b" />
-                  <span style={{ fontSize: '14px', fontWeight: '900' }}>
-                    {log.quality}<span style={{ fontSize: '10px' }}>%</span>
-                  </span>
+                  <span style={{ fontSize: '14px', fontWeight: '900' }}>{log.quality}<span style={{ fontSize: '10px' }}>%</span></span>
                 </div>
               </div>
-
-              {/* 内省 */}
               {log.reflection && (
-                <div style={{ 
-                  marginTop: '10px', 
-                  fontSize: '12px', 
-                  color: '#64748b', 
-                  backgroundColor: 'white', 
-                  padding: '8px', 
-                  borderRadius: '8px',
-                  fontStyle: 'italic',
-                  borderLeft: '3px solid #f1f5f9'
-                }}>
-                  {log.reflection}
-                </div>
+                <div style={{ marginTop: '10px', fontSize: '12px', color: '#64748b', backgroundColor: 'white', padding: '8px', borderRadius: '8px', fontStyle: 'italic', borderLeft: '3px solid #f1f5f9' }}>{log.reflection}</div>
               )}
             </div>
           ))}
