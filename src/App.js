@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const firebaseConfig = {
@@ -23,6 +23,8 @@ const CATEGORIES = [
   { id: 'Listening', label: '聞く', icon: <Headphones size={16}/>, color: '#10b981' },
   { id: 'Speaking', label: '話す', icon: <MessageCircle size={16}/>, color: '#f43f5e' },
   { id: 'Writing', label: '書く', icon: <PenTool size={16}/>, color: '#f59e0b' },
+  { id: 'Vocabulary', label: '単語', icon: <Book size={16}/>, color: '#8b5cf6' },
+  { id: 'ReadingAloud', label: '音読', icon: <Mic size={16}/>, color: '#0ea5e9' },
 ];
 
 const calculateStreak = (allLogs) => {
@@ -66,7 +68,6 @@ const getSliderColor = (val, max) => {
   return '#ef4444'; 
 };
 
-// --- 日替わりの名言データ ---
 const DAILY_QUOTES = [
   {
     en: "The only way to do great work is to love what you do.",
@@ -117,7 +118,8 @@ export default function App() {
   const [logs, setLogs] = useState([]);
   const [profile, setProfile] = useState({ grade: '', classNum: '', studentNum: '', name: '', goal: '', toeicDate: '', eikenDate: '', otherDate: '', otherName: '', other2Date: '', other2Name: '' });
   const [selectedRange, setSelectedRange] = useState('day');
-  const [minutes, setMinutes] = useState(30);
+  
+  const [minutes, setMinutes] = useState(25);
   const [selectedCats, setSelectedCats] = useState([]);
   const [speakingType, setSpeakingType] = useState(''); 
   const [content, setContent] = useState('');
@@ -128,14 +130,13 @@ export default function App() {
 
   const [showPraise, setShowPraise] = useState(false);
   const [praiseText, setPraiseText] = useState("");
+  const [praiseSubText, setPraiseSubText] = useState("保存完了！学習記録が追加されました");
   const [editingLogId, setEditingLogId] = useState(null);
 
-  // --- タイマー用のStateとロジック ---
   const [timerInputMinutes, setTimerInputMinutes] = useState(25);
   const [timerTimeLeft, setTimerTimeLeft] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [laps, setLaps] = useState([]);
-  // --- フルスクリーンモード用State ---
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
@@ -144,11 +145,18 @@ export default function App() {
       interval = setInterval(() => {
         setTimerTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timerTimeLeft === 0) {
+    } else if (isTimerRunning && timerTimeLeft === 0) {
       setIsTimerRunning(false);
+      setMinutes(timerInputMinutes); 
+      setPraiseSubText("タイマー完了！学習時間を反映しました");
+      setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
+      setShowPraise(true);
+      setTimeout(() => {
+        setShowPraise(false);
+      }, 2500);
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning, timerTimeLeft]);
+  }, [isTimerRunning, timerTimeLeft, timerInputMinutes]);
 
   const formatTimerDisplay = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -175,7 +183,6 @@ export default function App() {
   const recordLap = () => {
     setLaps(prev => [...prev, formatTimerDisplay(timerTimeLeft)]);
   };
-  // ------------------------------------
 
   const dailyQuote = useMemo(() => {
     const dayIndex = new Date().getDate() % DAILY_QUOTES.length;
@@ -339,8 +346,9 @@ export default function App() {
       await addDoc(collection(db, 'logs'), logData);
     }
     
-    setMinutes(30); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); 
+    setMinutes(25); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); 
     
+    setPraiseSubText("保存完了！学習記録が追加されました");
     setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
     setShowPraise(true);
     setTimeout(() => {
@@ -365,7 +373,7 @@ export default function App() {
       await deleteDoc(doc(db, 'logs', logId));
       if (editingLogId === logId) {
         setEditingLogId(null);
-        setMinutes(30); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80);
+        setMinutes(25); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80);
       }
     }
   };
@@ -417,7 +425,6 @@ export default function App() {
   }, [logs]);
 
   const headerStyle = { fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' };
-  const unitSmallStyle = { fontSize: '14px', fontWeight: '900' };
 
   const todayDate = new Date();
   const todayYear = todayDate.getFullYear();
@@ -619,18 +626,23 @@ export default function App() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, width: isMobile ? '100%' : 'auto', alignItems: isMobile ? 'flex-start' : 'center' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: isMobile ? 'flex-start' : 'center' }}>
-              {CATEGORIES.map(cat => (
-                <button key={cat.id} type="button" onClick={() => {
-                  if (selectedCats.includes(cat.id)) {
-                    setSelectedCats(prev => prev.filter(c => c !== cat.id));
-                  } else {
-                    if (cat.id === 'Speaking' && !speakingType) setSpeakingType('やり取り');
-                    setSelectedCats(prev => [...prev, cat.id]);
-                  }
-                }}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', borderRadius: '10px', border: 'none', backgroundColor: selectedCats.includes(cat.id) ? cat.color : '#f1f5f9', color: selectedCats.includes(cat.id) ? 'white' : '#64748b', fontSize: '12px', fontWeight: '900', cursor: 'pointer', transition: 'all 0.2s' }}>
-                  {cat.icon} {cat.label}
-                </button>
+              {CATEGORIES.map((cat, index) => (
+                <React.Fragment key={cat.id}>
+                  <button type="button" onClick={() => {
+                    if (selectedCats.includes(cat.id)) {
+                      setSelectedCats(prev => prev.filter(c => c !== cat.id));
+                    } else {
+                      if (cat.id === 'Speaking' && !speakingType) setSpeakingType('やり取り');
+                      setSelectedCats(prev => [...prev, cat.id]);
+                    }
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px', borderRadius: '10px', border: 'none', backgroundColor: selectedCats.includes(cat.id) ? cat.color : '#f1f5f9', color: selectedCats.includes(cat.id) ? 'white' : '#64748b', fontSize: '12px', fontWeight: '900', cursor: 'pointer', transition: 'all 0.2s' }}>
+                    {cat.icon} {cat.label}
+                  </button>
+                  {index === 3 && (
+                    <div style={{ height: '24px', borderRight: '2px dashed #cbd5e1', margin: '0 2px', alignSelf: 'center' }}></div>
+                  )}
+                </React.Fragment>
               ))}
             </div>
             
@@ -651,7 +663,7 @@ export default function App() {
             {editingLogId && (
               <button type="button" onClick={() => {
                 setEditingLogId(null);
-                setMinutes(30); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); setDate(getLocalDateString(new Date()));
+                setMinutes(25); setSelectedCats([]); setSpeakingType(''); setContent(''); setReflection(''); setQuality(80); setDate(getLocalDateString(new Date()));
               }} style={{ padding: '8px 16px', background: '#f1f5f9', color: '#64748b', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center' }}>
                 キャンセル
               </button>
@@ -675,8 +687,8 @@ export default function App() {
                 </span>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ fontSize: '24px', fontWeight: '900', whiteSpace: 'nowrap', minWidth: '70px' }}>
-                  {minutes}<span style={unitSmallStyle}>分</span>
+                <div style={{ fontSize: '24px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '70px' }}>
+                  {minutes}<span style={{ fontSize: '14px', fontWeight: '900', color: '#4f46e5' }}>分</span>
                 </div>
                 <input type="range" min="1" max="120" style={{ width: '100%', accentColor: getSliderColor(minutes, 120), cursor: 'pointer' }} value={minutes} onChange={e => setMinutes(e.target.value)} />
               </div>
@@ -692,8 +704,8 @@ export default function App() {
                 </span>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ fontSize: '24px', fontWeight: '900', whiteSpace: 'nowrap', minWidth: '70px' }}>
-                  {quality}<span style={unitSmallStyle}>%</span>
+                <div style={{ fontSize: '24px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '70px' }}>
+                  {quality}<span style={{ fontSize: '14px', fontWeight: '900', color: '#4f46e5' }}>%</span>
                 </div>
                 <input type="range" min="0" max="100" style={{ width: '100%', accentColor: getSliderColor(quality, 100), cursor: 'pointer' }} value={quality} onChange={e => setQuality(e.target.value)} />
               </div>
@@ -815,7 +827,7 @@ export default function App() {
                     </Pie>
                     {!isDayEmpty && <Tooltip formatter={(value) => `${formatMinutes(value)}${getUnit(value)}`} />}
                     <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: 24, fontWeight: 900, fill: '#1e293b' }}>
-                      {formatMinutes(stats.total)}<tspan dx="2" style={unitSmallStyle}>{getUnit(stats.total)}</tspan>
+                      {formatMinutes(stats.total)}<tspan dx="2" style={{ fontSize: '14px', fontWeight: '900' }}>{getUnit(stats.total)}</tspan>
                     </text>
                   </PieChart>
                 </ResponsiveContainer>
@@ -845,6 +857,8 @@ export default function App() {
                     else if (cat.id === 'Listening') msg = '【聴解のコツ】聞き流しだけでなく、聞こえた音を書き取るディクテーションやシャドーイングが効果的です🎧';
                     else if (cat.id === 'Speaking') msg = '【発話のコツ】学んだ表現を使って独り言を言ったり、実際の会話で積極的にアウトプットしましょう🗣️';
                     else if (cat.id === 'Writing') msg = '【記述のコツ】まずは短い英語日記から。知っている単語を駆使して、毎日書く習慣をつけるのが鍵です✍️';
+                    else if (cat.id === 'Vocabulary') msg = '【単語のコツ】反復学習が定着の鍵です。スキマ時間を活用して何度も復習しましょう📝';
+                    else if (cat.id === 'ReadingAloud') msg = '【音読のコツ】英語の語順のまま理解する力を養えます。声に出してリズムと発音を意識しましょう🗣️';
                   }
                   
                   return (
@@ -984,12 +998,12 @@ export default function App() {
       <footer style={{ textAlign: 'center', padding: '40px 0', color: '#cbd5e1', fontSize: '10px', fontWeight: 'bold' }}>PORTFOLIO © 2026</footer>
 
       {showPraise && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           
           <div style={{ animation: 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards', background: 'white', padding: '30px 50px', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', textAlign: 'center', border: '4px solid #4f46e5' }}>
             <div style={{ fontSize: '48px', marginBottom: '8px' }}>🌟</div>
             <div style={{ fontSize: '28px', fontWeight: '900', color: '#4f46e5' }}>{praiseText}</div>
-            <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold', marginTop: '10px' }}>保存完了！学習記録が追加されました</div>
+            <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold', marginTop: '10px' }}>{praiseSubText}</div>
           </div>
 
           {[...Array(40)].map((_, i) => {
@@ -1019,7 +1033,6 @@ export default function App() {
         </div>
       )}
 
-      {/* --- 追加：全画面表示時のタイマーオーバーレイ --- */}
       {isFullscreen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}>
           <button onClick={() => setIsFullscreen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
