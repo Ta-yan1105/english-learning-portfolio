@@ -158,8 +158,6 @@ export default function App() {
   const topSkillLabel = CATEGORIES.find(c => c.id === topSkillId)?.label || 'なし';
 
   const headerStyle = { fontSize: '16px', fontWeight: '900', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' };
-
-  // 単位用の小フォントスタイル
   const unitSmallStyle = { fontSize: '14px', fontWeight: '900' };
 
   return (
@@ -168,7 +166,7 @@ export default function App() {
         <h1 style={{ fontSize: '32px', fontWeight: '900', color: '#1e293b', margin: 0 }}>ENGLISH LEARNING<br /><span style={{ color: '#4f46e5' }}>PORTFOLIO</span></h1>
       </header>
 
-      {/* 学習者情報：試験日の単位サイズ調整 */}
+      {/* 学習者情報 */}
       <section style={cardStyle}>
         <h2 style={headerStyle}><User size={18} color="#4f46e5" /> 学習者情報・目標・試験日設定</h2>
         <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
@@ -200,7 +198,7 @@ export default function App() {
         </div>
       </section>
 
-      {/* 登録セクション：時間と集中度の単位サイズ調整 */}
+      {/* 登録セクション */}
       <section style={{ ...cardStyle, border: '2px solid #4f46e5' }}>
         <h2 style={headerStyle}><Clipboard size={18} color="#4f46e5" /> 学習内容を内省する</h2>
         <form onSubmit={handleSave}>
@@ -296,31 +294,11 @@ export default function App() {
             </div>
           )}
         </div>
-
-        <div style={{ marginTop: '25px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: '900', marginBottom: '15px', color: '#4f46e5' }}>SKILL BREAKDOWN</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {CATEGORIES.map(cat => {
-              const val = stats.skillMap[cat.id] || 0;
-              return (
-                <div key={cat.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold' }}>
-                    <span>{cat.icon} {cat.label}</span>
-                    <span>{formatMinutes(val)}<span style={{fontSize:'10px'}}>{getUnit(val)}</span></span>
-                  </div>
-                  <div style={{ width: '100%', height: '8px', background: '#f1f5f9', borderRadius: '4px' }}>
-                    <div style={{ width: `${(val / (stats.total || 1)) * 100}%`, height: '100%', background: cat.color, borderRadius: '4px', transition: 'width 0.3s' }}></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
       </section>
 
       {/* 学習ログ一覧 */}
       <section style={cardStyle}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={headerStyle}><List size={18} color="#4f46e5" /> 学習ログ一覧</h2>
           <div style={{ display: 'flex', gap: '6px' }}>
             {['excel', 'gsheet', 'csv'].map(f => (
@@ -328,30 +306,78 @@ export default function App() {
             ))}
           </div>
         </div>
-        <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
-          <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', fontSize: '12px' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #f1f5f9', textAlign: 'left', color: '#94a3b8' }}>
-                <th style={{padding:'10px'}}>日付</th><th>分野</th><th>集中度</th><th>時間</th><th>内容</th><th>内省</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log) => (
-                <tr key={log.id} style={{ borderBottom: '1px solid #f8fafc' }}>
-                  <td style={{ padding: '12px 10px', fontWeight: 'bold' }}>{log.date}</td>
-                  <td style={{ color: '#4f46e5', fontWeight: 'bold' }}>{(log.categories || []).join("/")}</td>
-                  <td>{log.quality}%</td>
-                  <td>{formatMinutes(log.minutes)}{getUnit(log.minutes)}</td>
-                  <td style={{ minWidth: '200px' }}>{log.content}</td>
-                  <td style={{ minWidth: '200px' }}>{log.reflection}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        {/* リスト表示をカード型に変更 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {logs.map((log) => (
+            <div key={log.id} style={{ 
+              padding: '16px', 
+              backgroundColor: '#f8fafc', 
+              borderRadius: '16px', 
+              border: '1px solid #f1f5f9' 
+            }}>
+              {/* 日付 */}
+              <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '900', marginBottom: '8px' }}>{log.date}</div>
+
+              {/* 勉強内容（項目と内容を同列に配置） */}
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
+                <div style={{ 
+                  backgroundColor: '#e0e7ff', 
+                  color: '#4f46e5', 
+                  padding: '2px 8px', 
+                  borderRadius: '6px', 
+                  fontSize: '11px', 
+                  fontWeight: '900',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {(log.categories || []).join("/")}
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#1e293b', flex: 1 }}>{log.content}</div>
+              </div>
+
+              {/* 学習時間と集中度（同列に配置） */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '20px', 
+                paddingTop: '10px', 
+                borderTop: '1px dashed #e2e8f0',
+                alignItems: 'center'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Clock size={14} color="#64748b" />
+                  <span style={{ fontSize: '14px', fontWeight: '900' }}>
+                    {formatMinutes(log.minutes)}<span style={{ fontSize: '10px' }}>{getUnit(log.minutes)}</span>
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Zap size={14} color="#f59e0b" />
+                  <span style={{ fontSize: '14px', fontWeight: '900' }}>
+                    {log.quality}<span style={{ fontSize: '10px' }}>%</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* 内省 */}
+              {log.reflection && (
+                <div style={{ 
+                  marginTop: '10px', 
+                  fontSize: '12px', 
+                  color: '#64748b', 
+                  backgroundColor: 'white', 
+                  padding: '8px', 
+                  borderRadius: '8px',
+                  fontStyle: 'italic',
+                  borderLeft: '3px solid #f1f5f9'
+                }}>
+                  {log.reflection}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
       
       <footer style={{ textAlign: 'center', padding: '40px 0', color: '#cbd5e1', fontSize: '10px', fontWeight: 'bold' }}>PORTFOLIO © 2026</footer>
     </div>
   );
-}　
+}
