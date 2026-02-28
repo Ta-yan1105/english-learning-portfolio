@@ -6,16 +6,16 @@ import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 // ==========================================
-// 【改善反映】Firebase設定の環境変数化
-// 本来は .env ファイルで管理することを推奨します
+// 【セキュリティ改善】APIキーのハードコードを完全削除
+// 必ず .env ファイルを作成し、環境変数を設定してください
 // ==========================================
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAMvD6g3pTmneNad4-h8ZT_rzfZfn3T2YM",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "my-english-log-app.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "my-english-log-app",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "my-english-log-app.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "693893816448",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:693893816448:web:3c6bfac6dc4dffaa8a0665"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
@@ -202,7 +202,6 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
-    // 【改善反映】エラーハンドリングとクリーンアップを追加
     const q = query(collection(db, 'logs'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, 
       (s) => setLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))),
@@ -357,7 +356,6 @@ export default function App() {
       logData.speakingType = null;
     }
 
-    // 【改善反映】エラーハンドリング追加
     try {
       if (editingLogId) {
         await updateDoc(doc(db, 'logs', editingLogId), logData);
@@ -396,7 +394,6 @@ export default function App() {
 
   const handleDelete = async (logId) => {
     if (window.confirm('この学習記録を削除してもよろしいですか？')) {
-      // 【改善反映】エラーハンドリング追加
       try {
         await deleteDoc(doc(db, 'logs', logId));
         if (editingLogId === logId) {
@@ -720,7 +717,7 @@ export default function App() {
                 </span>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '70px' }}>
+                <div style={{ fontSize: '42px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '95px', lineHeight: 1 }}>
                   {minutes}<span style={{...unitSmallStyle, color: '#4f46e5'}}>分</span>
                 </div>
                 <input type="range" min="1" max="120" style={{ width: '100%', accentColor: getSliderColor(minutes, 120), cursor: 'pointer' }} value={minutes} onChange={e => setMinutes(e.target.value)} />
@@ -737,7 +734,7 @@ export default function App() {
                 </span>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '70px' }}>
+                <div style={{ fontSize: '42px', fontWeight: '900', color: '#4f46e5', whiteSpace: 'nowrap', minWidth: '95px', lineHeight: 1 }}>
                   {quality}<span style={{...unitSmallStyle, color: '#4f46e5'}}>%</span>
                 </div>
                 <input type="range" min="0" max="100" style={{ width: '100%', accentColor: getSliderColor(quality, 100), cursor: 'pointer' }} value={quality} onChange={e => setQuality(e.target.value)} />
