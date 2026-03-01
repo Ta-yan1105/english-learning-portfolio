@@ -6,6 +6,10 @@ import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAno
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
+// ▼▼▼ 追加：名言コンポーネントの読み込み ▼▼▼
+import DailyQuote from './DailyQuote';
+// ▲▲▲ 追加：ここまで ▲▲▲
+
 // ==========================================
 // 【セキュリティ改善】APIキーの環境変数化（Create React App版）
 // ==========================================
@@ -475,6 +479,7 @@ export default function App() {
   const isDayEmpty = selectedRange === 'day' && stats.total === 0;
   const pieData = isDayEmpty ? [{ name: 'Empty', value: 1, color: '#f1f5f9' }] : dashboardChartData;
 
+  // ▼ ここからが大元の画面構築（return）です ▼
   return (
     <div style={{ maxWidth: '950px', margin: '0 auto', padding: '30px 20px', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       
@@ -494,6 +499,11 @@ export default function App() {
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
       </div>
 
+      {/* ▼▼▼ 追加：ここに名言コンポーネントを配置 ▼▼▼ */}
+      <DailyQuote />
+      {/* ▲▲▲ 追加：ここまで ▲▲▲ */}
+
+      {/* 以降は既存のUIのままです */}
       <section style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
           
