@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+// 【変更点】Safariのクラッシュ対策のため、initializeAuthと安全な保存方式（browserLocalPersistence等）をインポート
+import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -18,7 +19,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+
+// 【変更点】iPhone(Safari)のiframe内でIndexedDBがブロックされて真っ白になるのを防ぐ処理
+const auth = initializeAuth(app, {
+  persistence: [browserLocalPersistence, inMemoryPersistence]
+});
+
 const db = getFirestore(app);
 
 const CATEGORIES = [
@@ -718,7 +724,6 @@ export default function App() {
               <textarea style={{ ...inputStyle, height: '100px' }} value={content} onChange={e => setContent(e.target.value)} placeholder="例：&#10;・英検長文問題演習" />
               
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                {/* 【変更点】学習内容のスタンプに「音読」を追加しました */}
                 {["教科書", "単語学習", "英検参考書", "TOEIC", "音読"].map(tag => (
                   <button key={tag} type="button" onClick={() => setContent(prev => prev ? prev + ' / ' + tag : tag)} style={{ padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
                     + {tag}
@@ -744,7 +749,6 @@ export default function App() {
               <textarea style={{ ...inputStyle, height: '100px' }} value={reflection} onChange={e => setReflection(e.target.value)} placeholder="例：&#10;・語彙不足を実感" />
               
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                {/* 【変更点】内省のスタンプから「集中できた」を削除しました */}
                 {["単語が難しかった", "眠かった", "新しい表現を覚えた", "楽しくできた"].map(tag => (
                   <button key={tag} type="button" onClick={() => setReflection(prev => prev ? prev + ' / ' + tag : tag)} style={{ padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
                     + {tag}
