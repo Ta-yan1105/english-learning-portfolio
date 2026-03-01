@@ -162,31 +162,42 @@ export default function App() {
   const handleVoiceInput = (setter, fieldName) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('お使いのブラウザは音声入力に対応していません。(Chrome/Safari等をご利用ください)');
+      alert('お使いのブラウザは音声入力に対応していません。(Chrome、Safari、Edgeなどの最新版をご利用ください)');
       return;
     }
 
-    setRecordingField(fieldName);
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'ja-JP';
-    recognition.interimResults = false;
-    recognition.continuous = false;
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.interimResults = false;
+      recognition.continuous = false; // スマホ等での安定性向上のためfalseに設定
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setter(prev => prev ? prev + ' ' + transcript : transcript);
-    };
+      recognition.onstart = () => {
+        setRecordingField(fieldName);
+      };
 
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error", event.error);
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setter(prev => prev ? prev + ' ' + transcript : transcript);
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        if (event.error === 'not-allowed') {
+          alert('マイクの使用が許可されていません。お使いの端末・ブラウザの設定からマイクへのアクセスを許可してください。');
+        }
+        setRecordingField(null);
+      };
+
+      recognition.onend = () => {
+        setRecordingField(null);
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error("Speech recognition start error", error);
       setRecordingField(null);
-    };
-
-    recognition.onend = () => {
-      setRecordingField(null);
-    };
-
-    recognition.start();
+    }
   };
 
   useEffect(() => {
@@ -492,7 +503,7 @@ export default function App() {
             <input style={{ ...inputStyle, width: '45px', flex: '1 1 45px', padding: '8px 6px', fontSize: '12px', textAlign: 'center' }} value={profile.studentNum || ''} onChange={e => handleProfileUpdate('studentNum', e.target.value)} placeholder="番号" />
             <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>番</span>
             <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap', marginLeft: '4px' }}>氏名</span>
-            <input style={{ ...inputStyle, width: '160px', flex: '3 1 160px', padding: '8px 10px', fontSize: '12px' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
+            <input style={{ ...inputStyle, width: '160px', flex: '3 1 160px', padding: '8px 10px', fontSize: '12px', textAlign: 'center' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
           </div>
         </div>
         
@@ -707,7 +718,8 @@ export default function App() {
               <textarea style={{ ...inputStyle, height: '100px' }} value={content} onChange={e => setContent(e.target.value)} placeholder="例：&#10;・英検長文問題演習" />
               
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                {["教科書", "単語学習", "英検参考書", "TOEIC"].map(tag => (
+                {/* 【変更点】学習内容のスタンプに「音読」を追加しました */}
+                {["教科書", "単語学習", "英検参考書", "TOEIC", "音読"].map(tag => (
                   <button key={tag} type="button" onClick={() => setContent(prev => prev ? prev + ' / ' + tag : tag)} style={{ padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
                     + {tag}
                   </button>
@@ -732,7 +744,8 @@ export default function App() {
               <textarea style={{ ...inputStyle, height: '100px' }} value={reflection} onChange={e => setReflection(e.target.value)} placeholder="例：&#10;・語彙不足を実感" />
               
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                {["集中できた", "単語が難しかった", "眠かった", "新しい表現を覚えた", "楽しくできた"].map(tag => (
+                {/* 【変更点】内省のスタンプから「集中できた」を削除しました */}
+                {["単語が難しかった", "眠かった", "新しい表現を覚えた", "楽しくできた"].map(tag => (
                   <button key={tag} type="button" onClick={() => setReflection(prev => prev ? prev + ' / ' + tag : tag)} style={{ padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
                     + {tag}
                   </button>
