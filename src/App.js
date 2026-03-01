@@ -71,51 +71,6 @@ const getSliderColor = (val, max) => {
   return '#ef4444'; 
 };
 
-const DAILY_QUOTES = [
-  {
-    en: "The only way to do great work is to love what you do.",
-    ja: "素晴らしい仕事をする唯一の方法は、自分のしていることを愛することだ。",
-    author: "スティーブ・ジョブズ (Steve Jobs)",
-    bio: "Appleの共同創業者。数々の困難や失敗を乗り越え、革新的な製品で世界を変えた情熱の持ち主。"
-  },
-  {
-    en: "It always seems impossible until it's done.",
-    ja: "何事も達成するまでは不可能に見えるものである。",
-    author: "ネルソン・マンデラ (Nelson Mandela)",
-    bio: "南アフリカ初の黒人大統領。27年間の投獄に耐え、不屈の精神で困難な壁を打ち破った。"
-  },
-  {
-    en: "I have not failed. I've just found 10,000 ways that won't work.",
-    ja: "私は失敗したことがない。ただ、うまくいかない1万の方法を見つけただけだ。",
-    author: "トーマス・エジソン (Thomas Edison)",
-    bio: "発明王。生涯に1,300以上の発明を行い、失敗を恐れず挑戦し続けることの大切さを体現した。"
-  },
-  {
-    en: "Anyone who has never made a mistake has never tried anything new.",
-    ja: "一度も失敗をしたことがない人は、何も新しいことに挑戦したことがない人だ。",
-    author: "アルベルト・アインシュタイン (Albert Einstein)",
-    bio: "理論物理学者。好奇心と探求心を持ち続け、常識を疑うことで歴史的な発見を生み出した。"
-  },
-  {
-    en: "All our dreams can come true, if we have the courage to pursue them.",
-    ja: "追い求める勇気があれば、すべての夢は叶う。",
-    author: "ウォルト・ディズニー (Walt Disney)",
-    bio: "ミッキーマウスの生みの親。幾度の挫折を乗り越え、想像力で世界中に夢と魔法を届けた。"
-  },
-  {
-    en: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-    ja: "成功は決定的ではなく、失敗は致命的ではない。大切なのは続ける勇気だ。",
-    author: "ウィンストン・チャーチル (Winston Churchill)",
-    bio: "イギリスの元首相。困難な時期に国を導き、決して諦めない姿勢と継続する力を説いた。"
-  },
-  {
-    en: "It does not matter how slowly you go as long as you do not stop.",
-    ja: "止まりさえしなければ、どんなにゆっくりでも進めばよい。",
-    author: "孔子 (Confucius)",
-    bio: "古代中国の思想家。日々の小さな積み重ねが、やがて大きな成長や成功に繋がることを教えた。"
-  }
-];
-
 export default function App() {
   const [user, setUser] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -233,11 +188,6 @@ export default function App() {
 
     recognition.start();
   };
-
-  const dailyQuote = useMemo(() => {
-    const dayIndex = new Date().getDate() % DAILY_QUOTES.length;
-    return DAILY_QUOTES[dayIndex];
-  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -534,16 +484,15 @@ export default function App() {
             <h2 style={{ ...headerStyle, margin: 0 }}><User size={18} color="#4f46e5" /> 学習者情報・目標</h2>
           </div>
           
-          {/* 【変更点】各入力欄が狭い画面でもはみ出さず、きれいに折り返して収まるようにflexWrapやmaxWidthを調整 */}
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto', maxWidth: '100%' }}>
-            <input style={{ ...inputStyle, width: '60px', flex: '1 1 60px', padding: '8px 10px', fontSize: '12px' }} value={profile.grade || ''} onChange={e => handleProfileUpdate('grade', e.target.value)} placeholder="学年" />
+            <input style={{ ...inputStyle, width: '45px', flex: '1 1 45px', padding: '8px 6px', fontSize: '12px', textAlign: 'center' }} value={profile.grade || ''} onChange={e => handleProfileUpdate('grade', e.target.value)} placeholder="学年" />
             <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>年</span>
-            <input style={{ ...inputStyle, width: '60px', flex: '1 1 60px', padding: '8px 10px', fontSize: '12px' }} value={profile.classNum || ''} onChange={e => handleProfileUpdate('classNum', e.target.value)} placeholder="組" />
+            <input style={{ ...inputStyle, width: '45px', flex: '1 1 45px', padding: '8px 6px', fontSize: '12px', textAlign: 'center' }} value={profile.classNum || ''} onChange={e => handleProfileUpdate('classNum', e.target.value)} placeholder="組" />
             <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>組</span>
-            <input style={{ ...inputStyle, width: '60px', flex: '1 1 60px', padding: '8px 10px', fontSize: '12px' }} value={profile.studentNum || ''} onChange={e => handleProfileUpdate('studentNum', e.target.value)} placeholder="番号" />
+            <input style={{ ...inputStyle, width: '45px', flex: '1 1 45px', padding: '8px 6px', fontSize: '12px', textAlign: 'center' }} value={profile.studentNum || ''} onChange={e => handleProfileUpdate('studentNum', e.target.value)} placeholder="番号" />
             <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>番</span>
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>氏名</span>
-            <input style={{ ...inputStyle, width: '120px', flex: '2 1 120px', padding: '8px 10px', fontSize: '12px' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
+            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap', marginLeft: '4px' }}>氏名</span>
+            <input style={{ ...inputStyle, width: '160px', flex: '3 1 160px', padding: '8px 10px', fontSize: '12px' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
           </div>
         </div>
         
@@ -553,26 +502,14 @@ export default function App() {
             <input style={{ ...inputStyle, flex: '1 1 200px' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
           </div>
           
-          {/* 【変更点】試験日の入力欄も狭い画面で折り返して収まるように調整 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%', flexWrap: 'wrap' }}>
             <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap', minWidth: '40px' }}>試験日</label>
             <div style={{ display: 'flex', gap: '10px', flex: '1 1 200px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: '900', color: '#ef4444', whiteSpace: 'nowrap' }}>英検</span>
-                <input type="date" style={{ ...inputStyle, width: '130px', flex: '1 1 130px', padding: '10px' }} value={profile.eikenDate || ''} onChange={e => handleProfileUpdate('eikenDate', e.target.value)} />
-                {profile.eikenDate && (
-                  <span style={{ display: 'flex', alignItems: 'baseline', color: '#ef4444', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
-                    <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
-                    <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.eikenDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
-                    <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <input style={{ ...inputStyle, width: '100px', flex: '1 1 100px', padding: '10px', color: '#f59e0b' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="その他の試験" />
+                <input style={{ ...inputStyle, width: '120px', flex: '1 1 120px', padding: '10px' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="試験名を入力" />
                 <input type="date" style={{ ...inputStyle, width: '130px', flex: '1 1 130px', padding: '10px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
                 {profile.otherDate && (
-                  <span style={{ display: 'flex', alignItems: 'baseline', color: '#f59e0b', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
+                  <span style={{ display: 'flex', alignItems: 'baseline', color: '#4f46e5', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
                     <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
                     <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.otherDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
                     <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
@@ -1043,33 +980,6 @@ export default function App() {
               )}
             </div>
           ))}
-        </div>
-      </section>
-
-      <section style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-          <Sparkles size={18} color="#f59e0b" style={{ marginRight: '8px' }} />
-          <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#1e293b', margin: 0 }}>本日の名言 - Daily Quote</h2>
-        </div>
-        <div style={{ textAlign: 'left', padding: '10px 0' }}>
-          <p style={{ 
-            fontSize: isMobile ? '24px' : '30px', 
-            fontWeight: '900', 
-            color: '#4f46e5', 
-            fontStyle: 'italic', 
-            marginBottom: '12px', 
-            lineHeight: 1.4,
-            fontFamily: "'Helvetica Neue', Arial, sans-serif"
-          }}>
-            "{dailyQuote.en}"
-          </p>
-          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', marginBottom: '16px' }}>
-            {dailyQuote.ja}
-          </p>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b', marginBottom: '4px' }}>— {dailyQuote.author}</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', lineHeight: 1.4 }}>{dailyQuote.bio}</div>
-          </div>
         </div>
       </section>
       
