@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { quotesData } from './quotes_data'; // 365日分のデータを読み込み
+import { quotesData } from './quotes_data';
 
 export default function DailyQuote() {
   const [currentQuote, setCurrentQuote] = useState(quotesData[0]);
@@ -9,93 +9,116 @@ export default function DailyQuote() {
     setCurrentQuote(quotesData[randomIndex]);
   };
 
+  if (!currentQuote) return null;
+
   return (
-    <div style={{ width: '100%', padding: '0 0 20px 0', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', marginBottom: '25px', fontFamily: 'sans-serif' }}>
       <div style={{ 
         width: '100%', 
         backgroundColor: '#ffffff', 
         borderRadius: '24px', 
-        boxShadow: '0 10px 30px rgba(0,0,0,0.08)', 
-        overflow: 'hidden',
-        textAlign: 'left'
+        boxShadow: '0 10px 40px rgba(0,0,0,0.06)', 
+        overflow: 'hidden'
       }}>
+        {/* 上部：ヒーローセクション（写真と英文） */}
         <div style={{ 
           display: 'flex', 
-          flexWrap: 'wrap', 
-          backgroundColor: '#1E3A8A', 
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden'
+          flexDirection: 'row', 
+          flexWrap: 'wrap',
+          backgroundColor: '#1e3a8a', 
+          color: 'white'
         }}>
-          <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }}></div>
-
+          {/* 左側：大きくカッコいい写真（★ここを角枠・大サイズに変更しました！） */}
           <div style={{ 
-            flex: '1 1 200px', 
-            padding: '30px', 
+            flex: '1 1 300px', 
+            padding: '40px', 
             display: 'flex', 
             justifyContent: 'center', 
             alignItems: 'center',
-            zIndex: 1
+            background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)'
           }}>
             <img 
               src={currentQuote.image} 
               alt={currentQuote.author} 
               style={{ 
-                width: '180px', 
-                height: '180px', 
-                borderRadius: '50%', 
+                width: '260px',       // 以前より大きく（220px → 260px）
+                height: '260px',      // 以前より大きく
+                borderRadius: '20px', // 丸（50%）から、モダンな角丸スクエアに変更
                 objectFit: 'cover', 
-                border: '6px solid rgba(255, 255, 255, 0.15)', 
-                boxShadow: '0 12px 24px rgba(0,0,0,0.4)'
+                border: '8px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 15px 35px rgba(0,0,0,0.3)'
               }} 
             />
           </div>
 
+          {/* 右側：名言テキスト */}
           <div style={{ 
             flex: '2 1 400px', 
-            padding: '40px 30px', 
+            padding: '40px', 
             display: 'flex', 
-            flexDirection: 'column',
-            justifyContent: 'center',
-            zIndex: 1
+            flexDirection: 'column', 
+            justifyContent: 'center' 
           }}>
-            <h2 style={{ margin: 0, fontSize: '2.2rem', fontStyle: 'italic', lineHeight: '1.3', fontWeight: '900', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+            <h2 style={{ 
+              fontSize: '2.4rem', 
+              fontStyle: 'italic', 
+              margin: '0 0 20px 0', 
+              lineHeight: '1.2',
+              fontWeight: '900',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
+            }}>
               "{currentQuote.english}"
             </h2>
-            <p style={{ margin: '15px 0 0 0', fontSize: '1.2rem', color: '#93C5FD', fontWeight: 'bold' }}>
+            <p style={{ fontSize: '1.2rem', color: '#93c5fd', margin: 0, fontWeight: 'bold' }}>
               — {currentQuote.author}
             </p>
           </div>
         </div>
 
-        <div style={{ padding: '30px' }}>
-          <p style={{ fontSize: '1.3rem', fontWeight: '900', color: '#1e293b', marginBottom: '10px', lineHeight: '1.5' }}>
-            {currentQuote.japanese}
-          </p>
-          <p style={{ fontSize: '1rem', color: '#64748b', marginBottom: '25px', fontWeight: 'bold' }}>
-            💡 {currentQuote.info}
-          </p>
+        {/* 下部：詳細解説エリア */}
+        <div style={{ padding: '35px' }}>
+          <div style={{ marginBottom: '25px' }}>
+            <p style={{ fontSize: '1.4rem', fontWeight: '900', color: '#1e293b', marginBottom: '10px' }}>
+              {currentQuote.japanese}
+            </p>
+            <p style={{ fontSize: '1.1rem', color: '#64748b', fontWeight: 'bold', lineHeight: '1.6' }}>
+              💡 {currentQuote.info}
+            </p>
+          </div>
           
-          <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '16px', borderLeft: '6px solid #4f46e5', fontSize: '1rem', color: '#334155', lineHeight: '1.8', fontWeight: 'bold' }}>
-            {/* エクセルから取得した深い解説を表示 */}
-            {currentQuote.grammar.split('\n').map((line, index) => (
-              <span key={index}>{line}<br /></span>
-            ))}
+          <div style={{ 
+            backgroundColor: '#f8fafc', 
+            padding: '25px', 
+            borderRadius: '16px', 
+            borderLeft: '8px solid #4f46e5',
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+          }}>
+            <h3 style={{ fontSize: '1.1rem', color: '#4f46e5', margin: '0 0 12px 0', fontWeight: '900' }}>【文法解説】</h3>
+            <p style={{ 
+              fontSize: '1.1rem', 
+              color: '#334155', 
+              lineHeight: '1.8', 
+              margin: 0, 
+              whiteSpace: 'pre-wrap',
+              fontWeight: '500'
+            }}>
+              {currentQuote.grammar}
+            </p>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '35px' }}>
             <button 
               onClick={drawRandomQuote} 
               style={{ 
-                padding: '16px 32px', 
-                fontSize: '1.1rem', 
+                padding: '18px 45px', 
+                fontSize: '1.2rem', 
                 fontWeight: '900', 
                 color: 'white', 
                 backgroundColor: '#4f46e5', 
                 border: 'none', 
                 borderRadius: '50px', 
                 cursor: 'pointer',
-                boxShadow: '0 8px 15px rgba(79, 70, 229, 0.3)'
+                boxShadow: '0 8px 20px rgba(79, 70, 229, 0.3)'
               }}
             >
               ✨ 次の名言
