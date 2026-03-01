@@ -9,12 +9,12 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 // 【セキュリティ改善】APIキーの環境変数化（Create React App版）
 // ==========================================
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyAMvD6g3pTmneNad4-h8ZT_rzfZfn3T2YM",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "my-english-log-app.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "my-english-log-app",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "my-english-log-app.firebasestorage.app",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "693893816448",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:693893816448:web:3c6bfac6dc4dffaa8a0665"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
@@ -503,8 +503,7 @@ export default function App() {
   const unitSmallStyle = { fontSize: '14px', fontWeight: '900' };
 
   const todayDate = new Date();
-  const todayYear = todayDate.getFullYear();
-  const todayMonthDay = todayDate.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', weekday: 'short' });
+  const todayStringJP = `${todayDate.getFullYear()}年${todayDate.getMonth() + 1}月${todayDate.getDate()}日`;
 
   const isDayEmpty = selectedRange === 'day' && stats.total === 0;
   const pieData = isDayEmpty ? [{ name: 'Empty', value: 1, color: '#f1f5f9' }] : dashboardChartData;
@@ -524,63 +523,16 @@ export default function App() {
         }
       `}</style>
 
-      <header style={{ 
-        display: 'flex', 
-        flexDirection: isMobile ? 'column' : 'row', 
-        justifyContent: 'flex-start', 
-        alignItems: isMobile ? 'flex-start' : 'center', 
-        gap: isMobile ? '20px' : '30px', 
-        marginBottom: '40px' 
-      }}>
-        <div style={{ borderLeft: '5px solid #4f46e5', paddingLeft: '20px', flexShrink: 0 }}>
-          <h1 style={{ 
-            fontSize: '32px', 
-            fontWeight: '900', 
-            color: '#1e293b', 
-            margin: 0,
-            fontFamily: "'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif",
-            letterSpacing: '0.06em',
-            lineHeight: '1.15'
-          }}>
-            ENGLISH LEARNING<br />
-            <span style={{ color: '#4f46e5' }}>PORTFOLIO</span>
-          </h1>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '10px', flex: 1, width: '100%' }}>
-          <div style={{ background: 'white', padding: '10px', borderRadius: '18px', border: '1px solid #4f46e522', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-            <div style={{ fontSize: '10px', fontWeight: '900', color: '#4f46e5', marginBottom: '4px' }}>TODAY</div>
-            <div style={{ fontSize: '10px', fontWeight: '900', color: '#1e293b', opacity: 0.6 }}>{todayYear}年</div>
-            <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e293b' }}>{todayMonthDay}</div>
-          </div>
-
-          {['eiken', 'other'].map(k => {
-            const color = k === 'eiken' ? '#ef4444' : '#f59e0b';
-            const days = profile[`${k}Date`] ? Math.ceil((new Date(profile[`${k}Date`]) - new Date().setHours(0,0,0,0)) / 86400000) : null;
-            return (
-              <div key={k} style={{ background: 'white', padding: '10px', borderRadius: '18px', border: `1px solid ${color}22`, textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-                <div style={{ fontSize: '10px', fontWeight: '900', color }}>
-                  {k === 'eiken' ? '英検' : (
-                    <input style={{ border: 'none', background: 'transparent', width: '100%', fontSize: '10px', fontWeight: '900', color, textAlign: 'center', outline: 'none' }} value={profile[`${k}Name`] || ''} onChange={e => handleProfileUpdate(`${k}Name`, e.target.value)} placeholder="OTHER" />
-                  )}
-                </div>
-                <input type="date" style={{ width: '100%', border: 'none', background: 'transparent', textAlign: 'center', fontSize: '10px', margin: '4px 0' }} value={profile[`${k}Date`] || ''} onChange={e => handleProfileUpdate(`${k}Date`, e.target.value)} />
-                {days !== null ? (
-                  <div style={{ fontSize: '16px', fontWeight: '900', color: '#ef4444' }}>
-                    <span style={{ fontSize: '10px', fontWeight: '900' }}>残り</span>{days}<span style={{ fontSize: '10px', fontWeight: '900' }}>日!!</span>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: '10px', color: '#cbd5e1', fontWeight: '900' }}>未設定</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </header>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
+      </div>
 
       <section style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '30px' }}>
-          <h2 style={{ ...headerStyle, margin: 0 }}><User size={18} color="#4f46e5" /> 学習者情報・目標</h2>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h2 style={{ ...headerStyle, margin: 0 }}><User size={18} color="#4f46e5" /> 学習者情報・目標</h2>
+          </div>
           
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' }}>
             <input style={{ ...inputStyle, width: '60px', padding: '8px 10px', fontSize: '12px' }} value={profile.grade || ''} onChange={e => handleProfileUpdate('grade', e.target.value)} placeholder="学年" />
@@ -594,35 +546,39 @@ export default function App() {
           </div>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
-          <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap' }}>目標</label>
-          <input style={{ ...inputStyle, flex: 1 }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
-        </div>
-      </section>
-
-      <section style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
-          <Sparkles size={18} color="#f59e0b" style={{ marginRight: '8px' }} />
-          <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#1e293b', margin: 0 }}>本日の名言 - Daily Quote</h2>
-        </div>
-        <div style={{ textAlign: 'left', padding: '10px 0' }}>
-          <p style={{ 
-            fontSize: isMobile ? '24px' : '30px', 
-            fontWeight: '900', 
-            color: '#4f46e5', 
-            fontStyle: 'italic', 
-            marginBottom: '12px', 
-            lineHeight: 1.4,
-            fontFamily: "'Helvetica Neue', Arial, sans-serif"
-          }}>
-            "{dailyQuote.en}"
-          </p>
-          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', marginBottom: '16px' }}>
-            {dailyQuote.ja}
-          </p>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b', marginBottom: '4px' }}>— {dailyQuote.author}</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', lineHeight: 1.4 }}>{dailyQuote.bio}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
+            <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap', minWidth: '40px' }}>目標</label>
+            <input style={{ ...inputStyle, flex: 1 }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
+          </div>
+          
+          {/* 【変更点】目標の下に「テスト・資格試験日」を追加し、残日数を表示 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
+            <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap', minWidth: '40px' }}>試験日</label>
+            <div style={{ display: 'flex', gap: '10px', flex: 1, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '900', color: '#ef4444' }}>英検</span>
+                <input type="date" style={{ ...inputStyle, width: '130px', padding: '10px' }} value={profile.eikenDate || ''} onChange={e => handleProfileUpdate('eikenDate', e.target.value)} />
+                {profile.eikenDate && (
+                  <span style={{ display: 'flex', alignItems: 'baseline', color: '#ef4444', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
+                    <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
+                    <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.eikenDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
+                    <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <input style={{ ...inputStyle, width: '100px', padding: '10px', color: '#f59e0b' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="その他の試験" />
+                <input type="date" style={{ ...inputStyle, width: '130px', padding: '10px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
+                {profile.otherDate && (
+                  <span style={{ display: 'flex', alignItems: 'baseline', color: '#f59e0b', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
+                    <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
+                    <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.otherDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
+                    <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -782,7 +738,7 @@ export default function App() {
                   <Zap size={12} color="#94a3b8" /> 集中度
                 </span>
                 <span style={{ fontWeight: 'bold', color: '#cbd5e1', marginLeft: '4px' }}>
-                  ※学習において集中力は非常に大切です
+                  ※集中できたかをメタ認知することが学習の質を高めます
                 </span>
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -872,7 +828,6 @@ export default function App() {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              {/* 【変更箇所】 歩数の数値を48pxに拡大し、lineHeight: 1を追加して目立たせました */}
               <span style={{ fontSize: '48px', fontWeight: '900', color: '#10b981', lineHeight: 1 }}>{Math.floor(stats.total / 60)}</span>
               <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}> / 3,015歩</span>
             </div>
@@ -1087,6 +1042,33 @@ export default function App() {
               )}
             </div>
           ))}
+        </div>
+      </section>
+
+      <section style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+          <Sparkles size={18} color="#f59e0b" style={{ marginRight: '8px' }} />
+          <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#1e293b', margin: 0 }}>本日の名言 - Daily Quote</h2>
+        </div>
+        <div style={{ textAlign: 'left', padding: '10px 0' }}>
+          <p style={{ 
+            fontSize: isMobile ? '24px' : '30px', 
+            fontWeight: '900', 
+            color: '#4f46e5', 
+            fontStyle: 'italic', 
+            marginBottom: '12px', 
+            lineHeight: 1.4,
+            fontFamily: "'Helvetica Neue', Arial, sans-serif"
+          }}>
+            "{dailyQuote.en}"
+          </p>
+          <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', marginBottom: '16px' }}>
+            {dailyQuote.ja}
+          </p>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b', marginBottom: '4px' }}>— {dailyQuote.author}</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', lineHeight: 1.4 }}>{dailyQuote.bio}</div>
+          </div>
         </div>
       </section>
       
