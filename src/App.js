@@ -528,37 +528,38 @@ export default function App() {
       </div>
 
       <section style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '30px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h2 style={{ ...headerStyle, margin: 0 }}><User size={18} color="#4f46e5" /> 学習者情報・目標</h2>
           </div>
           
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' }}>
-            <input style={{ ...inputStyle, width: '60px', padding: '8px 10px', fontSize: '12px' }} value={profile.grade || ''} onChange={e => handleProfileUpdate('grade', e.target.value)} placeholder="学年" />
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}>年</span>
-            <input style={{ ...inputStyle, width: '60px', padding: '8px 10px', fontSize: '12px' }} value={profile.classNum || ''} onChange={e => handleProfileUpdate('classNum', e.target.value)} placeholder="組" />
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}>組</span>
-            <input style={{ ...inputStyle, width: '60px', padding: '8px 10px', fontSize: '12px' }} value={profile.studentNum || ''} onChange={e => handleProfileUpdate('studentNum', e.target.value)} placeholder="番号" />
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}>番</span>
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}>氏名</span>
-            <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
+          {/* 【変更点】各入力欄が狭い画面でもはみ出さず、きれいに折り返して収まるようにflexWrapやmaxWidthを調整 */}
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto', maxWidth: '100%' }}>
+            <input style={{ ...inputStyle, width: '60px', flex: '1 1 60px', padding: '8px 10px', fontSize: '12px' }} value={profile.grade || ''} onChange={e => handleProfileUpdate('grade', e.target.value)} placeholder="学年" />
+            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>年</span>
+            <input style={{ ...inputStyle, width: '60px', flex: '1 1 60px', padding: '8px 10px', fontSize: '12px' }} value={profile.classNum || ''} onChange={e => handleProfileUpdate('classNum', e.target.value)} placeholder="組" />
+            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>組</span>
+            <input style={{ ...inputStyle, width: '60px', flex: '1 1 60px', padding: '8px 10px', fontSize: '12px' }} value={profile.studentNum || ''} onChange={e => handleProfileUpdate('studentNum', e.target.value)} placeholder="番号" />
+            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>番</span>
+            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>氏名</span>
+            <input style={{ ...inputStyle, width: '120px', flex: '2 1 120px', padding: '8px 10px', fontSize: '12px' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
           </div>
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%', flexWrap: 'wrap' }}>
             <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap', minWidth: '40px' }}>目標</label>
-            <input style={{ ...inputStyle, flex: 1 }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
+            <input style={{ ...inputStyle, flex: '1 1 200px' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
           </div>
           
-          {/* 【変更点】目標の下に「テスト・資格試験日」を追加し、残日数を表示 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%' }}>
+          {/* 【変更点】試験日の入力欄も狭い画面で折り返して収まるように調整 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%', flexWrap: 'wrap' }}>
             <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap', minWidth: '40px' }}>試験日</label>
-            <div style={{ display: 'flex', gap: '10px', flex: 1, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: '900', color: '#ef4444' }}>英検</span>
-                <input type="date" style={{ ...inputStyle, width: '130px', padding: '10px' }} value={profile.eikenDate || ''} onChange={e => handleProfileUpdate('eikenDate', e.target.value)} />
+            <div style={{ display: 'flex', gap: '10px', flex: '1 1 200px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', fontWeight: '900', color: '#ef4444', whiteSpace: 'nowrap' }}>英検</span>
+                <input type="date" style={{ ...inputStyle, width: '130px', flex: '1 1 130px', padding: '10px' }} value={profile.eikenDate || ''} onChange={e => handleProfileUpdate('eikenDate', e.target.value)} />
                 {profile.eikenDate && (
                   <span style={{ display: 'flex', alignItems: 'baseline', color: '#ef4444', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
                     <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
@@ -567,9 +568,9 @@ export default function App() {
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <input style={{ ...inputStyle, width: '100px', padding: '10px', color: '#f59e0b' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="その他の試験" />
-                <input type="date" style={{ ...inputStyle, width: '130px', padding: '10px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <input style={{ ...inputStyle, width: '100px', flex: '1 1 100px', padding: '10px', color: '#f59e0b' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="その他の試験" />
+                <input type="date" style={{ ...inputStyle, width: '130px', flex: '1 1 130px', padding: '10px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
                 {profile.otherDate && (
                   <span style={{ display: 'flex', alignItems: 'baseline', color: '#f59e0b', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
                     <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
