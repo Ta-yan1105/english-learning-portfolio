@@ -128,9 +128,9 @@ export default function App() {
       } else {
         await signInWithPopup(auth, provider);
       }
-    } catch (error) {
+   } catch (error) {
       console.error("ログインエラー:", error);
-      alert("ログイン処理に失敗しました。通信環境等をご確認ください。");
+      alert(`ログインエラーが発生しました。\n原因: ${error.message}\nコード: ${error.code}`);
     }
   };
   // ▲▲▲ 追加：ここまで ▲▲▲
