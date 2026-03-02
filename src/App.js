@@ -110,6 +110,20 @@ export default function App() {
   // 音声入力の対象フィールドを管理
   const [recordingField, setRecordingField] = useState(null);
 
+  // ▼▼▼ 追加：アプリ全体を全画面表示する関数 ▼▼▼
+  const toggleAppFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`全画面表示エラー: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+  // ▲▲▲ 追加：ここまで ▲▲▲
+
   useEffect(() => {
     let interval = null;
     if (isTimerRunning && timerTimeLeft > 0) {
@@ -495,9 +509,33 @@ export default function App() {
         }
       `}</style>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+      {/* ▼▼▼ 変更：日付の横に全画面表示ボタンと注意書きを配置 ▼▼▼ */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <button
+            onClick={toggleAppFullScreen}
+            style={{
+              backgroundColor: '#4f46e5',
+              color: '#ffffff',
+              border: 'none',
+              padding: '8px 24px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              borderRadius: '9999px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>📱</span> アプリを全画面で開く
+          </button>
+          <span style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', fontWeight: 'bold' }}>※うまく表示されない場合はこちらをタップしてください</span>
+        </div>
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
       </div>
+      {/* ▲▲▲ 変更：ここまで ▲▲▲ */}
 
       {/* ▼▼▼ 追加：ここに名言コンポーネントを配置 ▼▼▼ */}
       <DailyQuote />
