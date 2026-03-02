@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-// ▼▼▼ 変更：ログイン機能に必要なモジュール（GoogleAuthProvider, signInWithPopup, linkWithPopup）を追加 ▼▼▼
-import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup } from 'firebase/auth';
+// ▼▼▼ 変更：ポップアップに必要な部品（browserPopupRedirectResolver）を追加でインポート ▼▼▼
+import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup, browserPopupRedirectResolver } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -19,9 +19,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+// ▼▼▼ 変更：初期化時にポップアップ用の設定（popupRedirectResolver）を追加 ▼▼▼
 const auth = initializeAuth(app, {
-  persistence: [browserLocalPersistence, inMemoryPersistence]
+  persistence: [browserLocalPersistence, inMemoryPersistence],
+  popupRedirectResolver: browserPopupRedirectResolver
 });
+// ▲▲▲ 変更：ここまで ▲▲▲
 
 const db = getFirestore(app);
 
@@ -107,8 +110,13 @@ export default function App() {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
 
-  // ▼▼▼ 追加：Googleログイン処理（匿名データを保持したまま同期） ▼▼▼
   const handleGoogleLogin = async () => {
+    // 埋め込み（iframe）環境で実行された場合は、エラーを出さずに青いボタンを促す
+    if (window !== window.parent) {
+      alert("※セキュリティ制限のため、この埋め込み画面のままではログインできません。\n\nまずは上の青い「📱 アプリを全画面で開く」ボタンを押し、移動先のページで再度ログインをお試しください！");
+      return;
+    }
+
     const provider = new GoogleAuthProvider();
     try {
       if (auth.currentUser && auth.currentUser.isAnonymous) {
@@ -128,12 +136,11 @@ export default function App() {
       } else {
         await signInWithPopup(auth, provider);
       }
-   } catch (error) {
+    } catch (error) {
       console.error("ログインエラー:", error);
-      alert(`ログインエラーが発生しました。\n原因: ${error.message}\nコード: ${error.code}`);
+      alert(`ログイン処理に失敗しました。\n通信環境をご確認ください。\n(エラー: ${error.code})`);
     }
   };
-  // ▲▲▲ 追加：ここまで ▲▲▲
 
   useEffect(() => {
     let interval = null;
@@ -517,7 +524,6 @@ export default function App() {
         }
       `}</style>
 
-      {/* ▼▼▼ 変更：日付の横にログインボタンを綺麗に配置（レイアウト崩れ防止） ▼▼▼ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <button
@@ -553,7 +559,6 @@ export default function App() {
           <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
         </div>
       </div>
-      {/* ▲▲▲ 変更：ここまで ▲▲▲ */}
 
       <DailyQuote />
 
