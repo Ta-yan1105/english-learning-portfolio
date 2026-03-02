@@ -110,9 +110,9 @@ export default function App() {
   // 音声入力の対象フィールドを管理
   const [recordingField, setRecordingField] = useState(null);
 
-  // ▼▼▼ 変更：アプリ全体を全画面表示するボタンを押した時の処理（指定URLへ遷移） ▼▼▼
-  const toggleAppFullScreen = () => {
-    window.location.href = 'https://app.english-t24.com';
+  // ▼▼▼ 変更：指定のサイトURLへ移動する処理 ▼▼▼
+  const handleNavigateToApp = () => {
+    window.location.href = 'https://app.english-t24.com/';
   };
   // ▲▲▲ 変更：ここまで ▲▲▲
 
@@ -501,11 +501,11 @@ export default function App() {
         }
       `}</style>
 
-      {/* ▼▼▼ 日付の横に全画面表示ボタンと注意書きを配置 ▼▼▼ */}
+      {/* ▼▼▼ 日付の横にサイト遷移ボタンと注意書きを配置 ▼▼▼ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <button
-            onClick={toggleAppFullScreen}
+            onClick={handleNavigateToApp}
             style={{
               backgroundColor: '#4f46e5',
               color: '#ffffff',
