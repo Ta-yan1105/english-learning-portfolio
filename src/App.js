@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup, browserPopupRedirectResolver } from 'firebase/auth';
+// ▼▼▼ 変更：不要なログイン機能の部品を削除しました ▼▼▼
+import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -18,9 +19,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+// ▼▼▼ 変更：一番安定していた初期化設定に戻しました ▼▼▼
 const auth = initializeAuth(app, {
-  persistence: [browserLocalPersistence, inMemoryPersistence],
-  popupRedirectResolver: browserPopupRedirectResolver
+  persistence: [browserLocalPersistence, inMemoryPersistence]
 });
 
 const db = getFirestore(app);
@@ -106,47 +107,6 @@ export default function App() {
   const handleNavigateToApp = () => {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
-
-  // ▼▼▼ 変更：エラー時にユーザーへ設定解除の案内を出す処理を追加 ▼▼▼
-  const handleGoogleLogin = async () => {
-    if (window !== window.parent) {
-      alert("※セキュリティ制限のため、この埋め込み画面のままではログインできません。\n\nまずは上の青い「📱 アプリを全画面で開く」ボタンを押し、移動先のページで再度ログインをお試しください！");
-      return;
-    }
-
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' }); // アカウント選択を明示
-
-    try {
-      if (auth.currentUser && auth.currentUser.isAnonymous) {
-        try {
-          await linkWithPopup(auth.currentUser, provider);
-          alert("現在の学習データをGoogleアカウントに紐づけました。他の端末でも同期されます！");
-        } catch (linkError) {
-          if (linkError.code === 'auth/credential-already-in-use') {
-            await signInWithPopup(auth, provider);
-            alert("既存のGoogleアカウントでログインしました。データが同期されます。");
-          } else if (linkError.code === 'auth/popup-blocked') {
-            // ブロックされた場合の親切な案内
-            alert("【Safariのポップアップブロック機能が作動しました】\n\niPhoneの「設定」アプリを開き、「Safari」の中にある「ポップアップブロック」をオフ（白）にしてから再度お試しください。");
-          } else {
-            throw linkError;
-          }
-        }
-      } else {
-        await signInWithPopup(auth, provider);
-      }
-    } catch (error) {
-      if (error.code === 'auth/popup-blocked') {
-        // ブロックされた場合の親切な案内
-        alert("【Safariのポップアップブロック機能が作動しました】\n\niPhoneの「設定」アプリを開き、「Safari」の中にある「ポップアップブロック」をオフ（白）にしてから再度お試しください。");
-      } else {
-        console.error("ログインエラー:", error);
-        alert(`ログイン処理に失敗しました。\n通信環境をご確認ください。\n(エラー: ${error.message})`);
-      }
-    }
-  };
-  // ▲▲▲ 変更：ここまで ▲▲▲
 
   useEffect(() => {
     let interval = null;
@@ -530,6 +490,7 @@ export default function App() {
         }
       `}</style>
 
+      {/* ▼▼▼ 変更：同期(ログイン)ボタンの記述を完全に削除しました ▼▼▼ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <button
@@ -553,18 +514,9 @@ export default function App() {
           </button>
           <span style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', fontWeight: 'bold' }}>※はじめに、こちらのボタンをタップしてください</span>
         </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {user?.isAnonymous ? (
-            <button onClick={handleGoogleLogin} style={{ padding: '6px 12px', background: 'white', color: '#4f46e5', border: '1px solid #4f46e5', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-              端末間で同期 (ログイン)
-            </button>
-          ) : (
-            <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#10b981', backgroundColor: '#d1fae5', padding: '4px 8px', borderRadius: '6px' }}>同期中 ✓</span>
-          )}
-          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
-        </div>
+        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
       </div>
+      {/* ▲▲▲ 変更：ここまで ▲▲▲ */}
 
       <DailyQuote />
 
