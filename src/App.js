@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-// ▼▼▼ 変更：不要なログイン機能の部品を削除しました ▼▼▼
 import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -19,7 +18,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// ▼▼▼ 変更：一番安定していた初期化設定に戻しました ▼▼▼
 const auth = initializeAuth(app, {
   persistence: [browserLocalPersistence, inMemoryPersistence]
 });
@@ -108,6 +106,91 @@ export default function App() {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
 
+  // ▼▼▼ 追加：タイマー機能のUX改善（UI変更なし） ▼▼▼
+  const wakeLockRef = useRef(null);
+  const originalTitleRef = useRef(typeof document !== 'undefined' ? document.title : 'English Learning Portfolio');
+
+  // 1. タブに残り時間を表示する処理
+  useEffect(() => {
+    if (isTimerRunning) {
+      const m = Math.floor(timerTimeLeft / 60).toString().padStart(2, '0');
+      const s = (timerTimeLeft % 60).toString().padStart(2, '0');
+      document.title = `(${m}:${s}) ${originalTitleRef.current}`;
+    } else {
+      document.title = originalTitleRef.current;
+    }
+  }, [isTimerRunning, timerTimeLeft]);
+
+  // 2. スマホの画面スリープ（消灯）を防止する処理
+  useEffect(() => {
+    const manageWakeLock = async () => {
+      if (isTimerRunning) {
+        if ('wakeLock' in navigator) {
+          try {
+            wakeLockRef.current = await navigator.wakeLock.request('screen');
+          } catch (err) {
+            console.error('WakeLock Error:', err);
+          }
+        }
+      } else {
+        if (wakeLockRef.current !== null) {
+          try {
+            await wakeLockRef.current.release();
+            wakeLockRef.current = null;
+          } catch (err) {
+            console.error('WakeLock Release Error:', err);
+          }
+        }
+      }
+    };
+    manageWakeLock();
+    
+    return () => {
+      if (wakeLockRef.current !== null) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
+  }, [isTimerRunning]);
+
+  // 3. 外部ファイル不要で鳴らす「ピロン♪」というアラーム音生成処理
+  const playAlarmSound = () => {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    try {
+      const ctx = new AudioContext();
+      
+      // 1音目（低めの音）
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, ctx.currentTime); // A5
+      gain1.gain.setValueAtTime(0, ctx.currentTime);
+      gain1.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
+      gain1.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.15);
+
+      // 2音目（高めの音）
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.1); // E6
+      gain2.gain.setValueAtTime(0, ctx.currentTime + 0.1);
+      gain2.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+      osc2.start(ctx.currentTime + 0.1);
+      osc2.stop(ctx.currentTime + 0.6);
+    } catch (e) {
+      console.error("Audio play error", e);
+    }
+  };
+  // ▲▲▲ ここまで ▲▲▲
+
   useEffect(() => {
     let interval = null;
     if (isTimerRunning && timerTimeLeft > 0) {
@@ -120,6 +203,7 @@ export default function App() {
       setPraiseSubText("タイマー完了！学習時間を反映しました");
       setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
       setShowPraise(true);
+      playAlarmSound(); // ← 変更：ここでアラーム音を鳴らします
       setTimeout(() => {
         setShowPraise(false);
       }, 2500);
@@ -490,7 +574,6 @@ export default function App() {
         }
       `}</style>
 
-      {/* ▼▼▼ 変更：同期(ログイン)ボタンの記述を完全に削除しました ▼▼▼ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <button
@@ -516,11 +599,9 @@ export default function App() {
         </div>
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
       </div>
-      {/* ▲▲▲ 変更：ここまで ▲▲▲ */}
 
       <DailyQuote />
 
-      {/* 以降は既存のUIのままです */}
       <section style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
           
