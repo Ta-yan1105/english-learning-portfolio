@@ -531,7 +531,8 @@ export default function App() {
           >
             <span style={{ fontSize: '16px' }}>📱</span> アプリを全画面で開く
           </button>
-          <span style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', fontWeight: 'bold' }}>※うまく表示されない場合はこちらをタップしてください</span>
+          {/* ▼▼▼ この1行のテキストのみ変更しました ▼▼▼ */}
+          <span style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', fontWeight: 'bold' }}>※はじめに、こちらのボタンをタップしてください</span>
         </div>
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
       </div>
