@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
 import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
@@ -106,9 +106,17 @@ export default function App() {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
 
-  // ▼▼▼ 追加：タイマー機能のUX改善（UI変更なし） ▼▼▼
   const wakeLockRef = useRef(null);
   const originalTitleRef = useRef(typeof document !== 'undefined' ? document.title : 'English Learning Portfolio');
+  
+  // ▼▼▼ 追加：絶対時間補正用のRef ▼▼▼
+  const expectedEndTimeRef = useRef(null);
+  const timerTimeLeftRef = useRef(timerTimeLeft);
+
+  // 常に最新の残り時間をRefに保持（状態のズレを防ぐため）
+  useEffect(() => {
+    timerTimeLeftRef.current = timerTimeLeft;
+  }, [timerTimeLeft]);
 
   // 1. タブに残り時間を表示する処理
   useEffect(() => {
@@ -159,27 +167,24 @@ export default function App() {
     if (!AudioContext) return;
     try {
       const ctx = new AudioContext();
-      
-      // 1音目（低めの音）
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.connect(gain1);
       gain1.connect(ctx.destination);
       osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(880, ctx.currentTime); // A5
+      osc1.frequency.setValueAtTime(880, ctx.currentTime);
       gain1.gain.setValueAtTime(0, ctx.currentTime);
       gain1.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
       gain1.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
       osc1.start(ctx.currentTime);
       osc1.stop(ctx.currentTime + 0.15);
 
-      // 2音目（高めの音）
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.connect(gain2);
       gain2.connect(ctx.destination);
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.1); // E6
+      osc2.frequency.setValueAtTime(1318.51, ctx.currentTime + 0.1);
       gain2.gain.setValueAtTime(0, ctx.currentTime + 0.1);
       gain2.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.15);
       gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
@@ -189,27 +194,65 @@ export default function App() {
       console.error("Audio play error", e);
     }
   };
-  // ▲▲▲ ここまで ▲▲▲
 
+  // ▼▼▼ 変更：タイマーのトグル（絶対時間の基準をセット） ▼▼▼
+  const toggleTimer = useCallback(() => {
+    setIsTimerRunning(prev => {
+      if (!prev) {
+        // スタートした瞬間の「目標終了時刻（絶対時間）」を計算して保存
+        expectedEndTimeRef.current = Date.now() + timerTimeLeftRef.current * 1000;
+      }
+      return !prev;
+    });
+  }, []);
+
+  // ▼▼▼ 変更：キーボードショートカットの監視 ▼▼▼
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // 入力フォームにカーソルがある時はショートカットを無効化
+      const tagName = document.activeElement?.tagName?.toLowerCase();
+      if (tagName === 'input' || tagName === 'textarea') return;
+
+      if (e.code === 'Space') {
+        e.preventDefault(); // スペースキーによる画面スクロールを防止
+        toggleTimer();
+      }
+      if (e.code === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleTimer, isFullscreen]);
+
+  // ▼▼▼ 変更：絶対時間に基づいた狂いのないカウントダウン処理 ▼▼▼
   useEffect(() => {
     let interval = null;
-    if (isTimerRunning && timerTimeLeft > 0) {
+    if (isTimerRunning) {
+      // 250ミリ秒ごとに現在時刻と目標時刻の差分をチェック（タブを戻した瞬間にズレが即座に修正されます）
       interval = setInterval(() => {
-        setTimerTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (isTimerRunning && timerTimeLeft === 0) {
-      setIsTimerRunning(false);
-      setMinutes(timerInputMinutes); 
-      setPraiseSubText("タイマー完了！学習時間を反映しました");
-      setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
-      setShowPraise(true);
-      playAlarmSound(); // ← 変更：ここでアラーム音を鳴らします
-      setTimeout(() => {
-        setShowPraise(false);
-      }, 2500);
+        const remaining = Math.round((expectedEndTimeRef.current - Date.now()) / 1000);
+        
+        if (remaining <= 0) {
+          setTimerTimeLeft(0);
+          setIsTimerRunning(false);
+          setMinutes(timerInputMinutes); 
+          setPraiseSubText("タイマー完了！学習時間を反映しました");
+          setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
+          setShowPraise(true);
+          playAlarmSound();
+          setTimeout(() => {
+            setShowPraise(false);
+          }, 2500);
+          clearInterval(interval);
+        } else {
+          setTimerTimeLeft(remaining); // 残り時間が同じ場合はReactが賢くレンダリングをスキップします
+        }
+      }, 250); 
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning, timerTimeLeft, timerInputMinutes]);
+  }, [isTimerRunning, timerInputMinutes]);
+  // ▲▲▲ ここまで ▲▲▲
 
   const formatTimerDisplay = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -224,8 +267,6 @@ export default function App() {
     setTimerTimeLeft(newMins * 60);
     setLaps([]);
   };
-
-  const toggleTimer = () => setIsTimerRunning(!isTimerRunning);
 
   const resetTimer = () => {
     setIsTimerRunning(false);
