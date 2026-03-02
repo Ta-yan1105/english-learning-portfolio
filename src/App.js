@@ -110,19 +110,11 @@ export default function App() {
   // 音声入力の対象フィールドを管理
   const [recordingField, setRecordingField] = useState(null);
 
-  // ▼▼▼ 追加：アプリ全体を全画面表示する関数 ▼▼▼
+  // ▼▼▼ 変更：アプリ全体を全画面表示するボタンを押した時の処理（指定URLへ遷移） ▼▼▼
   const toggleAppFullScreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(`全画面表示エラー: ${err.message}`);
-      });
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
+    window.location.href = 'https://app.english-t24.com';
   };
-  // ▲▲▲ 追加：ここまで ▲▲▲
+  // ▲▲▲ 変更：ここまで ▲▲▲
 
   useEffect(() => {
     let interval = null;
@@ -509,7 +501,7 @@ export default function App() {
         }
       `}</style>
 
-      {/* ▼▼▼ 変更：日付の横に全画面表示ボタンと注意書きを配置 ▼▼▼ */}
+      {/* ▼▼▼ 日付の横に全画面表示ボタンと注意書きを配置 ▼▼▼ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <button
@@ -531,12 +523,11 @@ export default function App() {
           >
             <span style={{ fontSize: '16px' }}>📱</span> アプリを全画面で開く
           </button>
-          {/* ▼▼▼ この1行のテキストのみ変更しました ▼▼▼ */}
           <span style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', fontWeight: 'bold' }}>※はじめに、こちらのボタンをタップしてください</span>
         </div>
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
       </div>
-      {/* ▲▲▲ 変更：ここまで ▲▲▲ */}
+      {/* ▲▲▲ ここまで ▲▲▲ */}
 
       {/* ▼▼▼ 追加：ここに名言コンポーネントを配置 ▼▼▼ */}
       <DailyQuote />
