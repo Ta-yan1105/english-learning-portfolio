@@ -107,12 +107,12 @@ export default function App() {
   const [laps, setLaps] = useState([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // 音声入力の対象フィールドを管理
   const [recordingField, setRecordingField] = useState(null);
 
-  // ▼▼▼ 変更：指定のサイトURLへ移動する処理 ▼▼▼
+  // ▼▼▼ 変更：iframe等の制限を突破して確実にサイトURLへ移動する処理 ▼▼▼
   const handleNavigateToApp = () => {
-    window.location.href = 'https://app.english-t24.com/';
+    // window.openを使用することで、セキュリティ制限を回避して別タブで確実に開きます
+    window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
   // ▲▲▲ 変更：ここまで ▲▲▲
 
@@ -161,10 +161,9 @@ export default function App() {
     setLaps(prev => [...prev, formatTimerDisplay(timerTimeLeft)]);
   };
 
-  // 直近のログから入力内容をコピーする
   const handleCopyRecent = () => {
     if (logs && logs.length > 0) {
-      const lastLog = logs[0]; // 常に最新（一番上）のログを使用
+      const lastLog = logs[0]; 
       setMinutes(lastLog.minutes || 25);
       setSelectedCats(lastLog.categories || []);
       setSpeakingType(lastLog.speakingType || '');
@@ -174,7 +173,6 @@ export default function App() {
     }
   };
 
-  // Web Speech APIによる音声入力
   const handleVoiceInput = (setter, fieldName) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -186,7 +184,7 @@ export default function App() {
       const recognition = new SpeechRecognition();
       recognition.lang = 'ja-JP';
       recognition.interimResults = false;
-      recognition.continuous = false; // スマホ等での安定性向上のためfalseに設定
+      recognition.continuous = false; 
 
       recognition.onstart = () => {
         setRecordingField(fieldName);
