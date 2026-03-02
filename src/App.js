@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-// ▼▼▼ 変更：ポップアップに必要な部品（browserPopupRedirectResolver）を追加でインポート ▼▼▼
-import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup, browserPopupRedirectResolver } from 'firebase/auth';
+// ▼▼▼ 変更：ポップアップ方式からリダイレクト方式(signInWithRedirect等)に変更 ▼▼▼
+import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, linkWithRedirect, getRedirectResult, browserPopupRedirectResolver } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -19,12 +19,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// ▼▼▼ 変更：初期化時にポップアップ用の設定（popupRedirectResolver）を追加 ▼▼▼
 const auth = initializeAuth(app, {
   persistence: [browserLocalPersistence, inMemoryPersistence],
   popupRedirectResolver: browserPopupRedirectResolver
 });
-// ▲▲▲ 変更：ここまで ▲▲▲
 
 const db = getFirestore(app);
 
@@ -110,8 +108,27 @@ export default function App() {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
 
+  // ▼▼▼ 追加：リダイレクトログインから戻ってきたときのエラー処理 ▼▼▼
+  useEffect(() => {
+    getRedirectResult(auth).then((result) => {
+      if (result) {
+        // ログイン成功時（特にアラートは出さず、自然に画面が表示されるようにします）
+      }
+    }).catch(async (error) => {
+      // 既に使われているGoogleアカウントだった場合は、通常のログインに切り替える
+      if (error.code === 'auth/credential-already-in-use') {
+        alert("このGoogleアカウントは既に登録されています。既存のデータでログインを再開します。");
+        const provider = new GoogleAuthProvider();
+        await signInWithRedirect(auth, provider);
+      } else {
+        console.error("リダイレクトエラー:", error);
+      }
+    });
+  }, []);
+  // ▲▲▲ 追加：ここまで ▲▲▲
+
+  // ▼▼▼ 変更：スマホで真っ白にならないよう、リダイレクト方式に変更 ▼▼▼
   const handleGoogleLogin = async () => {
-    // 埋め込み（iframe）環境で実行された場合は、エラーを出さずに青いボタンを促す
     if (window !== window.parent) {
       alert("※セキュリティ制限のため、この埋め込み画面のままではログインできません。\n\nまずは上の青い「📱 アプリを全画面で開く」ボタンを押し、移動先のページで再度ログインをお試しください！");
       return;
@@ -120,27 +137,17 @@ export default function App() {
     const provider = new GoogleAuthProvider();
     try {
       if (auth.currentUser && auth.currentUser.isAnonymous) {
-        // 現在の匿名データ（ローカル）をGoogleアカウントに紐づける
-        try {
-          await linkWithPopup(auth.currentUser, provider);
-          alert("現在の学習データをGoogleアカウントに紐づけました。他の端末でも同期されます！");
-        } catch (linkError) {
-          // すでにそのGoogleアカウントが使われている場合は、普通にログインする
-          if (linkError.code === 'auth/credential-already-in-use') {
-            await signInWithPopup(auth, provider);
-            alert("既存のGoogleアカウントでログインしました。データが同期されます。");
-          } else {
-            throw linkError;
-          }
-        }
+        // 現在の匿名データ（ローカル）をGoogleアカウントに紐づけるために画面切り替え
+        await linkWithRedirect(auth.currentUser, provider);
       } else {
-        await signInWithPopup(auth, provider);
+        await signInWithRedirect(auth, provider);
       }
     } catch (error) {
-      console.error("ログインエラー:", error);
-      alert(`ログイン処理に失敗しました。\n通信環境をご確認ください。\n(エラー: ${error.code})`);
+      console.error("ログイン画面移動エラー:", error);
+      alert(`ログイン画面への移動に失敗しました。\n(エラー: ${error.code})`);
     }
   };
+  // ▲▲▲ 変更：ここまで ▲▲▲
 
   useEffect(() => {
     let interval = null;
