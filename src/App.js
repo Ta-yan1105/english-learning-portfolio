@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-// ▼▼▼ 変更：確実なポップアップ方式（signInWithPopup等）に戻しました ▼▼▼
 import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup, browserPopupRedirectResolver } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -108,7 +107,7 @@ export default function App() {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
 
-  // ▼▼▼ 変更：別窓（ポップアップ）で確実にログイン処理を行う ▼▼▼
+  // ▼▼▼ 変更：エラー時にユーザーへ設定解除の案内を出す処理を追加 ▼▼▼
   const handleGoogleLogin = async () => {
     if (window !== window.parent) {
       alert("※セキュリティ制限のため、この埋め込み画面のままではログインできません。\n\nまずは上の青い「📱 アプリを全画面で開く」ボタンを押し、移動先のページで再度ログインをお試しください！");
@@ -116,17 +115,20 @@ export default function App() {
     }
 
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' }); // アカウント選択を明示
+
     try {
       if (auth.currentUser && auth.currentUser.isAnonymous) {
-        // 現在の匿名データをGoogleアカウントに紐づける
         try {
           await linkWithPopup(auth.currentUser, provider);
           alert("現在の学習データをGoogleアカウントに紐づけました。他の端末でも同期されます！");
         } catch (linkError) {
-          // すでにGoogleアカウントが存在する場合は、普通にログイン
           if (linkError.code === 'auth/credential-already-in-use') {
             await signInWithPopup(auth, provider);
             alert("既存のGoogleアカウントでログインしました。データが同期されます。");
+          } else if (linkError.code === 'auth/popup-blocked') {
+            // ブロックされた場合の親切な案内
+            alert("【Safariのポップアップブロック機能が作動しました】\n\niPhoneの「設定」アプリを開き、「Safari」の中にある「ポップアップブロック」をオフ（白）にしてから再度お試しください。");
           } else {
             throw linkError;
           }
@@ -135,8 +137,13 @@ export default function App() {
         await signInWithPopup(auth, provider);
       }
     } catch (error) {
-      console.error("ログインエラー:", error);
-      alert(`ログイン処理に失敗しました。\n(エラー詳細: ${error.message})`);
+      if (error.code === 'auth/popup-blocked') {
+        // ブロックされた場合の親切な案内
+        alert("【Safariのポップアップブロック機能が作動しました】\n\niPhoneの「設定」アプリを開き、「Safari」の中にある「ポップアップブロック」をオフ（白）にしてから再度お試しください。");
+      } else {
+        console.error("ログインエラー:", error);
+        alert(`ログイン処理に失敗しました。\n通信環境をご確認ください。\n(エラー: ${error.message})`);
+      }
     }
   };
   // ▲▲▲ 変更：ここまで ▲▲▲
