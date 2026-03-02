@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-// ▼▼▼ 変更：ポップアップ方式からリダイレクト方式(signInWithRedirect等)に変更 ▼▼▼
-import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, linkWithRedirect, getRedirectResult, browserPopupRedirectResolver } from 'firebase/auth';
+// ▼▼▼ 変更：確実なポップアップ方式（signInWithPopup等）に戻しました ▼▼▼
+import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup, browserPopupRedirectResolver } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
@@ -108,26 +108,7 @@ export default function App() {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
 
-  // ▼▼▼ 追加：リダイレクトログインから戻ってきたときのエラー処理 ▼▼▼
-  useEffect(() => {
-    getRedirectResult(auth).then((result) => {
-      if (result) {
-        // ログイン成功時（特にアラートは出さず、自然に画面が表示されるようにします）
-      }
-    }).catch(async (error) => {
-      // 既に使われているGoogleアカウントだった場合は、通常のログインに切り替える
-      if (error.code === 'auth/credential-already-in-use') {
-        alert("このGoogleアカウントは既に登録されています。既存のデータでログインを再開します。");
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
-      } else {
-        console.error("リダイレクトエラー:", error);
-      }
-    });
-  }, []);
-  // ▲▲▲ 追加：ここまで ▲▲▲
-
-  // ▼▼▼ 変更：スマホで真っ白にならないよう、リダイレクト方式に変更 ▼▼▼
+  // ▼▼▼ 変更：別窓（ポップアップ）で確実にログイン処理を行う ▼▼▼
   const handleGoogleLogin = async () => {
     if (window !== window.parent) {
       alert("※セキュリティ制限のため、この埋め込み画面のままではログインできません。\n\nまずは上の青い「📱 アプリを全画面で開く」ボタンを押し、移動先のページで再度ログインをお試しください！");
@@ -137,14 +118,25 @@ export default function App() {
     const provider = new GoogleAuthProvider();
     try {
       if (auth.currentUser && auth.currentUser.isAnonymous) {
-        // 現在の匿名データ（ローカル）をGoogleアカウントに紐づけるために画面切り替え
-        await linkWithRedirect(auth.currentUser, provider);
+        // 現在の匿名データをGoogleアカウントに紐づける
+        try {
+          await linkWithPopup(auth.currentUser, provider);
+          alert("現在の学習データをGoogleアカウントに紐づけました。他の端末でも同期されます！");
+        } catch (linkError) {
+          // すでにGoogleアカウントが存在する場合は、普通にログイン
+          if (linkError.code === 'auth/credential-already-in-use') {
+            await signInWithPopup(auth, provider);
+            alert("既存のGoogleアカウントでログインしました。データが同期されます。");
+          } else {
+            throw linkError;
+          }
+        }
       } else {
-        await signInWithRedirect(auth, provider);
+        await signInWithPopup(auth, provider);
       }
     } catch (error) {
-      console.error("ログイン画面移動エラー:", error);
-      alert(`ログイン画面への移動に失敗しました。\n(エラー: ${error.code})`);
+      console.error("ログインエラー:", error);
+      alert(`ログイン処理に失敗しました。\n(エラー詳細: ${error.message})`);
     }
   };
   // ▲▲▲ 変更：ここまで ▲▲▲
