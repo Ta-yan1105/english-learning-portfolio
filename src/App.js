@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-// 【変更点】Safariのクラッシュ対策のため、initializeAuthと安全な保存方式（browserLocalPersistence等）をインポート
-import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+// ▼▼▼ 変更：ログイン機能に必要なモジュール（GoogleAuthProvider, signInWithPopup, linkWithPopup）を追加 ▼▼▼
+import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
-// ▼▼▼ 追加：名言コンポーネントの読み込み ▼▼▼
 import DailyQuote from './DailyQuote';
-// ▲▲▲ 追加：ここまで ▲▲▲
 
-// ==========================================
-// 【セキュリティ改善】APIキーの環境変数化（Create React App版）
-// ==========================================
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -24,7 +19,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// 【変更点】iPhone(Safari)のiframe内でIndexedDBがブロックされて真っ白になるのを防ぐ処理
 const auth = initializeAuth(app, {
   persistence: [browserLocalPersistence, inMemoryPersistence]
 });
@@ -109,12 +103,37 @@ export default function App() {
 
   const [recordingField, setRecordingField] = useState(null);
 
-  // ▼▼▼ 変更：iframe等の制限を突破して確実にサイトURLへ移動する処理 ▼▼▼
   const handleNavigateToApp = () => {
-    // window.openを使用することで、セキュリティ制限を回避して別タブで確実に開きます
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
-  // ▲▲▲ 変更：ここまで ▲▲▲
+
+  // ▼▼▼ 追加：Googleログイン処理（匿名データを保持したまま同期） ▼▼▼
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      if (auth.currentUser && auth.currentUser.isAnonymous) {
+        // 現在の匿名データ（ローカル）をGoogleアカウントに紐づける
+        try {
+          await linkWithPopup(auth.currentUser, provider);
+          alert("現在の学習データをGoogleアカウントに紐づけました。他の端末でも同期されます！");
+        } catch (linkError) {
+          // すでにそのGoogleアカウントが使われている場合は、普通にログインする
+          if (linkError.code === 'auth/credential-already-in-use') {
+            await signInWithPopup(auth, provider);
+            alert("既存のGoogleアカウントでログインしました。データが同期されます。");
+          } else {
+            throw linkError;
+          }
+        }
+      } else {
+        await signInWithPopup(auth, provider);
+      }
+    } catch (error) {
+      console.error("ログインエラー:", error);
+      alert("ログイン処理に失敗しました。通信環境等をご確認ください。");
+    }
+  };
+  // ▲▲▲ 追加：ここまで ▲▲▲
 
   useEffect(() => {
     let interval = null;
@@ -483,7 +502,6 @@ export default function App() {
   const isDayEmpty = selectedRange === 'day' && stats.total === 0;
   const pieData = isDayEmpty ? [{ name: 'Empty', value: 1, color: '#f1f5f9' }] : dashboardChartData;
 
-  // ▼ ここからが大元の画面構築（return）です ▼
   return (
     <div style={{ maxWidth: '950px', margin: '0 auto', padding: '30px 20px', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       
@@ -499,7 +517,7 @@ export default function App() {
         }
       `}</style>
 
-      {/* ▼▼▼ 日付の横にサイト遷移ボタンと注意書きを配置 ▼▼▼ */}
+      {/* ▼▼▼ 変更：日付の横にログインボタンを綺麗に配置（レイアウト崩れ防止） ▼▼▼ */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <button
@@ -523,13 +541,21 @@ export default function App() {
           </button>
           <span style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', fontWeight: 'bold' }}>※はじめに、こちらのボタンをタップしてください</span>
         </div>
-        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {user?.isAnonymous ? (
+            <button onClick={handleGoogleLogin} style={{ padding: '6px 12px', background: 'white', color: '#4f46e5', border: '1px solid #4f46e5', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+              端末間で同期 (ログイン)
+            </button>
+          ) : (
+            <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#10b981', backgroundColor: '#d1fae5', padding: '4px 8px', borderRadius: '6px' }}>同期中 ✓</span>
+          )}
+          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
+        </div>
       </div>
-      {/* ▲▲▲ ここまで ▲▲▲ */}
+      {/* ▲▲▲ 変更：ここまで ▲▲▲ */}
 
-      {/* ▼▼▼ 追加：ここに名言コンポーネントを配置 ▼▼▼ */}
       <DailyQuote />
-      {/* ▲▲▲ 追加：ここまで ▲▲▲ */}
 
       {/* 以降は既存のUIのままです */}
       <section style={cardStyle}>
