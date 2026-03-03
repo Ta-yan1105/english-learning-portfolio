@@ -147,7 +147,7 @@ export default function DailyQuote() {
           display: 'flex', 
           flexDirection: 'row', 
           flexWrap: 'wrap', 
-          background: 'linear-gradient(135deg, #172554 0%, #0f172a 100%)', 
+          background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)', 
           color: 'white'
         }}>
           {/* 左側：写真 */}
@@ -167,7 +167,8 @@ export default function DailyQuote() {
                 maxWidth: '260px',      
                 aspectRatio: '1 / 1',   
                 borderRadius: '20px', 
-                objectFit: 'cover', 
+                objectFit: 'contain', 
+                backgroundColor: 'white', 
                 border: 'clamp(4px, 2vw, 8px) solid rgba(255,255,255,0.1)', 
                 boxShadow: '0 15px 35px rgba(0,0,0,0.4)' 
               }} 
@@ -226,8 +227,10 @@ export default function DailyQuote() {
         {/* 下部：詳細解説と音声コントロールエリア */}
         <div style={{ padding: 'clamp(20px, 5vw, 35px)' }}>
           
-          {/* ▼▼▼ 追加：文法解説の上の音声コントロールボタン群 ▼▼▼ */}
+          {/* 文法解説の上のコントロールボタン群 */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+            
+            {/* ▼▼▼ 音声コントロールボタンを以前のパステルカラーに戻しました ▼▼▼ */}
             <button
               onClick={playAudio}
               style={{
@@ -284,6 +287,24 @@ export default function DailyQuote() {
                 <Play size={18} fill="currentColor" /> 音読した音声を聞く
               </button>
             )}
+
+            {/* 「次の名言」ボタン (インディゴブルー、右端配置を維持) */}
+            <button 
+              onClick={drawRandomQuote} 
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '10px 18px', borderRadius: '50px',
+                border: 'none', backgroundColor: '#4f46e5',
+                color: 'white', fontSize: '0.95rem', fontWeight: 'bold',
+                cursor: 'pointer', transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
+                marginLeft: 'auto' 
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.backgroundColor = '#4338ca'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(79, 70, 229, 0.3)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.backgroundColor = '#4f46e5'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.2)'; }}
+            >
+              ✨ 次の名言
+            </button>
           </div>
 
           {/* 音声認識の結果表示エリア */}
@@ -298,9 +319,8 @@ export default function DailyQuote() {
               {recognizedText}
             </div>
           )}
-          {/* ▲▲▲ ここまで追加 ▲▲▲ */}
 
-
+          {/* 文法解説エリア */}
           <div style={{ 
             backgroundColor: '#f8fafc', 
             padding: 'clamp(15px, 4vw, 25px)', 
@@ -309,7 +329,6 @@ export default function DailyQuote() {
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
           }}>
             <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.1rem)', color: '#4f46e5', margin: '0 0 12px 0', fontWeight: '900' }}>【文法解説】</h3>
-            {/* ▼▼▼ 変更：フォントの視認性を向上（色、行間、文字間隔、太さ） ▼▼▼ */}
             <p style={{ 
               fontSize: 'clamp(0.95rem, 3vw, 1.1rem)', 
               color: '#1e293b', 
@@ -322,28 +341,6 @@ export default function DailyQuote() {
             }}>
               {currentQuote.grammar}
             </p>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'clamp(25px, 6vw, 35px)' }}>
-            <button 
-              onClick={drawRandomQuote} 
-              style={{ 
-                padding: 'clamp(12px, 3vw, 18px) clamp(24px, 6vw, 45px)', 
-                fontSize: 'clamp(1rem, 3vw, 1.2rem)', 
-                fontWeight: '900', 
-                color: 'white', 
-                backgroundColor: '#4f46e5', 
-                border: 'none', 
-                borderRadius: '50px', 
-                cursor: 'pointer',
-                boxShadow: '0 8px 20px rgba(79, 70, 229, 0.3)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-            >
-              ✨ 次の名言
-            </button>
           </div>
         </div>
       </div>
