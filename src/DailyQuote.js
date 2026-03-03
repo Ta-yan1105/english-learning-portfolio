@@ -152,6 +152,7 @@ export default function DailyQuote() {
 
   const showImage = isValidUrlFormat && !imageError;
 
+  // 全ボタン共通のベーススタイル
   const baseButtonStyle = {
     display: 'flex',
     alignItems: 'center',
@@ -271,19 +272,26 @@ export default function DailyQuote() {
           
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             
-            {/* ▼▼▼ 配置変更：名言解説の表示切替ボタンを「お手本を聞く」の左横へ配置 ▼▼▼ */}
+            {/* ▼▼▼ 変更：名言解説ボタンのカラーリング＆他のボタンと形を統一 ▼▼▼ */}
             <button 
               onClick={() => setShowExplanation(!showExplanation)}
               style={{ 
-                display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '8px 16px', borderRadius: '12px',
-                border: '1px solid #e2e8f0', backgroundColor: showExplanation ? '#f8fafc' : '#ffffff',
-                color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold',
-                cursor: 'pointer', transition: 'all 0.2s',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                ...baseButtonStyle,
+                backgroundColor: showExplanation ? '#fffbeb' : '#fef3c7', // 開閉状態で色を切り替え
+                color: showExplanation ? '#f59e0b' : '#d97706',
+                boxShadow: showExplanation ? 'none' : '0 2px 4px rgba(0,0,0,0.05)'
+              }}
+              onMouseOver={(e) => { 
+                if (!showExplanation) Object.assign(e.currentTarget.style, buttonHoverStyle); 
+              }}
+              onMouseOut={(e) => { 
+                if (!showExplanation) Object.assign(e.currentTarget.style, { 
+                  transform: 'translateY(0)', 
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                }); 
               }}
             >
-              {showExplanation ? <><ChevronUp size={16} /> 解説を閉じる</> : <><ChevronDown size={16} /> 名言解説</>}
+              {showExplanation ? <><ChevronUp size={18} /> 解説を閉じる</> : <><ChevronDown size={18} /> 名言解説</>}
             </button>
 
             <button
