@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { quotesData } from './quotes_data';
-import { Volume2, Mic, Play, Square } from 'lucide-react';
+import { Volume2, Mic, Play, Square, ChevronDown, ChevronUp } from 'lucide-react'; // ▼ 変更: ChevronDown, ChevronUpを追加
 
 export default function DailyQuote() {
   const [currentQuote, setCurrentQuote] = useState(quotesData[0]);
@@ -11,6 +11,9 @@ export default function DailyQuote() {
 
   // 画像の読み込みエラーを検知するState
   const [imageError, setImageError] = useState(false);
+
+  // ▼▼▼ 追加：解説エリアの開閉状態を管理するState ▼▼▼
+  const [showExplanation, setShowExplanation] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -32,6 +35,7 @@ export default function DailyQuote() {
     setCurrentQuote(quotesData[randomIndex]);
     setRecognizedText(''); 
     setAudioUrl(null); 
+    setShowExplanation(false); // ▼ 追加：次の名言に切り替わったら解説を閉じる
   };
 
   const playAudio = () => {
@@ -137,18 +141,15 @@ export default function DailyQuote() {
 
   if (!currentQuote) return null;
 
-  // ▼▼▼ 追加：写真データの厳密な有効性チェック ▼▼▼
+  // 写真データの厳密な有効性チェック
   const imageUrl = currentQuote.image;
-  // ダミーのイニシャル生成サービスなどがデータに含まれていた場合も弾く
   const isDummyAvatar = typeof imageUrl === 'string' && (imageUrl.includes('ui-avatars.com') || imageUrl.includes('placeholder'));
-  // URLとして正しい形式（http, /, ./, data: などで始まる）かチェック（空文字やただの名前などの不正データを弾く）
   const isValidUrlFormat = 
     typeof imageUrl === 'string' && 
     imageUrl.trim().length > 4 && 
     (imageUrl.startsWith('http') || imageUrl.startsWith('/') || imageUrl.startsWith('.') || imageUrl.startsWith('data:')) &&
     !isDummyAvatar;
 
-  // 正しいURL形式であり、かつ読み込みエラーになっていない場合のみ画像を表示する
   const showImage = isValidUrlFormat && !imageError;
 
   const baseButtonStyle = {
@@ -189,7 +190,6 @@ export default function DailyQuote() {
           background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)', 
           color: 'white'
         }}>
-          {/* ▼▼▼ 変更：本当に有効な画像がある場合のみ枠ごと描画する ▼▼▼ */}
           {showImage && (
             <div style={{ 
               flex: '1 1 250px', 
@@ -219,7 +219,6 @@ export default function DailyQuote() {
 
           {/* 右側：名言テキスト */}
           <div style={{ 
-            // ▼▼▼ 変更：写真がない時は枠を消し、横幅100%に広げる ▼▼▼
             flex: showImage ? '2 1 300px' : '1 1 100%', 
             padding: 'clamp(20px, 5vw, 40px)', 
             display: 'flex', 
@@ -364,28 +363,49 @@ export default function DailyQuote() {
             </div>
           )}
 
-          {/* 文法解説エリア */}
-          <div style={{ 
-            backgroundColor: '#f8fafc', 
-            padding: 'clamp(15px, 4vw, 25px)', 
-            borderRadius: '16px', 
-            borderLeft: 'clamp(4px, 2vw, 8px) solid #4f46e5',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-          }}>
-            <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.1rem)', color: '#4f46e5', margin: '0 0 12px 0', fontWeight: '900' }}>【文法解説】</h3>
-            <p style={{ 
-              fontSize: 'clamp(0.95rem, 3vw, 1.1rem)', 
-              color: '#1e293b', 
-              lineHeight: '2', 
-              letterSpacing: '0.03em',
-              margin: 0, 
-              whiteSpace: 'pre-wrap',
-              fontWeight: '600',
-              fontFamily: "'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif"
-            }}>
-              {currentQuote.grammar}
-            </p>
+          {/* ▼▼▼ 追加：名言解説の表示切替ボタン ▼▼▼ */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: showExplanation ? '15px' : '0' }}>
+            <button 
+              onClick={() => setShowExplanation(!showExplanation)}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: '8px 16px', borderRadius: '12px',
+                border: '1px solid #e2e8f0', backgroundColor: showExplanation ? '#f8fafc' : '#ffffff',
+                color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold',
+                cursor: 'pointer', transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}
+            >
+              {showExplanation ? <><ChevronUp size={16} /> 解説を閉じる</> : <><ChevronDown size={16} /> 名言解説</>}
+            </button>
           </div>
+
+          {/* ▼▼▼ 変更：文法解説エリア (showExplanationがtrueの時のみ表示) ▼▼▼ */}
+          {showExplanation && (
+            <div style={{ 
+              backgroundColor: '#f8fafc', 
+              padding: 'clamp(15px, 4vw, 25px)', 
+              borderRadius: '16px', 
+              borderLeft: 'clamp(4px, 2vw, 8px) solid #4f46e5',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+              animation: 'popIn 0.3s ease-out' 
+            }}>
+              <h3 style={{ fontSize: 'clamp(1rem, 3vw, 1.1rem)', color: '#4f46e5', margin: '0 0 12px 0', fontWeight: '900' }}>【文法解説】</h3>
+              <p style={{ 
+                fontSize: 'clamp(0.95rem, 3vw, 1.1rem)', 
+                color: '#1e293b', 
+                lineHeight: '2', 
+                letterSpacing: '0.03em',
+                margin: 0, 
+                whiteSpace: 'pre-wrap',
+                fontWeight: '600',
+                fontFamily: "'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif"
+              }}>
+                {currentQuote.grammar}
+              </p>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
