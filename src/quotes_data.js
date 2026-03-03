@@ -4,7 +4,7 @@ export const quotesData = [
     "japanese": "ハングリーであれ、愚かであれ。",
     "author": "Steve Jobs",
     "info": "Appleの共同創業者。iPhoneなど数々の革新的な製品を世に送り出した。",
-    "grammar": "【文法：SVCと状態継続の動詞】stayはbe動詞と同じく「S=C」の関係を作りますが、「その状態にとどまる」という強い継続の意志が含まれます。【語彙・ニュアンス】hungryは「空腹な」から転じて「（知識や成功に）飢えている、貪欲な」という意味。foolishは「愚かな」ですが、ここでは「世間の常識や既成概念に縛られない純粋さ」を肯定的に表現しています。短い命令文の反復が、強烈なリズムと説得力を生んでいます。",
+    "grammar": "【単語解説】\r\n・stay：[動] 〜のままでいる\r\n・hungry：[形] 飢えた、貪欲な（ここでは知識や成功への意欲）\r\n・foolish：[形] 愚かな（ここでは常識にとらわれないこと）\r\n\r\n【文法解説】\r\n・命令文：動詞の原形（Stay）から始まり、強いメッセージ性を持っています。\r\n・第2文型(SVC)：Stay（V）+ hungry/foolish（C）。「be動詞」と同じS=Cの関係ですが、「stay」を使うことで「その状態を維持し続けろ」という強い継続の意志が強調されています。\r\n\r\n【背景・ニュアンス】\r\nスティーブ・ジョブズが2005年のスタンフォード大学卒業式辞の結びで語った有名な言葉。元々は雑誌『全地球カタログ』最終号の裏表紙のメッセージです。現状に満足せず（hungry）、他人の目や常識を気にして縮こまることなく（foolish）、常に新しいことに挑戦し続けよという強烈なエールです。",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Steve_Jobs_Headshot_2010-CROP_%28cropped_2%29.jpg/250px-Steve_Jobs_Headshot_2010-CROP_%28cropped_2%29.jpg"
   },
   {
@@ -12,7 +12,7 @@ export const quotesData = [
     "japanese": "想像力は知識よりも重要である。",
     "author": "Albert Einstein",
     "info": "ドイツ生まれの理論物理学者。相対性理論を提唱し、ノーベル物理学賞を受賞。",
-    "grammar": "【文法：比較級】「A is more [形容詞] than B」。importantは音節が多いため、-erではなくmoreを用います。【語彙・対比の構文】imagination（image「心に描く」+ ation「こと」）と knowledge（know「知る」+ ledge「状態」）という2つの抽象名詞の対比。確定した過去〜現在の枠組みである「知識」よりも、未来を創り出す「想像力」を、is（存在する）という強い断定のbe動詞で際立たせています。",
+    "grammar": "【単語解説】\r\n・imagination：[名] 想像力\r\n・important：[形] 重要な\r\n・knowledge：[名] 知識\r\n\r\n【文法解説】\r\n・比較級：A is more [形容詞] than B（AはBよりも〜だ）の構文。important は音節が多いため、-er ではなく more を使います。\r\n・抽象名詞の対比：imagination（心に描くこと）と knowledge（知っている状態）という2つの抽象名詞を対比させています。\r\n\r\n【背景・ニュアンス】\r\n1929年のインタビューでのアインシュタインの発言。「知識は現在分かっていることに限られるが、想像力は世界を包み込み、進歩を生み出す」と語りました。すでに確定した過去〜現在の枠組みである「知識」よりも、ゼロから未来を創り出す「想像力」の価値を高く評価した深い言葉です。",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Albert_Einstein_Head_cleaned.jpg/250px-Albert_Einstein_Head_cleaned.jpg"
   },
   {
@@ -20,7 +20,7 @@ export const quotesData = [
     "japanese": "始めるための方法は、話すことをやめて行動し始めることだ。",
     "author": "Walt Disney",
     "info": "アメリカのアニメーター、映画監督。ディズニーリゾートの創設者。",
-    "grammar": "【文法：不定詞の形容詞的用法と名詞的用法】The wayを後ろから「to get started（始めるための）」が修飾。isの後の「to quit...and begin...」は補語(C)となる名詞的用法です。【語彙・語法】quit（やめる）は後ろに動名詞(-ing)しか取れない動詞。beginはto不定詞も取れますが、ここでは talking と doing を「-ing」で揃えることで、視覚的・聴覚的なリズム（対句表現）を美しく整えています。「get started」は受動態の形を取ることで「自らを始動させる」というニュアンスを含みます。",
+    "grammar": "【単語解説】\r\n・way：[名] 方法、道\r\n・quit：[動] やめる\r\n・begin：[動] 始める\r\n\r\n【文法解説】\r\n・不定詞の用法：The way を to get started（始めるための）が後ろから修飾（形容詞的用法）。is の後は to quit... and begin...（〜をやめて･･･し始めること）となり、補語(C)として機能しています（名詞的用法）。\r\n・動名詞：quit は後ろに動名詞(-ing)しか取れない動詞です。talking と doing で韻を踏むように形を揃えています。\r\n\r\n【背景・ニュアンス】\r\nディズニーリゾートの構想など、数々の夢を現実にしてきたウォルト・ディズニーの行動哲学。「あれこれと口で語るよりも、まず手を動かせ」という、夢を実現するための極めて実務的でストレートなアドバイスです。",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Walt_Disney_1946_%28cropped2%29.JPG/250px-Walt_Disney_1946_%28cropped2%29.JPG"
   },
   {
@@ -28,7 +28,7 @@ export const quotesData = [
     "japanese": "何事も、達成するまでは不可能に見えるものだ。",
     "author": "Nelson Mandela",
     "info": "南アフリカ共和国の元大統領。反アパルトヘイト運動に尽力し、ノーベル平和賞を受賞。",
-    "grammar": "【文法：SVCと時を表す接続詞】It seems impossibleで「〜のように見える（主観的な推測）」。untilは「〜するまでずっと」という継続を表す接続詞。【語彙・受動態】impossibleは in-(否定) + possible(可能な)。it's done の it は前述の「不可能に思えること」を指し、is doneは受動態で「成し遂げられる（客観的な事実）」状態を表します。seem（主観）と is done（客観）の対比が、諦めないことの重要性を際立たせています。",
+    "grammar": "【単語解説】\r\n・seem：[動] 〜のように見える、思える\r\n・impossible：[形] 不可能な\r\n・until：[接] 〜するまで（ずっと）\r\n\r\n【文法解説】\r\n・第2文型(SVC)：It seems impossible で「（主観的に）不可能のように思える」。\r\n・受動態：until it's done の is done は「（客観的な事実として）成し遂げられる」という受動態。seem（主観）と is done（客観）が美しい対比になっています。\r\n\r\n【背景・ニュアンス】\r\n27年間もの投獄生活を経て、南アフリカの反アパルトヘイト運動を勝利に導いたネルソン・マンデラの言葉。どんなに絶望的で高く見える壁でも、やり遂げてしまえばそれは「当たり前の現実」になる。途中で決して諦めないことの重要性を、自身の壮絶な経験から説いています。",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Nelson_Mandela_1994.jpg/250px-Nelson_Mandela_1994.jpg"
   },
   {
@@ -36,7 +36,7 @@ export const quotesData = [
     "japanese": "あなたが見たいと願う世界の変革に、あなた自身がなりなさい。",
     "author": "Mahatma Gandhi",
     "info": "インドの独立運動指導者。「非暴力・不服従」を提唱した。",
-    "grammar": "【文法：関係代名詞の目的格】changeを先行詞とし、that以下が後ろから修飾しています。see（見る）の目的語(O)が欠けており、それが先行詞のchangeです。【語彙・名詞の選択】単に「Change（変われ）」という動詞を使うのではなく、「Be the change（変化そのものになれ）」と名詞を用いることで、「あなた自身の存在が世界の変革の象徴になれ」という非常にスケールの大きい、哲学的で力強いメッセージになっています。",
+    "grammar": "【単語解説】\r\n・change：[名] 変化、変革\r\n・wish：[動] 願う\r\n・world：[名] 世界\r\n\r\n【文法解説】\r\n・関係代名詞（目的格）：that が先行詞 the change を後ろから修飾しています。「wish to see」の目的語(O)が欠けており、それが the change に該当します。\r\n・名詞の選択：動詞の Change（変われ）ではなく Be the change（変化そのものになれ）と名詞を使うことで、スケールの大きな表現になっています。\r\n\r\n【背景・ニュアンス】\r\nガンジーの思想を要約した言葉として広く知られています。世界が変わるのを待ったり、他人に文句を言ったりするのではなく、まず「自分自身の行動やあり方」を変えること。あなた自身の存在が世界の変革の象徴になれという、自己変革こそが社会変革の第一歩であるという深い哲学です。",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Mahatma-Gandhi%2C_studio%2C_1931.jpg/250px-Mahatma-Gandhi%2C_studio%2C_1931.jpg"
   },
   {
@@ -181,7 +181,7 @@ export const quotesData = [
     "author": "Theodore Roosevelt",
     "info": "第26代アメリカ合衆国大統領。自然保護や独占禁止法の適用を推進した。",
     "grammar": "【文法：命令文 + and】「信じなさい、そうすれば･･･」。there は副詞で「そこ（目的地）へ」。【語彙・イディオム】halfway there は「道半ばにいる、目標の半分は達成した」という頻出表現。技術や努力の前に、「自分を信じる」というマインドセットを持つだけで、すでに成功の50%は完了しているという、確信の力を表現しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Theodore_Roosevelt_by_the_Pach_Bros.jpg/250px-Theodore_Roosevelt_by_the_Pach_Bros.jpg"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Theodore_Roosevelt_by_the_Pach_Bros_%284x5_cropped%29.jpg/250px-Theodore_Roosevelt_by_the_Pach_Bros_%284x5_cropped%29.jpg"
   },
   {
     "english": "Every strike brings me closer to the next home run.",
@@ -437,7 +437,7 @@ export const quotesData = [
     "author": "Theodore Roosevelt",
     "info": "第26代アメリカ合衆国大統領。ノーベル平和賞を受賞した。",
     "grammar": "【文法：関係代名詞 what と 関係副詞 where】3つの句が並列されています。【語彙・リズム】「できること（能力）を、持っているもの（資源）で、今いる場所（環境）で」。できない理由（お金がない、時間がない、場所が悪い）を完全に封じ込め、手元にあるカードだけで勝負せよという、ルーズベルト大統領の実践的な名言です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Theodore_Roosevelt_by_the_Pach_Bros.jpg/250px-Theodore_Roosevelt_by_the_Pach_Bros.jpg"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Theodore_Roosevelt_by_the_Pach_Bros_%284x5_cropped%29.jpg/250px-Theodore_Roosevelt_by_the_Pach_Bros_%284x5_cropped%29.jpg"
   },
   {
     "english": "A person who never made a mistake never tried anything new.",
@@ -805,7 +805,7 @@ export const quotesData = [
     "author": "Socrates",
     "info": "古代ギリシャの哲学者。西洋哲学の基礎を築いた一人。",
     "grammar": "【文法：動名詞と名詞節の省略】in knowing の後に that が省略されています。「知らないということを知っていることの中に」。【語彙・逆説】wisdom（知恵）の究極の形が nothing（無）を知ることであるという、ソクラテスの「無知の知」を簡潔な英語で表したパラドックスです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Socrate_du_Louvre.jpg/250px-Socrate_du_Louvre.jpg"
+    "image": "https://ui-avatars.com/api/?name=Socrates&background=random&color=fff&size=250"
   },
   {
     "english": "Happiness depends upon ourselves.",
@@ -821,7 +821,7 @@ export const quotesData = [
     "author": "Oscar Wilde",
     "info": "アイルランド出身の詩人、作家、劇作家。",
     "grammar": "【文法：不定詞の名詞的用法と最上級】To live（生きること）が主語、the rarest（最も稀な）が補語。【語彙・対比】live（意思を持って生きる）と exist（ただ物理的に存在する）。大半の人間は主体的に生きておらず、ただそこにいるだけ（that is all）だと切り捨てるオスカー・ワイルドの鋭い皮肉です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Oscar_Wilde_by_Napoleon_Sarony._Three-quarter-length_photograph%2C_seated.jpg/250px-Oscar_Wilde_by_Napoleon_Sarony._Three-quarter-length_photograph%2C_seated.jpg"
+    "image": "https://ui-avatars.com/api/?name=Oscar+Wilde&background=random&color=fff&size=250"
   },
   {
     "english": "The mind is its own place, and in itself can make a heaven of hell, a hell of heaven.",
@@ -837,7 +837,7 @@ export const quotesData = [
     "author": "Plutarch",
     "info": "古代ローマの歴史家、伝記作家。『対比列伝』の著者。",
     "grammar": "【文法：関係代名詞 what の名詞節】What we achieve inwardly（私たちが内面的に達成するもの）が全体の主語。【語彙・対比】inwardly（内面的に）と outer（外的な）。内側の精神的変化という原因が、目に見える外側の現実を変えるという、心理学的な真理を突いた構造です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg/250px-Portrait_of_a_philosopher%2C_maybe_Plutarch%2C_2nd_century_BC%2C_AM_Delphi%2C_0135.jpg"
+    "image": "https://ui-avatars.com/api/?name=Plutarch&background=random&color=fff&size=250"
   },
   {
     "english": "I walk slowly, but I never walk backward.",
@@ -853,7 +853,7 @@ export const quotesData = [
     "author": "Nelson Mandela",
     "info": "南アフリカ共和国の元大統領。反アパルトヘイト運動の闘士。",
     "grammar": "【文法：Not A but B と前置詞 in の反復】lies in（〜にある）。「AにあるのではなくBにある」。【語彙・動名詞】falling（転ぶこと）と rising（起き上がること）。every time（〜するたびに）を添え、一度の完璧さよりも何度でも復活する回復力（レジリエンス）を栄光と定義しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Nelson_Mandela_1994.jpg/250px-Nelson_Mandela_1994.jpg"
+    "image": "https://ui-avatars.com/api/?name=Nelson+Mandela&background=random&color=fff&size=250"
   },
   {
     "english": "If you tell the truth, you don't have to remember anything.",
@@ -869,7 +869,7 @@ export const quotesData = [
     "author": "Napoleon Hill",
     "info": "アメリカの著作家。成功哲学の提唱者であり『思考は現実化する』の著者。",
     "grammar": "【文法：前置詞 with による修飾】with a deadline（締め切りを伴った）が a dream を後ろから修飾しています。【語彙・頭韻法】dream と deadline で「d」の音を揃える頭韻が使われています。曖昧な「夢」も、時間的制約（deadline）を設けた瞬間に「目標」に変わるという鮮やかな定義です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Napoleon_Hill_headshot.jpg/250px-Napoleon_Hill_headshot.jpg"
+    "image": "https://ui-avatars.com/api/?name=Napoleon+Hill&background=random&color=fff&size=250"
   },
   {
     "english": "He that can have patience can have what he will.",
@@ -885,7 +885,7 @@ export const quotesData = [
     "author": "J. Willard Marriott",
     "info": "マリオット・インターナショナルの創業者。",
     "grammar": "【文法：The 比較級, the 比較級】「〜すればするほど、ますます･･･」。コロン（:）で前半の理由を説明しています。【語彙・メタファー】timber（木材）。ease（安楽）の中では良い木は育たない。強い風（困難）が強い木（人間）を育てるという、自然界の法則を人生の教訓に重ねた美しい脚韻（ease/trees）です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/J_Willard_Marriott.jpg/250px-J_Willard_Marriott.jpg"
+    "image": "https://ui-avatars.com/api/?name=J.+Willard+Marriott&background=random&color=fff&size=250"
   },
   {
     "english": "If opportunity doesn't knock, build a door.",
@@ -901,7 +901,7 @@ export const quotesData = [
     "author": "Maya Angelou",
     "info": "アメリカの詩人、作家、公民権運動活動家。",
     "grammar": "【文法：否定代名詞 Nothing と 接続詞 unless】「あなたが行動しない限り、何もうまくいかない」。【語彙・代動詞】最後の do は work（機能する、働く）の反復を避ける代動詞です。道具や環境がどれほど完璧でも、人間自身の行動（do）がすべての起動スイッチであるという厳しい事実です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Angelou_at_Clinton_inauguration_%28cropped_2%29.jpg/250px-Angelou_at_Clinton_inauguration_%28cropped_2%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Maya+Angelou&background=random&color=fff&size=250"
   },
   {
     "english": "Tough times never last, but tough people do.",
@@ -917,7 +917,7 @@ export const quotesData = [
     "author": "Colin Powell",
     "info": "アメリカの元国務長官。軍人としても最高位まで登り詰めた。",
     "grammar": "【文法：There is 構文の否定と名詞の並列】no secrets（秘密など一つもない）。It は success を指し、3つの名詞句を等位に並べています。【語彙・現実主義】魔法のような「秘密」を否定し、準備、勤勉、失敗からの学習という泥臭い「結果（result）」こそが成功の正体だとパウエル長官が断定しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Colin_Powell_official_Secretary_of_State_photo.jpg/250px-Colin_Powell_official_Secretary_of_State_photo.jpg"
+    "image": "https://ui-avatars.com/api/?name=Colin+Powell&background=random&color=fff&size=250"
   },
   {
     "english": "Simplicity is the ultimate sophistication.",
@@ -949,7 +949,7 @@ export const quotesData = [
     "author": "Sheryl Sandberg",
     "info": "アメリカの実業家。Meta（旧Facebook）の元COO。",
     "grammar": "【文法：過去分詞の名詞的用法と比較級】Done（完了したこと）と perfect（完璧であること）を比較しています。【語彙・実践主義】完璧主義に陥って何も世に出さないよりも、荒削りでも「終わらせる（Done）」ことの方が価値がある。シリコンバレーなどで好まれる、スピードと実行力を尊ぶスローガンです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Sheryl_Sandberg_WEF_2013_%28crop_by_James_Tamim%29.jpg/250px-Sheryl_Sandberg_WEF_2013_%28crop_by_James_Tamim%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Sheryl+Sandberg&background=random&color=fff&size=250"
   },
   {
     "english": "Doubt kills more dreams than failure ever will.",
@@ -965,7 +965,7 @@ export const quotesData = [
     "author": "Zig Ziglar",
     "info": "アメリカの自己啓発作家、モチベーショナル・スピーカー。",
     "grammar": "【文法：不定詞の副詞的用法による倒置的な対比】to start（始めるために）と to be great（偉大になるために）の位置を入れ替えています。【語彙・論理の逆転】偉大さを開始の「条件」にするのではなく、開始を偉大さへの「条件」に反転させる。完璧なタイミングを待つ人の背中を押すジグ・ジグラーの言葉です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Zig_Ziglar_at_Get_Motivated_Seminar%2C_Cow_Palace_2009-3-24_3.JPG/250px-Zig_Ziglar_at_Get_Motivated_Seminar%2C_Cow_Palace_2009-3-24_3.JPG"
+    "image": "https://ui-avatars.com/api/?name=Zig+Ziglar&background=random&color=fff&size=250"
   },
   {
     "english": "If you can dream it, you can do it.",
@@ -981,7 +981,7 @@ export const quotesData = [
     "author": "Pablo Picasso",
     "info": "スペイン出身の画家。20世紀最大の芸術家の一人。",
     "grammar": "【文法：関係代名詞の省略】Everything と you の間に that が省略されています。「あなたが想像できるすべてのこと」。【語彙・断定】is real（現実である）。ピカソの言葉。空想や想像（imagine）を単なる幻とせず、それらもまた一つの「現実（real）」であると言い切る芸術家の視点です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Pablo_picasso_1.jpg/250px-Pablo_picasso_1.jpg"
+    "image": "https://ui-avatars.com/api/?name=Pablo+Picasso&background=random&color=fff&size=250"
   },
   {
     "english": "Courage is resistance to fear, mastery of fear—not absence of fear.",
@@ -997,7 +997,7 @@ export const quotesData = [
     "author": "Theodore Roosevelt",
     "info": "第26代アメリカ合衆国大統領。行動力溢れるリーダーとして知られる。",
     "grammar": "【文法：Keep O on〜 の並列】後半は (keep) your feet on the ground と動詞が省略されています。【語彙・対比とバランス】stars（星＝高い理想）と ground（地面＝現実）。ルーズベルト大統領の言葉で、理想を高く持ちながらも、行動は現実的で地に足のついたものであれという、完璧なバランス感覚を説いています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Theodore_Roosevelt_by_the_Pach_Bros.jpg/250px-Theodore_Roosevelt_by_the_Pach_Bros.jpg"
+    "image": "https://ui-avatars.com/api/?name=Theodore+Roosevelt&background=random&color=fff&size=250"
   },
   {
     "english": "The harder the conflict, the more glorious the triumph.",
@@ -1013,7 +1013,7 @@ export const quotesData = [
     "author": "Benjamin Franklin",
     "info": "アメリカ建国の父の一人。時間を無駄にしない生き方を説いた。",
     "grammar": "【文法：前置詞 by + 動名詞 と 進行形】By -ing（〜することによって）。【語彙・言葉遊び(交錯配列法)】fail to prepare（準備を怠る）と prepare to fail（失敗の準備をする）。フランクリンの言葉。意図的であれ無意識であれ、準備不足はすでに「失敗への能動的な準備」なのだという鋭い戒めです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Joseph_Siffrein_Duplessis_-_Benjamin_Franklin_-_Google_Art_Project.jpg/250px-Joseph_Siffrein_Duplessis_-_Benjamin_Franklin_-_Google_Art_Project.jpg"
+    "image": "https://ui-avatars.com/api/?name=Benjamin+Franklin&background=random&color=fff&size=250"
   },
   {
     "english": "Don't count the days, make the days count.",
@@ -1029,7 +1029,7 @@ export const quotesData = [
     "author": "Rumi",
     "info": "13世紀のペルシャの神秘主義詩人。",
     "grammar": "【文法：関係代名詞 what の主語】What hurts you（あなたを傷つけるもの）が主語。【語彙・逆説のメタファー】hurts（傷つける）と blesses（祝福する）。ルーミー（詩人）の言葉で、苦難こそが魂を成長させる恵みであり、暗闇（Darkness）こそが光の価値を教えるロウソク（candle）であるという神秘的な逆説です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/%D9%85%D9%88%D9%84%D8%A7%D9%86%D8%A7_%D8%A7%D8%AB%D8%B1_%D8%AD%D8%B3%DB%8C%D9%86_%D8%A8%D9%87%D8%B2%D8%A7%D8%AF_%28cropped%29.jpg/250px-%D9%85%D9%88%D9%84%D8%A7%D9%86%D8%A7_%D8%A7%D8%AB%D8%B1_%D8%AD%D8%B3%DB%8C%D9%86_%D8%A8%D9%87%D8%B2%D8%A7%D8%AF_%28cropped%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Rumi&background=random&color=fff&size=250"
   },
   {
     "english": "A champion is defined not by their wins but by how they can recover when they fall.",
@@ -1045,7 +1045,7 @@ export const quotesData = [
     "author": "John D. Rockefeller Jr.",
     "info": "アメリカの資本家、実業家。巨大な富を慈善事業にも投じた。",
     "grammar": "【文法：不定詞の名詞的用法】to do（〜すること）が補語。【語彙・副詞による強調と対比】the common thing（平凡で当たり前のこと）を uncommonly well（非凡なほどに見事に）やる。ロックフェラーの言葉。特別なことをする必要はなく、基礎や日常の基準を異常なレベルまで引き上げよという成功哲学です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/John_D._Rockefeller_Jr._cph.3a03736.jpg/250px-John_D._Rockefeller_Jr._cph.3a03736.jpg"
+    "image": "https://ui-avatars.com/api/?name=John+D.+Rockefeller+Jr.&background=random&color=fff&size=250"
   },
   {
     "english": "Only in the darkness can you see the stars.",
@@ -1061,7 +1061,7 @@ export const quotesData = [
     "author": "Vincent van Gogh",
     "info": "オランダのポスト印象派の画家。情熱的な筆致で知られる。",
     "grammar": "【文法：受動態と過去分詞の後置修飾】are done（なされる）。brought together（一つにまとめられた）という過去分詞が a series of small things を修飾しています。【語彙・集積の力】ゴッホの言葉。偉業（Great things）は突発的に生まれるのではなく、小さなこと（small things）の連続的な集積によってのみ達成されるという事実です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg/250px-Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Vincent+van+Gogh&background=random&color=fff&size=250"
   },
   {
     "english": "The only person you are destined to become is the person you decide to be.",
@@ -1077,7 +1077,7 @@ export const quotesData = [
     "author": "John Wooden",
     "info": "アメリカの伝説的なカレッジバスケットボールコーチ。",
     "grammar": "【文法：第5文型(SVOC)】Make O C で「OをCにせよ」。each day が目的語、your masterpiece が補語です。【語彙・芸術のメタファー】ジョン・ウッデンの言葉。一日一日を、ただの作業の繰り返しではなく、あなた自身の「最高傑作（masterpiece）」として丹念に仕上げるつもりで生きよという美しい命令文です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/John_Wooden.JPG/250px-John_Wooden.JPG"
+    "image": "https://ui-avatars.com/api/?name=John+Wooden&background=random&color=fff&size=250"
   },
   {
     "english": "No pressure, no diamonds.",
@@ -1125,7 +1125,7 @@ export const quotesData = [
     "author": "Will Rogers",
     "info": "アメリカのコメディアン、俳優、コラムニスト。",
     "grammar": "【文法：使役動詞 let と句動詞 take up】let O do（Oに〜させる）。take up は「（時間や空間を）占領する、使い果たす」。【語彙・時間の擬人化】過去（yesterday）が現在の貴重な時間（today）を侵食するのを許してはいけない。後悔や過去の栄光にとらわれることを戒める、ウィル・ロジャースの言葉です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Will_Rogers_1922.jpg/250px-Will_Rogers_1922.jpg"
+    "image": "https://ui-avatars.com/api/?name=Will+Rogers&background=random&color=fff&size=250"
   },
   {
     "english": "You learn more from failure than from success. Don't let it stop you. Failure builds character.",
@@ -1141,7 +1141,7 @@ export const quotesData = [
     "author": "Tony Robbins",
     "info": "アメリカの自己啓発書作家、モチベーショナル・スピーカー。",
     "grammar": "【文法：動名詞の主語と前置詞 in + -ing】Setting goals（目標を設定すること）が主語。turning A into B（AをBに変える）。【語彙・抽象から具象へ】the invisible（目に見えないもの＝夢やアイデア）を the visible（目に見えるもの＝現実）へと変換する。アンソニー・ロビンズの、目標設定の実践的価値を説いた言葉です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Tony_Robbins.jpg/250px-Tony_Robbins.jpg"
+    "image": "https://ui-avatars.com/api/?name=Tony+Robbins&background=random&color=fff&size=250"
   },
   {
     "english": "Opportunities don't happen. You create them.",
@@ -1157,7 +1157,7 @@ export const quotesData = [
     "author": "Thomas Jefferson",
     "info": "第3代アメリカ合衆国大統領。独立宣言の主な起草者。",
     "grammar": "【文法：The 比較級, the 比較級】「一生懸命働けば働くほど、より多くの運を持つように思える」。【語彙・運の再定義】トマス・ジェファーソン（または類似の格言）。運（luck）は偶然の産物ではなく、努力（hard work）の量に比例して引き寄せられるものであるという、努力家のための心強い真理です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29.jpg/250px-Official_Presidential_portrait_of_Thomas_Jefferson_%28by_Rembrandt_Peale%2C_1800%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Thomas+Jefferson&background=random&color=fff&size=250"
   },
   {
     "english": "The way to gain a good reputation is to endeavor to be what you desire to appear.",
@@ -1189,7 +1189,7 @@ export const quotesData = [
     "author": "Michael Jordan",
     "info": "アメリカの元プロバスケットボール選手。圧倒的な実行力で数々の記録を打ち立てた。",
     "grammar": "【文法：Some..., some..., others... の並列】「〜する人もいれば、･･･する人もいて、また別のことをする人もいる」。【語彙・行動の3段階】マイケル・ジョーダンの言葉。want（単なる欲求）、wish（仮定法的な願望）、そして make it happen（使役動詞を使った現実化）。結果を出すのは「自ら起こす（make）」人間だけだという厳しい事実です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Michael_Jordan_in_2014.jpg/250px-Michael_Jordan_in_2014.jpg"
+    "image": "https://ui-avatars.com/api/?name=Michael+Jordan&background=random&color=fff&size=250"
   },
   {
     "english": "Motivation is what gets you started. Habit is what keeps you going.",
@@ -1205,7 +1205,7 @@ export const quotesData = [
     "author": "A. P. J. Abdul Kalam",
     "info": "第11代インド大統領、航空宇宙技術者。",
     "grammar": "【文法：不定詞の副詞的用法と助動詞must】To succeed（成功するために）が目的を表し、主節の must（〜しなければならない）で強い義務や必要性を強調しています。【語彙・ニュアンス】single-minded（ひたむきな、一つのことだけを考える）という形容詞が devotion（献身）を修飾し、目標達成には一点集中が不可欠であることを説いています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/A._P._J._Abdul_Kalam.jpg/250px-A._P._J._Abdul_Kalam.jpg"
+    "image": "https://ui-avatars.com/api/?name=A.+P.+J.+Abdul+Kalam&background=random&color=fff&size=250"
   },
   {
     "english": "You can't cross the sea merely by standing and staring at the water.",
@@ -1221,7 +1221,7 @@ export const quotesData = [
     "author": "Henry Ford",
     "info": "フォード・モーターの創設者。",
     "grammar": "【文法：不定詞の形容詞的用法と副詞句の追加】the opportunity（機会）を to begin again（再び始めるための）が後ろから修飾しています。【語彙・再定義】ヘンリー・フォードの言葉。Failure（失敗）を、単なる「より賢く（intelligently）やり直す機会」へと鮮やかにポジティブな概念に再定義しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Henry_Ford_portrait_1915_original_%283x4_cropped%29.png/250px-Henry_Ford_portrait_1915_original_%283x4_cropped%29.png"
+    "image": "https://ui-avatars.com/api/?name=Henry+Ford&background=random&color=fff&size=250"
   },
   {
     "english": "The past cannot be changed. The future is yet in your power.",
@@ -1253,7 +1253,7 @@ export const quotesData = [
     "author": "Helen Hayes",
     "info": "アメリカの女優。演劇界の「ファーストレディ」と呼ばれた。",
     "grammar": "【文法：過去を表す副詞 once】once は「かつて、以前は」。【語彙・ニュアンス】expert（達人）と beginner（初心者）の対比。どんなに才能があるように見える達人も、最初は何もできない初心者だったという歴史的事実を提示し、学習者の背中を強く押してくれる名言です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Helen_Hayes_1948.jpg/250px-Helen_Hayes_1948.jpg"
+    "image": "https://ui-avatars.com/api/?name=Helen+Hayes&background=random&color=fff&size=250"
   },
   {
     "english": "Don't stop when you're tired. Stop when you're done.",
@@ -1285,7 +1285,7 @@ export const quotesData = [
     "author": "Winston Churchill",
     "info": "イギリスの元首相。持ち前の忍耐力で国を導いた。",
     "grammar": "【文法：挿入句と A - not B - is C の構造】主語（Continuous effort）の後に、ダッシュで否定の要素（not strength or intelligence）を挿入しています。【語彙・メタファー】unlocking our potential（私たちの潜在能力を解き放つ）。成功の鍵（key）は、才能や知能ではなく、継続的な努力（Continuous effort）であるという希望の言葉です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Sir_Winston_Churchill_-_19086236948_%28restored%29.jpg/250px-Sir_Winston_Churchill_-_19086236948_%28restored%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Winston+Churchill&background=random&color=fff&size=250"
   },
   {
     "english": "Dreams don't work unless you do.",
@@ -1301,7 +1301,7 @@ export const quotesData = [
     "author": "Vince Lombardi",
     "info": "アメリカのアメリカンフットボールの伝説的なコーチ。",
     "grammar": "【文法：whether A or B の名詞節】「AかBかということ」。It is not A, it is B の構造です。【語彙・句動詞の対比】get knocked down（打ち倒される）と get up（起き上がる）。人生において倒れることは問題ではなく、その後に立ち上がるかどうかだけが重要であるという不屈の精神を表しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Vince_Lombardi_%281913-1970%29_in_1964_Crop.jpg/250px-Vince_Lombardi_%281913-1970%29_in_1964_Crop.jpg"
+    "image": "https://ui-avatars.com/api/?name=Vince+Lombardi&background=random&color=fff&size=250"
   },
   {
     "english": "Don't watch the clock; do what it does. Keep going.",
@@ -1573,7 +1573,7 @@ export const quotesData = [
     "author": "Abraham Lincoln",
     "info": "第16代アメリカ合衆国大統領。アメリカの分裂を防いだ。",
     "grammar": "【文法：強調構文 It is...that と言葉の反転】the years in your life（人生の中の年月＝寿命の長さ）と the life in your years（年月の中の人生＝生きる充実度）。【語彙・交錯配列法(Chiasmus)】リンカーンの言葉。count は「重要である」。言葉の順序を反転させることで、長さよりも質を重んじる見事な修辞法です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Abraham_Lincoln_1863_Portrait_%283x4_cropped%29.jpg/250px-Abraham_Lincoln_1863_Portrait_%283x4_cropped%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Abraham+Lincoln&background=random&color=fff&size=250"
   },
   {
     "english": "You can’t use up creativity. The more you use, the more you have.",
@@ -1589,7 +1589,7 @@ export const quotesData = [
     "author": "Abraham Lincoln",
     "info": "第16代アメリカ合衆国大統領。寛容な精神で国をまとめた。",
     "grammar": "【文法：when節を用いた時間の論理】「私が彼らを友達にする時、私は敵を滅ぼしている」。【語彙・概念の転換】リンカーンの言葉。destroy（破壊する、滅ぼす）という暴力的な動詞を使いながら、実際の手段は make them my friends（友人に変える）という平和的なもの。最高の勝利とは相手を味方にすることであるという深い政治哲学です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Abraham_Lincoln_1863_Portrait_%283x4_cropped%29.jpg/250px-Abraham_Lincoln_1863_Portrait_%283x4_cropped%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Abraham+Lincoln&background=random&color=fff&size=250"
   },
   {
     "english": "A winner is a dreamer who never gives up.",
@@ -1685,7 +1685,7 @@ export const quotesData = [
     "author": "Alice Morse Earle",
     "info": "アメリカの歴史家、著述家。",
     "grammar": "【文法：部分否定 may not】「毎日が良いわけではない（良い日もあれば悪い日もある）」。後半の there is 構文で視点を変え、どんな日の中にも「良さ（something good）」を見出す姿勢を説いています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Alice_Morse_1873.jpg/250px-Alice_Morse_1873.jpg"
+    "image": "https://ui-avatars.com/api/?name=Alice+Morse+Earle&background=random&color=fff&size=250"
   },
   {
     "english": "The greatest wealth is health.",
@@ -1693,7 +1693,7 @@ export const quotesData = [
     "author": "Virgil",
     "info": "古代ローマの詩人。『アエネーイス』の作者。",
     "grammar": "【文法：最上級による定義】最も偉大な富（The greatest wealth）＝ 健康。シンプルながらも、価値観の優先順位を明確に打ち出す SVC 構文です。",
-    "image": "https://ui-avatars.com/api/?name=Virgil&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Virgil_mosaic_in_the_Bardo_National_Museum_%28Tunis%29_%2812241228546%29.jpg/250px-Virgil_mosaic_in_the_Bardo_National_Museum_%28Tunis%29_%2812241228546%29.jpg"
   },
   {
     "english": "Never let the fear of striking out keep you from playing the game.",
@@ -1701,7 +1701,7 @@ export const quotesData = [
     "author": "Babe Ruth",
     "info": "アメリカの元プロ野球選手。野球界の歴史に残るホームラン王。",
     "grammar": "【文法：keep A from -ing】「Aが〜するのを妨げる」。恐怖（fear）によって挑戦（playing the game）を止められてはいけない。使役動詞 let の否定で、強い禁止と励ましを表現しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Babe_Ruth2.jpg/250px-Babe_Ruth2.jpg"
+    "image": "https://ui-avatars.com/api/?name=Babe+Ruth&background=random&color=fff&size=250"
   },
   {
     "english": "You must expect great things of yourself before you can do them.",
@@ -1709,7 +1709,7 @@ export const quotesData = [
     "author": "Michael Jordan",
     "info": "アメリカの元プロバスケットボール選手。圧倒的な自信で勝利を掴んだ。",
     "grammar": "【文法：助動詞 must と語法】「expect A of B（BにAを期待する）」。行動（do them）の前に、まず自己への期待（expect）が必要であるという、内面から外への因果関係を示しています。",
-    "image": "https://ui-avatars.com/api/?name=Michael+Jordan&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Michael_Jordan_in_2014.jpg/250px-Michael_Jordan_in_2014.jpg"
   },
   {
     "english": "Focus on the journey, not the destination.",
@@ -1725,7 +1725,7 @@ export const quotesData = [
     "author": "Edith Wharton",
     "info": "アメリカの小説家。女性として初めてピューリッツァー賞を受賞。",
     "grammar": "【文法：関係代名詞 that】光を広める2つの手段を不定詞（to be）で説明。能動的なロウソクと、受動的だが忠実な鏡。that節が鏡の役割を詳しく補足しています。",
-    "image": "https://ui-avatars.com/api/?name=Edith+Wharton&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Edith_Newbold_Jones_Wharton_%28cropped_02%29.jpg/250px-Edith_Newbold_Jones_Wharton_%28cropped_02%29.jpg"
   },
   {
     "english": "Life changes very quickly, in a very positive way, if you let it.",
@@ -1733,7 +1733,7 @@ export const quotesData = [
     "author": "Lindsey Vonn",
     "info": "アメリカの元アルペンスキー選手。オリンピック金メダリスト。",
     "grammar": "【文法：使役動詞の代動詞 let it】let it (change) の略。「もしあなたが人生が（変わるのを）許せば」。自分の心が許可を与えれば、人生の変化は加速するという条件を if で示しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/25th_Laureus_World_Sports_Awards_-_Red_Carpet_-_Lindsey_Vonn_-_240422_181204_%28cropped%29.jpg/250px-25th_Laureus_World_Sports_Awards_-_Red_Carpet_-_Lindsey_Vonn_-_240422_181204_%28cropped%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Lindsey+Vonn&background=random&color=fff&size=250"
   },
   {
     "english": "You are never too old to set another goal or to dream a new dream.",
@@ -1749,7 +1749,7 @@ export const quotesData = [
     "author": "Lil Wayne",
     "info": "アメリカのラッパー、音楽プロデューサー。",
     "grammar": "【文法：第5文型 want A to be B】A（状況）が B（簡単）であることを求めるのではなく、B（価値がある）であることを求める。困難さを引き受ける覚悟を対比で表現しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Lil_Wayne_Feb._2020.jpg/250px-Lil_Wayne_Feb._2020.jpg"
+    "image": "https://ui-avatars.com/api/?name=Lil+Wayne&background=random&color=fff&size=250"
   },
   {
     "english": "Find out who you are and do it on purpose.",
@@ -1757,7 +1757,7 @@ export const quotesData = [
     "author": "Dolly Parton",
     "info": "アメリカのシンガーソングライター、女優。",
     "grammar": "【文法：間接疑問文 who you are】「自分が誰であるか」を突き止める（Find out）。その上で、意図的に（on purpose）その個性を生きろという、自己実現へのステップを命令文で示しています。",
-    "image": "https://ui-avatars.com/api/?name=Dolly+Parton&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Dolly_Parton_at_%27Blue_Smoke_World_Tour%27_in_Knoxville.jpg/250px-Dolly_Parton_at_%27Blue_Smoke_World_Tour%27_in_Knoxville.jpg"
   },
   {
     "english": "Always turn a negative situation into a positive situation.",
@@ -1765,7 +1765,7 @@ export const quotesData = [
     "author": "Michael Jordan",
     "info": "アメリカの元プロバスケットボール選手。ピンチをチャンスに変えるメンタルを持っていた。",
     "grammar": "【文法：動詞 turn の語法】「turn A into B（AをBに変える）」。状況（situation）の形容詞を negative から positive へと反転させることで、捉え方の転換を促しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Michael_Jordan_in_2014.jpg/250px-Michael_Jordan_in_2014.jpg"
+    "image": "https://ui-avatars.com/api/?name=Michael+Jordan&background=random&color=fff&size=250"
   },
   {
     "english": "Limit your 'always' and your 'nevers'.",
@@ -1773,7 +1773,7 @@ export const quotesData = [
     "author": "Amy Poehler",
     "info": "アメリカの女優、コメディアン。",
     "grammar": "【文法：名詞としての副詞】本来副詞である always（いつも）や never（決して〜ない）を名詞として扱い、決めつけや極端な思考を「制限（Limit）」せよと説く、ユニークな表現です。",
-    "image": "https://ui-avatars.com/api/?name=Amy+Poehler&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Amy_Poehler_%2853671989427%29_cropped.jpg/250px-Amy_Poehler_%2853671989427%29_cropped.jpg"
   },
   {
     "english": "If you have good thoughts they will shine out of your face like sunbeams.",
@@ -1781,7 +1781,7 @@ export const quotesData = [
     "author": "Roald Dahl",
     "info": "イギリスの小説家。『チャーリーとチョコレート工場』の原作者。",
     "grammar": "【文法：直喩 like】良い考え（good thoughts）が顔から「輝き出る（shine out）」という内面の反映を、太陽光（sunbeams）に例えて視覚的に表現しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Roald_Dahl.jpg/250px-Roald_Dahl.jpg"
+    "image": "https://ui-avatars.com/api/?name=Roald+Dahl&background=random&color=fff&size=250"
   },
   {
     "english": "Happiness is not a goal...it's a by-product of a life well lived.",
@@ -1789,7 +1789,7 @@ export const quotesData = [
     "author": "Eleanor Roosevelt",
     "info": "アメリカのファーストレディ、国連人権委員会の初代委員長。",
     "grammar": "【文法：過去分詞の後置修飾】lived well（良く生きられた）という過去分詞が life を修飾。幸福は追いかける「目標」ではなく、正しい生き方の「副産物（by-product）」であるという真理です。",
-    "image": "https://ui-avatars.com/api/?name=Eleanor+Roosevelt&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Eleanor_Roosevelt_at_the_United_Nations%2C_circa_1946-1947_%283x4_cropped%29.jpg/250px-Eleanor_Roosevelt_at_the_United_Nations%2C_circa_1946-1947_%283x4_cropped%29.jpg"
   },
   {
     "english": "No one is useless in this world who lightens the burdens of another.",
@@ -1797,7 +1797,7 @@ export const quotesData = [
     "author": "Charles Dickens",
     "info": "イギリスの小説家。『クリスマス・キャロル』や『オリバー・ツイスト』の著者。",
     "grammar": "【文法：関係代名詞の先行詞との離反】who 節が修飾しているのは文頭の No one です。他人の重荷を軽くする（lightens the burdens）行為が、存在の価値を決定するという構造です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Dickens_Gurney_head.jpg/250px-Dickens_Gurney_head.jpg"
+    "image": "https://ui-avatars.com/api/?name=Charles+Dickens&background=random&color=fff&size=250"
   },
   {
     "english": "There is no path to happiness: happiness is the path.",
@@ -1813,7 +1813,7 @@ export const quotesData = [
     "author": "Dalai Lama",
     "info": "チベット仏教の最高指導者。非暴力と慈悲を説く。",
     "grammar": "【文法：複合関係副詞 whenever】「可能なときはいつでも」。後半の It は kind でいることを指し、親切にするチャンスは逃せばないのではなく、常に自分の意志で創れることを示しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/The_Dalai_Lama_in_2012.jpg/250px-The_Dalai_Lama_in_2012.jpg"
+    "image": "https://ui-avatars.com/api/?name=Dalai+Lama&background=random&color=fff&size=250"
   },
   {
     "english": "It is not what happens to you, but how you react to it that matters.",
@@ -1821,7 +1821,7 @@ export const quotesData = [
     "author": "Epictetus",
     "info": "古代ローマのストア派の哲学者。奴隷出身から哲学者となった。",
     "grammar": "【文法：強調構文と Not A but B】「It is A that ...」の形。重要なのは起きたこと（what happens）ではなく、どう反応するか（how you react）であると、手段と態度を強調しています。",
-    "image": "https://ui-avatars.com/api/?name=Epictetus&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Epicteti_Enchiridion_Latinis_versibus_adumbratum_%28Oxford_1715%29_frontispiece_%28cropped%29.jpg/250px-Epicteti_Enchiridion_Latinis_versibus_adumbratum_%28Oxford_1715%29_frontispiece_%28cropped%29.jpg"
   },
   {
     "english": "To win without risk is to triumph without glory.",
@@ -1829,7 +1829,7 @@ export const quotesData = [
     "author": "Pierre Corneille",
     "info": "フランスの劇作家。フランス古典主義悲劇の確立者。",
     "grammar": "【文法：不定詞の名詞的用法】勝つこと（To win）＝ 勝利すること（to triumph）。リスクを排除することは、同時に栄光（glory）も排除することになるという、表裏一体の関係を述べています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Pierre_Corneille_2.jpg/250px-Pierre_Corneille_2.jpg"
+    "image": "https://ui-avatars.com/api/?name=Pierre+Corneille&background=random&color=fff&size=250"
   },
   {
     "english": "The brave man is not he who does not feel afraid, but he who conquers that fear.",
@@ -1837,7 +1837,7 @@ export const quotesData = [
     "author": "Nelson Mandela",
     "info": "南アフリカ共和国の元大統領。アパルトヘイト撤廃に尽力した。",
     "grammar": "【文法：関係代名詞 he who】勇敢さの定義を「恐怖を感じない（does not feel）」から「克服する（conquers）」へと上書きしています。感情ではなく行動が勇気を決めるという教えです。",
-    "image": "https://ui-avatars.com/api/?name=Nelson+Mandela&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Nelson_Mandela_1994.jpg/250px-Nelson_Mandela_1994.jpg"
   },
   {
     "english": "Only the educated are free.",
@@ -1845,7 +1845,7 @@ export const quotesData = [
     "author": "Epictetus",
     "info": "古代ローマのストア派の哲学者。自律と精神の自由を重んじた。",
     "grammar": "【文法：形容詞の名詞化 the + 形容詞】the educated で「教育を受けた人々」。自由（free）は特権ではなく、教育によって得られる精神の状態であるという断定的な SVC です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Epicteti_Enchiridion_Latinis_versibus_adumbratum_%28Oxford_1715%29_frontispiece_%28cropped%29.jpg/250px-Epicteti_Enchiridion_Latinis_versibus_adumbratum_%28Oxford_1715%29_frontispiece_%28cropped%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Epictetus&background=random&color=fff&size=250"
   },
   {
     "english": "What you do today can improve all your tomorrows.",
@@ -1893,7 +1893,7 @@ export const quotesData = [
     "author": "Max Lucado",
     "info": "アメリカの牧師、作家。多くのベストセラーを執筆。",
     "grammar": "【文法：動名詞による手段】人生を変える（change your life）方法は、心を変えること（changing your heart）である。原因と結果を同じ動詞 change で繋ぐことで、直結した変化を強調しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Max_Lucado_-_November_2019.jpg/250px-Max_Lucado_-_November_2019.jpg"
+    "image": "https://ui-avatars.com/api/?name=Max+Lucado&background=random&color=fff&size=250"
   },
   {
     "english": "It takes courage to grow up and become who you really are.",
@@ -1909,7 +1909,7 @@ export const quotesData = [
     "author": "Ralph Waldo Emerson",
     "info": "アメリカの思想家、哲学者。言葉よりも行動の重要性を説いた。",
     "grammar": "【文法：so ... that 構文】行動があまりにうるさく叫ぶ（speaks so loudly）ので、言葉（what you say）が聞こえない。言葉よりも行動が真実を語るという擬人化を用いた強調です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg/250px-Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg"
+    "image": "https://ui-avatars.com/api/?name=Ralph+Waldo+Emerson&background=random&color=fff&size=250"
   },
   {
     "english": "Success is getting what you want. Happiness is wanting what you get.",
@@ -1933,7 +1933,7 @@ export const quotesData = [
     "author": "Kate Winslet",
     "info": "イギリスの女優。映画『タイタニック』などで数々の賞を受賞。",
     "grammar": "【文法：不定詞の受動態】to be lived（生きられるために）。人生は「ある（here）」だけでなく、実際に「生きられる（行動を伴う）」べき対象であるという存在意義を述べています。",
-    "image": "https://ui-avatars.com/api/?name=Kate+Winslet&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/KateWinslet_%28cropped%29.jpg/250px-KateWinslet_%28cropped%29.jpg"
   },
   {
     "english": "To think is easy. To act is hard.",
@@ -1941,7 +1941,7 @@ export const quotesData = [
     "author": "Johann Wolfgang von Goethe",
     "info": "ドイツの詩人、劇作家、小説家。『ファウスト』の著者。",
     "grammar": "【文法：不定詞の主語】「考えること」と「行動すること」。対照的な形容詞 easy と hard を使うことで、実行の難しさと価値を際立たせています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Goethe_%28Stieler_1828%29.jpg/250px-Goethe_%28Stieler_1828%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Johann+Wolfgang+von+Goethe&background=random&color=fff&size=250"
   },
   {
     "english": "Genius is 1% inspiration, and 99% perspiration.",
@@ -1949,7 +1949,7 @@ export const quotesData = [
     "author": "Thomas Edison",
     "info": "アメリカの発明家。努力の重要性を最も端的に表現した名言。",
     "grammar": "【文法：名詞の並列】ひらめき（inspiration）と努力（perspiration）の比率を提示。似た響きの単語を使い、成功の大部分が泥臭い努力によって構成されていることを示しています。",
-    "image": "https://ui-avatars.com/api/?name=Thomas+Edison&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Thomas_Edison2.jpg/250px-Thomas_Edison2.jpg"
   },
   {
     "english": "Perfection is not attainable, but if we chase perfection we can catch excellence.",
@@ -1957,7 +1957,7 @@ export const quotesData = [
     "author": "Vince Lombardi",
     "info": "アメリカのアメリカンフットボールの伝説的コーチ。",
     "grammar": "【文法：接尾辞 -able と動詞の対比】到達可能（attainable）ではない完璧（Perfection）を「追いかける（chase）」ことで、結果として卓越（excellence）を「捕まえる（catch）」ことができるというプロセスです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Vince_Lombardi_%281913-1970%29_in_1964_Crop.jpg/250px-Vince_Lombardi_%281913-1970%29_in_1964_Crop.jpg"
+    "image": "https://ui-avatars.com/api/?name=Vince+Lombardi&background=random&color=fff&size=250"
   },
   {
     "english": "Nothing is so contagious as enthusiasm.",
@@ -1965,7 +1965,7 @@ export const quotesData = [
     "author": "Samuel Taylor Coleridge",
     "info": "イギリスの詩人、批評家、哲学者。",
     "grammar": "【文法：同等比較 not so ... as】enthusiasm（熱意）以上に「伝染しやすい（contagious）」ものはない。最上級の意味を比較構文で表現し、熱意の及ぼす影響力を最大化しています。",
-    "image": "https://ui-avatars.com/api/?name=Samuel+Taylor+Coleridge&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/SamuelTaylorColeridge.jpg/250px-SamuelTaylorColeridge.jpg"
   },
   {
     "english": "A ship in harbor is safe, but that is not what ships are built for.",
@@ -1997,7 +1997,7 @@ export const quotesData = [
     "author": "Benjamin Franklin",
     "info": "アメリカ建国の父の一人。時間を有効に使うことを重んじた。",
     "grammar": "【文法：倒置】本来 Never leave [that which you can do today] till tomorrow。目的語が長いため後回しにされています。今日できることを明日に回すな、という有名な格言の強調形です。",
-    "image": "https://ui-avatars.com/api/?name=Benjamin+Franklin&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Joseph_Siffrein_Duplessis_-_Benjamin_Franklin_-_Google_Art_Project.jpg/250px-Joseph_Siffrein_Duplessis_-_Benjamin_Franklin_-_Google_Art_Project.jpg"
   },
   {
     "english": "There is nothing permanent except change.",
@@ -2005,7 +2005,7 @@ export const quotesData = [
     "author": "Heraclitus",
     "info": "古代ギリシャの哲学者。「万物は流転する」と説いた。",
     "grammar": "【文法：否定代名詞と前置詞 except】nothing（何もない）と except（〜以外に）を組み合わせることで、「〜以外に･･･なものは何もない（〜だけだ）」という強い肯定の表現を作っています。【語彙・パラドックス】permanent（永久的な）と change（変化）。「変化」という現象だけが唯一変わらないものであるという、ヘラクレイトスの有名な逆説です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Heraclitus_b_4_compressed.jpg/250px-Heraclitus_b_4_compressed.jpg"
+    "image": "https://ui-avatars.com/api/?name=Heraclitus&background=random&color=fff&size=250"
   },
   {
     "english": "Do not go where the path may lead, go instead where there is no path and leave a trail.",
@@ -2013,7 +2013,7 @@ export const quotesData = [
     "author": "Ralph Waldo Emerson",
     "info": "アメリカの思想家、詩人。開拓者精神を称賛した。",
     "grammar": "【文法：関係副詞 where の副詞節】where the path may lead は「道が導くかもしれない場所（＝すでに敷かれた道）」。【語彙・対比とメタファー】エマーソンの言葉。go と leave（残す）。他人が作った安全な道（path）を進むのではなく、未開の地に自らの足跡（trail）を残せという、フロンティア精神の力強い命令文です。",
-    "image": "https://ui-avatars.com/api/?name=Ralph+Waldo+Emerson&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg/250px-Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg"
   },
   {
     "english": "A wise man will make more opportunities than he finds.",
@@ -2021,7 +2021,7 @@ export const quotesData = [
     "author": "Francis Bacon",
     "info": "イギリスの哲学者、神学者。「知識は力なり」で知られる。",
     "grammar": "【文法：比較級 make more...than】than he finds（彼が見つけるよりも多くの）。【語彙・主体性の強調】フランシス・ベーコンの言葉。wise man（賢者）。機会（opportunities）は自然に「見つかる（find）」のを待つのではなく、自らの手で「創り出す（make）」ものである。動詞の対比で主体的な行動の価値を説いています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Somer_Francis_Bacon.jpg/250px-Somer_Francis_Bacon.jpg"
+    "image": "https://ui-avatars.com/api/?name=Francis+Bacon&background=random&color=fff&size=250"
   },
   {
     "english": "The two most important days in your life are the day you are born and the day you find out why.",
@@ -2197,7 +2197,7 @@ export const quotesData = [
     "author": "Jack Kornfield",
     "info": "アメリカの作家、仏教指導者。（ブッダの言葉として引用されることも多い）",
     "grammar": "【文法：The trouble is (that)...】「問題なのは〜ということだ」。that が省略されています。【語彙・時間の錯覚】ブッダの言葉とされている名言。you think you have time（まだ時間があると思っている）。人間の最大の過ちは「命と時間は永遠にある」と錯覚し、今日やるべきことを先延ばしにすることだという鋭い警告です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/7/77/Jack_Kornfield.jpg"
+    "image": "https://ui-avatars.com/api/?name=Jack+Kornfield&background=random&color=fff&size=250"
   },
   {
     "english": "Work hard in silence, let your success be your noise.",
@@ -2229,7 +2229,7 @@ export const quotesData = [
     "author": "Desmond Tutu",
     "info": "南アフリカの平和運動家、聖公会主教。ノーベル平和賞受賞者。",
     "grammar": "【文法：命令文の対比】Don't raise..., improve...【語彙・知的な反撃】デズモンド・ツツの言葉。voice（声のボリューム、感情的な怒鳴り声）と argument（議論、論理の筋道）。相手を論破したいなら、感情的になって声を荒らげるのではなく、論理の質を高めよという、知的で冷静なアドバイスです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Archbishop-Tutu-medium.jpg/250px-Archbishop-Tutu-medium.jpg"
+    "image": "https://ui-avatars.com/api/?name=Desmond+Tutu&background=random&color=fff&size=250"
   },
   {
     "english": "Sometimes you win, sometimes you learn.",
@@ -2237,7 +2237,7 @@ export const quotesData = [
     "author": "John C. Maxwell",
     "info": "アメリカのリーダーシップ専門家、作家。失敗の捉え方を示した。",
     "grammar": "【文法：Sometimes の反復】「〜な時もあれば、･･･な時もある」。【語彙・ポジティブな解釈】win（勝つ）と learn（学ぶ）。ジョン・マクスウェルの言葉。通常は win or lose とするところを learn に置き換え、どんな結果であっても「敗北」ではなく「経験」として蓄積されることを説いています。",
-    "image": "https://ui-avatars.com/api/?name=John+C.+Maxwell&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/John_C._Maxwell_%28cropped%29.jpg/250px-John_C._Maxwell_%28cropped%29.jpg"
   },
   {
     "english": "The key to success is to start before you are ready.",
@@ -2245,7 +2245,7 @@ export const quotesData = [
     "author": "Marie Forleo",
     "info": "アメリカの起業家、ライフコーチ。",
     "grammar": "【文法：不定詞の名詞的用法と接続詞 before】is to start（始めることだ）。【語彙・完璧主義の打破】マリー・フォーレオの言葉。before you are ready（準備が完全に整う前に）。「準備ができたらやる」という言い訳を封じ、走りながら考える（start before ready）ことこそが成功の鍵であるという行動哲学です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Marie_Forleo_1.jpg/250px-Marie_Forleo_1.jpg"
+    "image": "https://ui-avatars.com/api/?name=Marie+Forleo&background=random&color=fff&size=250"
   },
   {
     "english": "Nothing diminishes anxiety faster than action.",
@@ -2261,7 +2261,7 @@ export const quotesData = [
     "author": "Eleanor Roosevelt",
     "info": "アメリカのファーストレディ。他人の目を気にしない強さを説いた。",
     "grammar": "【文法：do what you feel to be right】「あなたが正しいと感じることをせよ」。for は理由を表す接続詞。【語彙・他者の目の排除】エレノア・ルーズベルトの言葉。criticized anyway（どうせいずれにせよ批判される）。何をやっても批判されるなら、他人の顔色を窺うのはやめて、自分の心（heart）に忠実に生きよという痛快な教えです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Eleanor_Roosevelt_at_the_United_Nations%2C_circa_1946-1947_%283x4_cropped%29.jpg/250px-Eleanor_Roosevelt_at_the_United_Nations%2C_circa_1946-1947_%283x4_cropped%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Eleanor+Roosevelt&background=random&color=fff&size=250"
   },
   {
     "english": "Dream big and dare to fail.",
@@ -2293,7 +2293,7 @@ export const quotesData = [
     "author": "Henry Ford",
     "info": "フォード・モーターの創設者。アイデアを行動に移す重要性を強調した。",
     "grammar": "【文法：A without B is C】「BのないAはCにすぎない」。【語彙・理想と現実】トーマス・エジソンの言葉。Vision（壮大なビジョン）があっても、execution（実行）が伴わなければ、それはただの hallucination（幻覚、妄想）である。行動を伴わないアイデアの無価値さを、韻を踏んで痛烈に批判しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Henry_Ford_portrait_1915_original_%283x4_cropped%29.png/250px-Henry_Ford_portrait_1915_original_%283x4_cropped%29.png"
+    "image": "https://ui-avatars.com/api/?name=Henry+Ford&background=random&color=fff&size=250"
   },
   {
     "english": "An investment in knowledge pays the best interest.",
@@ -2301,7 +2301,7 @@ export const quotesData = [
     "author": "Benjamin Franklin",
     "info": "アメリカの政治家、科学者、著述家。自己研鑽の価値を説いた。",
     "grammar": "【文法：無生物主語 S V O1 O2】pays (you) the best interest の you が省略された形。【語彙・知識の複利】ベンジャミン・フランクリンの言葉。投資（investment）と 利子（interest）という金融用語を使用。お金への投資は変動するが、自分自身の知識（knowledge）への投資は絶対に裏切らず、最高のリターンをもたらすという教えです。",
-    "image": "https://ui-avatars.com/api/?name=Benjamin+Franklin&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Joseph_Siffrein_Duplessis_-_Benjamin_Franklin_-_Google_Art_Project.jpg/250px-Joseph_Siffrein_Duplessis_-_Benjamin_Franklin_-_Google_Art_Project.jpg"
   },
   {
     "english": "Change is the law of life.",
@@ -2309,7 +2309,7 @@ export const quotesData = [
     "author": "John F. Kennedy",
     "info": "第35代アメリカ合衆国大統領。変化を恐れず受け入れる姿勢を示した。",
     "grammar": "【文法：第2文型(SVC)】A ＝ B。不要なものを削ぎ落とした断定の形。【語彙・変化の肯定】ケネディ大統領の言葉。変化（Change）を「避けられない自然の法則（the law of life）」と定義。変化を恐れることは生命の法則に逆らうことだとして、新しい時代への適応を力強く促しています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/John_F._Kennedy%2C_White_House_color_photo_portrait.jpg/250px-John_F._Kennedy%2C_White_House_color_photo_portrait.jpg"
+    "image": "https://ui-avatars.com/api/?name=John+F.+Kennedy&background=random&color=fff&size=250"
   },
   {
     "english": "If you fell down yesterday, stand up today.",
@@ -2325,7 +2325,7 @@ export const quotesData = [
     "author": "Napoleon Hill",
     "info": "アメリカの著作家。成功哲学の提唱者。",
     "grammar": "【文法：Don't wait. の単独使用】「待つな」。【語彙・完璧なタイミングの不在】ナポレオン・ヒルの言葉。just right（「今だ」という完璧な状態）。すべての条件が揃う完璧なタイミングなど永遠に来ない（never be）。だからこそ、見切り発車でもいいから今すぐ始めるべきだという行動の鉄則です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Napoleon_Hill_headshot.jpg/250px-Napoleon_Hill_headshot.jpg"
+    "image": "https://ui-avatars.com/api/?name=Napoleon+Hill&background=random&color=fff&size=250"
   },
   {
     "english": "The starting point of all achievement is desire.",
@@ -2333,7 +2333,7 @@ export const quotesData = [
     "author": "Napoleon Hill",
     "info": "アメリカの成功哲学者。『思考は現実化する』の著者。",
     "grammar": "【文法：名詞を修飾する前置詞句】of all achievement が The starting point を修飾しています。【語彙・欲望の肯定】ナポレオン・ヒルの言葉。desire（強烈な欲望、願望）。すべての偉大な達成（achievement）は、技術や環境ではなく、内側から湧き上がる「どうしてもこれが欲しい、やりたい」という熱い欲望から出発するという事実です。",
-    "image": "https://ui-avatars.com/api/?name=Napoleon+Hill&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Napoleon_Hill_headshot.jpg/250px-Napoleon_Hill_headshot.jpg"
   },
   {
     "english": "What we fear of doing most is usually what we most need to do.",
@@ -2341,7 +2341,7 @@ export const quotesData = [
     "author": "Ralph Waldo Emerson",
     "info": "アメリカの思想家、哲学者。",
     "grammar": "【文法：関係代名詞 what による主語と補語の対比】「最も恐れていること」＝「最もやるべきこと」。【語彙・恐怖のシグナル】ティム・フェリスの言葉。fear（恐怖）をネガティブな感情ではなく、「そこに自分の成長のブレイクスルーがある」という羅針盤（シグナル）として再解釈する、現代的なライフハックの哲学です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg/250px-Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg"
+    "image": "https://ui-avatars.com/api/?name=Ralph+Waldo+Emerson&background=random&color=fff&size=250"
   },
   {
     "english": "We generate fears while we sit. We overcome them by action.",
@@ -2365,7 +2365,7 @@ export const quotesData = [
     "author": "Eddie Rickenbacker",
     "info": "アメリカの第一次世界大戦のエース・パイロット。",
     "grammar": "【文法：動名詞の補語と関係代名詞 what】doing what you are afraid to do（恐れているまさにその事をすること）。【語彙・勇気の再定義】ラルフ・ワルド・エマーソンの言葉。勇気（Courage）とは、恐怖を感じないことではなく、恐怖を感じて（afraid）なお、あえてそれに飛び込む（doing）ことであるという真理です。",
-    "image": "https://ui-avatars.com/api/?name=Eddie+Rickenbacker&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/RickenbackerUSAF.jpg/250px-RickenbackerUSAF.jpg"
   },
   {
     "english": "Every day is a second chance.",
@@ -2381,7 +2381,7 @@ export const quotesData = [
     "author": "Brian Tracy",
     "info": "カナダ出身の自己啓発作家、モチベーショナル・スピーカー。",
     "grammar": "【文法：第5文型 make O C と命令文】Make your life a masterpiece（人生を最高傑作にせよ）。【語彙・自己への期待】ブライアン・トレーシーの言葉。masterpiece（傑作）と limitations（限界）。自分の人生を適当に済ませるのではなく、芸術家のように丹念に創り上げよ。そして、思考の枠組み（限界）を外せという鼓舞です。",
-    "image": "https://ui-avatars.com/api/?name=Brian+Tracy&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Brian_Tracy_%284005302419%29_%28cropped%29.jpg/250px-Brian_Tracy_%284005302419%29_%28cropped%29.jpg"
   },
   {
     "english": "Every artist was first an amateur.",
@@ -2389,7 +2389,7 @@ export const quotesData = [
     "author": "Ralph Waldo Emerson",
     "info": "アメリカの思想家。最初から完璧な人はいないと励ます言葉。",
     "grammar": "【文法：過去形 was と副詞 first】「かつて最初は〜だった」。【語彙・初心者の肯定】エマーソンの言葉。amateur（素人、未熟者）。今、歴史に名を残しているどんな偉大な芸術家（artist）であっても、一番最初は何もできない素人だった。だから、今のあなたが未熟であることは何も恥じることではないという優しい励ましです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg/250px-Ralph_Waldo_Emerson_by_Josiah_Johnson_Hawes_1857.jpg"
+    "image": "https://ui-avatars.com/api/?name=Ralph+Waldo+Emerson&background=random&color=fff&size=250"
   },
   {
     "english": "Take the risk or lose the chance.",
@@ -2405,7 +2405,7 @@ export const quotesData = [
     "author": "William James",
     "info": "アメリカの哲学者、心理学者。プラグマティズムの代表的思索家。",
     "grammar": "【文法：不定詞の形容詞的用法と命令文】To change one's life（人生を変えるための方法）というテーマに対し、コロン（:）で答えを提示。【語彙・副詞のインパクト】flamboyantly（華々しく、大胆に）。ウィリアム・ジェームズの言葉。小さな変化ではなく、思い切った大胆な行動（Start immediately）が人生の転換には不可欠であるという心理学的なアドバイスです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/William_James_b1842c.jpg/250px-William_James_b1842c.jpg"
+    "image": "https://ui-avatars.com/api/?name=William+James&background=random&color=fff&size=250"
   },
   {
     "english": "Be yourself, but always your better self.",
@@ -2413,7 +2413,7 @@ export const quotesData = [
     "author": "Karl G. Maeser",
     "info": "ドイツ出身の教育者。",
     "grammar": "【文法：比較級】your better self（より良い自分）。【語彙・自己の更新】Be yourself（自分らしくあれ）というありふれた言葉に、but always... と逆接を加え、「現状に甘んじるのではなく、常に進化した自分であれ」という、現状維持を許さない厳しい自己成長のメッセージを付加しています。",
-    "image": "https://ui-avatars.com/api/?name=Karl+G.+Maeser&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Karl_G_Maeser.jpg/250px-Karl_G_Maeser.jpg"
   },
   {
     "english": "We can do anything we want to if we stick to it long enough.",
@@ -2421,7 +2421,7 @@ export const quotesData = [
     "author": "Helen Keller",
     "info": "アメリカの著述家、教育家、社会福祉活動家。",
     "grammar": "【文法：条件節と句動詞】if we stick to it（もしそれに固執するなら、やり抜くなら）。【語彙・継続の力】ヘレン・ケラーの言葉。we want to の後には do が省略されています。能力の限界を決めるのは才能ではなく、long enough（十分に長く）という時間の長さと執念であるという実体験に基づく言葉です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Helen_Keller_circa_1920_-_restored.jpg/250px-Helen_Keller_circa_1920_-_restored.jpg"
+    "image": "https://ui-avatars.com/api/?name=Helen+Keller&background=random&color=fff&size=250"
   },
   {
     "english": "Your most unhappy customers are your greatest source of learning.",
@@ -2429,7 +2429,7 @@ export const quotesData = [
     "author": "Bill Gates",
     "info": "Microsoftの共同創業者。ビジネスにおけるフィードバックの重要性を説く。",
     "grammar": "【文法：最上級の対比】most unhappy（最も不満を持つ）と greatest（最大の）。【語彙・視点の転換】ビル・ゲイツの言葉。クレームを言う顧客（unhappy customers）を、単なるトラブルメーカーではなく、ビジネスを改善するための「最大の学びの源泉（source of learning）」として歓迎する経営哲学です。",
-    "image": "https://ui-avatars.com/api/?name=Bill+Gates&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Bill_Gates_at_the_European_Commission_-_2025_-_P067383-987995_%28cropped%29.jpg/250px-Bill_Gates_at_the_European_Commission_-_2025_-_P067383-987995_%28cropped%29.jpg"
   },
   {
     "english": "Never interrupt your enemy when he is making a mistake.",
@@ -2445,7 +2445,7 @@ export const quotesData = [
     "author": "Muhammad Ali",
     "info": "アメリカの元プロボクサー。",
     "grammar": "【文法：関係代名詞 he who と enough to】He who is not courageous enough to...（〜するほど十分な勇気がない者は）。【語彙・リスクの受容】モハメド・アリの言葉。accomplish nothing（何も達成しない）。リスクを取る（take risks）という恐怖を引き受けない限り、人生の果実は決して得られないという厳しい事実です。",
-    "image": "https://ui-avatars.com/api/?name=Muhammad+Ali&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Muhammad_Ali_NYWTS.jpg/250px-Muhammad_Ali_NYWTS.jpg"
   },
   {
     "english": "Hope is a waking dream.",
@@ -2453,7 +2453,7 @@ export const quotesData = [
     "author": "Aristotle",
     "info": "古代ギリシャの哲学者。",
     "grammar": "【文法：第2文型(SVC)】Hope ＝ a waking dream。【語彙・詩的な矛盾語法(Oxymoron)】アリストテレスの言葉。waking（目覚めている）。通常、夢は眠っている時に見るものですが、希望（Hope）とは「目を覚ましたまま見る夢」であるという、美しく知的なメタファーです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Aristotle_Altemps_Inv8575.jpg/250px-Aristotle_Altemps_Inv8575.jpg"
+    "image": "https://ui-avatars.com/api/?name=Aristotle&background=random&color=fff&size=250"
   },
   {
     "english": "The most difficult thing is the decision to act, the rest is merely tenacity.",
@@ -2461,7 +2461,7 @@ export const quotesData = [
     "author": "Amelia Earhart",
     "info": "アメリカの女性飛行士。女性として初めて大西洋単独横断飛行に成功。",
     "grammar": "【文法：最上級と名詞の並列】The most difficult thing（最も難しいこと）＝ the decision to act（行動するという決断）。【語彙・実行の哲学】アメリア・イアハートの言葉。行動を起こすまでの「決断」が最大の壁であり、一度決断してしまえば、残りは単なる tenacity（固執、粘り強さ）の問題に過ぎないという真理です。",
-    "image": "https://ui-avatars.com/api/?name=Amelia+Earhart&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Amelia_Earhart_standing_under_nose_of_her_Lockheed_Model_10-E_Electra%2C_small_%28cropped%29.jpg/250px-Amelia_Earhart_standing_under_nose_of_her_Lockheed_Model_10-E_Electra%2C_small_%28cropped%29.jpg"
   },
   {
     "english": "Life is either a daring adventure or nothing at all.",
@@ -2469,7 +2469,7 @@ export const quotesData = [
     "author": "Helen Keller",
     "info": "アメリカの著述家、社会福祉活動家。重い障害を乗り越え世界中に希望を与えた。",
     "grammar": "【文法：相関接続詞 either A or B】「Aか、さもなくばBか」。【語彙・極端な二択】ヘレン・ケラーの言葉。daring adventure（大胆な冒険）と nothing at all（全くの無）。安全な道など存在せず、勇気を持って世界に飛び込むか、生きることを放棄するかの二つに一つだという強烈なメッセージです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Helen_Keller_circa_1920_-_restored.jpg/250px-Helen_Keller_circa_1920_-_restored.jpg"
+    "image": "https://ui-avatars.com/api/?name=Helen+Keller&background=random&color=fff&size=250"
   },
   {
     "english": "All our dreams can come true, if we have the courage to pursue them.",
@@ -2485,7 +2485,7 @@ export const quotesData = [
     "author": "Mahatma Gandhi",
     "info": "インドの独立運動指導者。「非暴力・不服従」を提唱した。",
     "grammar": "【文法：関係代名詞 what と前置詞 on】depends on what you do today（あなたが今日することに依存する）。【語彙・現在の絶対性】ガンジーの言葉。未来（future）という手の届かない時間を案じるよりも、今ここにある今日（today）の行動を変えることでのみ、未来は形作られるという実践的な教えです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Mahatma-Gandhi%2C_studio%2C_1931.jpg/250px-Mahatma-Gandhi%2C_studio%2C_1931.jpg"
+    "image": "https://ui-avatars.com/api/?name=Mahatma+Gandhi&background=random&color=fff&size=250"
   },
   {
     "english": "Believe in yourself and all that you are.",
@@ -2493,7 +2493,7 @@ export const quotesData = [
     "author": "Christian D. Larson",
     "info": "アメリカの自己啓発作家。ニューソート運動の指導者の一人。",
     "grammar": "【文法：関係代名詞 that の省略】all (that) you are（あなたという存在のすべて）。【語彙・完全な自己受容】Believe in（〜の価値を深く信じる）。自分の能力だけでなく、欠点や過去も含めた「自分自身のすべて（all that you are）」を信じ抜くことが、すべての出発点であるという力強い肯定です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/7_Chakras.JPG/250px-7_Chakras.JPG"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Christian_Daa_Larson%2C_new_Thought_author.png/250px-Christian_Daa_Larson%2C_new_Thought_author.png"
   },
   {
     "english": "Don't be afraid to give up the good to go for the great.",
@@ -2501,7 +2501,7 @@ export const quotesData = [
     "author": "John D. Rockefeller",
     "info": "アメリカの実業家。スタンダード・オイルを創業し、巨万の富を築いた。",
     "grammar": "【文法：不定詞の副詞的用法】to go for the great（偉大なものを目指すために）。【語彙・妥協の排除】ロックフェラーの言葉。the good（そこそこ良いもの）を手放す恐怖（afraid）を乗り越えなければ、the great（偉大で圧倒的なもの）は手に入らない。現状への満足を最大の敵とする成功哲学です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Portrait_of_J._D._Rockefeller.jpg/250px-Portrait_of_J._D._Rockefeller.jpg"
+    "image": "https://ui-avatars.com/api/?name=John+D.+Rockefeller&background=random&color=fff&size=250"
   },
   {
     "english": "A successful man is one who can lay a firm foundation with the bricks others have thrown at him.",
@@ -2797,7 +2797,7 @@ export const quotesData = [
     "author": "Leo Buscaglia",
     "info": "アメリカの教育学者、作家。「愛の伝道師」と呼ばれた。",
     "grammar": "【文法：A can be B（AはBになり得る）】a single rose（一輪のバラ）が my garden（私の庭）に。【語彙・本質の濃縮】レオ・ブスカーリアの言葉。広大な庭や無数の友人を求めなくても、たった一輪のバラの美しさを愛し、たった一人の真の友人（a single friend）を大切にできれば、それが自分の「全世界（world）」になるという深い満足の表現です。",
-    "image": "https://ui-avatars.com/api/?name=Leo+Buscaglia&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/b/b8/LeoBuscaglia.jpg"
   },
   {
     "english": "You define your own life. Don't let other people write your script.",
@@ -2805,7 +2805,7 @@ export const quotesData = [
     "author": "Oprah Winfrey",
     "info": "アメリカのテレビ司会者、プロデューサー。",
     "grammar": "【文法：使役動詞 let の否定命令】Don't let other people write...（他人に〜書かせるな）。【語彙・人生の脚本】ドリー・パートンの言葉。自分の人生（life）を一つの演劇に見立て、その脚本（script）を他人の期待や常識に「書かせる」な。自分が主人公であり、同時に脚本家として自らの人生を「定義（define）」せよという自立の言葉です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Oprah_Winfrey_2016.jpg/250px-Oprah_Winfrey_2016.jpg"
+    "image": "https://ui-avatars.com/api/?name=Oprah+Winfrey&background=random&color=fff&size=250"
   },
   {
     "english": "Words can inspire, thoughts can provoke, but only action truly brings you closer to your dreams.",
@@ -2821,7 +2821,7 @@ export const quotesData = [
     "author": "Oprah Winfrey",
     "info": "アメリカのテレビ司会者。感謝の心を持つことの大切さを説いた。",
     "grammar": "【文法：条件節 If と比較級】always have more（常にさらなるものを持つ）。【語彙・感謝のレンズ】オプラ・ウィンフリーの言葉。今自分が「持っているもの（what you have）」に感謝の目を向ければ豊かさが増し、逆に「足りないもの」ばかり見ていると永遠に満足できないという、心のフォーカスに関する引き寄せの法則です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Oprah_Winfrey_2016.jpg/250px-Oprah_Winfrey_2016.jpg"
+    "image": "https://ui-avatars.com/api/?name=Oprah+Winfrey&background=random&color=fff&size=250"
   },
   {
     "english": "The most effective way to do it, is to do it.",
@@ -2829,7 +2829,7 @@ export const quotesData = [
     "author": "Amelia Earhart",
     "info": "アメリカの女性飛行士。女性として初めて大西洋単独横断飛行に成功。",
     "grammar": "【文法：同語反復（Tautology）による強調】The most effective way to do it（それをする最も効果的な方法）is to do it（それをすることだ）。【語彙・即時実行】アメリア・イアハートの言葉。どうやれば効率的かなどと頭で考えて立ち止まるのではなく、四の五の言わずに「ただやれ」。実行こそが最大の効率化であるという真理です。",
-    "image": "https://ui-avatars.com/api/?name=Amelia+Earhart&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Amelia_Earhart_standing_under_nose_of_her_Lockheed_Model_10-E_Electra%2C_small_%28cropped%29.jpg/250px-Amelia_Earhart_standing_under_nose_of_her_Lockheed_Model_10-E_Electra%2C_small_%28cropped%29.jpg"
   },
   {
     "english": "A creative man is motivated by the desire to achieve, not by the desire to beat others.",
@@ -2837,7 +2837,7 @@ export const quotesData = [
     "author": "Ayn Rand",
     "info": "ロシア系アメリカ人の小説家、思想家。",
     "grammar": "【文法：Not A but B と受動態】not by the desire to beat others（他人に勝つ欲求によってではなく）。【語彙・創造性の源泉】アイン・ランドの言葉。クリエイティブな人間の動機（motivated）は、競争相手を打ち負かす（beat）ことではなく、純粋に何かを「達成・創造する（achieve）」ことにあるという、内発的動機づけの重要性です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Ayn_Rand_%281943_Talbot_portrait%29.jpg/250px-Ayn_Rand_%281943_Talbot_portrait%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Ayn+Rand&background=random&color=fff&size=250"
   },
   {
     "english": "To invent, you need a good imagination and a pile of junk.",
@@ -2845,7 +2845,7 @@ export const quotesData = [
     "author": "Thomas Edison",
     "info": "アメリカの発明家。身近なものから数々の革新を生み出した。",
     "grammar": "【文法：不定詞の副詞的用法】To invent（発明するためには）。【語彙・創造のレシピ】エジソンの言葉。歴史を変える発明に必要なのは、高度な知識や最新の設備ではなく、豊かな「想像力（good imagination）」と、失敗作やただのガラクタの山（a pile of junk）であるという、試行錯誤を肯定するユーモラスな表現です。",
-    "image": "https://ui-avatars.com/api/?name=Thomas+Edison&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Thomas_Edison2.jpg/250px-Thomas_Edison2.jpg"
   },
   {
     "english": "Always bear in mind that your own resolution to succeed is more important than any other.",
@@ -2853,7 +2853,7 @@ export const quotesData = [
     "author": "Abraham Lincoln",
     "info": "第16代アメリカ合衆国大統領。強い意志で国難を乗り越えた。",
     "grammar": "【文法：命令文 Bear in mind that...】「〜ということを常に心に留めておけ」。【語彙・決意の力】リンカーンの言葉。your own resolution to succeed（成功するというあなた自身の決意）。才能や環境など、他のどんな要因（any other）よりも、自分自身の内なる強い決意こそが成功の最重要ファクターであるという教えです。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Abraham_Lincoln_1863_Portrait_%283x4_cropped%29.jpg/250px-Abraham_Lincoln_1863_Portrait_%283x4_cropped%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Abraham+Lincoln&background=random&color=fff&size=250"
   },
   {
     "english": "Never regret a day in your life: good days give happiness, bad days give experience.",
@@ -2869,7 +2869,7 @@ export const quotesData = [
     "author": "James Joyce",
     "info": "アイルランドの小説家、詩人。『ユリシーズ』の著者。",
     "grammar": "【文法：第2文型(SVC)】Mistakes ＝ the portals。【語彙・失敗の再定義】ジェイムズ・ジョイスの言葉。portal は「堂々たる入り口、門」。間違い（Mistakes）は行き止まりの壁ではなく、未知の解決策や新しい発見（discovery）へと通じる「入り口」である。失敗の概念を空間的な広がりを持つ言葉で見事に書き換えています。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Revolutionary_Joyce_Better_Contrast.jpg/250px-Revolutionary_Joyce_Better_Contrast.jpg"
+    "image": "https://ui-avatars.com/api/?name=James+Joyce&background=random&color=fff&size=250"
   },
   {
     "english": "If you don't like the road you're walking, start paving another one.",
@@ -2877,7 +2877,7 @@ export const quotesData = [
     "author": "Dolly Parton",
     "info": "アメリカのシンガーソングライター、女優。",
     "grammar": "【文法：If節と動名詞】If you don't like... start -ing。【語彙・運命の開拓】ドリー・パートンの言葉。今歩いている道（the road you're walking）が気に入らないなら、文句を言って歩き続けるのではなく、自らの手で「別の道（another one）を舗装し始めよ（paving）」。与えられた環境を拒否し、自ら環境を創り出す開拓者精神です。",
-    "image": "https://ui-avatars.com/api/?name=Dolly+Parton&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Dolly_Parton_at_%27Blue_Smoke_World_Tour%27_in_Knoxville.jpg/250px-Dolly_Parton_at_%27Blue_Smoke_World_Tour%27_in_Knoxville.jpg"
   },
   {
     "english": "No matter what people tell you, words and ideas can change the world.",
@@ -2885,7 +2885,7 @@ export const quotesData = [
     "author": "Robin Williams",
     "info": "アメリカの俳優、コメディアン。映画『いまを生きる』のセリフより。",
     "grammar": "【文法：譲歩構文 No matter what...】「人々があなたに何を言おうとも」。【語彙・言葉とアイデアの力】映画『いまを生きる』のセリフ（元はロビン・ウィリアムズの演じたキーティング先生）。words（言葉）と ideas（アイデア）。権力や武力ではなく、人間の思考と言語こそが、本当に「世界を変える（change the world）」力を持っているという賛歌です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Robin_Williams_2011a_%282%29.jpg/250px-Robin_Williams_2011a_%282%29.jpg"
+    "image": "https://ui-avatars.com/api/?name=Robin+Williams&background=random&color=fff&size=250"
   },
   {
     "english": "Every noble work is at first impossible.",
@@ -2893,7 +2893,7 @@ export const quotesData = [
     "author": "Thomas Carlyle",
     "info": "イギリスの歴史家、思想家、評論家。",
     "grammar": "【文法：副詞句 at first の挿入】is at first impossible（最初は不可能である）。【語彙・偉業の過程】カーライルの言葉。noble work（気高く偉大な仕事）は、完成した今見れば素晴らしいが、それが着手された「最初（at first）」の段階では、常に「不可能（impossible）」と嘲笑されるものであったという、挑戦者を勇気づける歴史の真実です。",
-    "image": "https://ui-avatars.com/api/?name=Thomas+Carlyle&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Thomas_Carlyle_lm.jpg/250px-Thomas_Carlyle_lm.jpg"
   },
   {
     "english": "The measure of intelligence is the ability to change.",
@@ -2901,7 +2901,7 @@ export const quotesData = [
     "author": "Albert Einstein",
     "info": "ドイツ生まれの理論物理学者。柔軟な思考を重要視した。",
     "grammar": "【文法：第2文型(SVC)】The measure（尺度）＝ the ability（能力）。【語彙・知性の再定義】アインシュタインの言葉。知性（intelligence）の真の尺度は、知識の量や計算の速さではなく、環境や状況に応じて自らを「変化させる能力（ability to change）」であるという、ダーウィンの進化論にも通じる本質的な定義です。",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Albert_Einstein_Head_cleaned.jpg/250px-Albert_Einstein_Head_cleaned.jpg"
+    "image": "https://ui-avatars.com/api/?name=Albert+Einstein&background=random&color=fff&size=250"
   },
   {
     "english": "And now that you don't have to be perfect, you can be good.",
@@ -2909,7 +2909,7 @@ export const quotesData = [
     "author": "John Steinbeck",
     "info": "アメリカの小説家。『怒りの葡萄』や『エデンの東』の著者。",
     "grammar": "【文法：Now that...構文と対比】Now that は「今はもう〜なのだから」。perfect（完璧）と good（善良、立派）。【語彙・完璧主義からの解放】ジョン・スタインベックの言葉。人間は「完璧（perfect）」でなければならないという呪縛を手放した（don't have to be）時に初めて、本当に「良い人間（good）」として生き始めることができるという癒しの言葉です。",
-    "image": "https://ui-avatars.com/api/?name=John+Steinbeck&background=random&color=fff&size=250"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/John_Steinbeck_1939_%28cropped%29.jpg/250px-John_Steinbeck_1939_%28cropped%29.jpg"
   },
   {
     "english": "The journey of a thousand miles begins with one step.",
