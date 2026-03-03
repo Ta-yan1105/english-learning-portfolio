@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { quotesData } from './quotes_data';
-import { Volume2, Mic, Play, Square, ChevronDown, ChevronUp } from 'lucide-react'; // ▼ 変更: ChevronDown, ChevronUpを追加
+import { Volume2, Mic, Play, Square, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function DailyQuote() {
   const [currentQuote, setCurrentQuote] = useState(quotesData[0]);
@@ -12,7 +12,7 @@ export default function DailyQuote() {
   // 画像の読み込みエラーを検知するState
   const [imageError, setImageError] = useState(false);
 
-  // ▼▼▼ 追加：解説エリアの開閉状態を管理するState ▼▼▼
+  // 解説エリアの開閉状態を管理するState
   const [showExplanation, setShowExplanation] = useState(false);
 
   const mediaRecorderRef = useRef(null);
@@ -35,7 +35,7 @@ export default function DailyQuote() {
     setCurrentQuote(quotesData[randomIndex]);
     setRecognizedText(''); 
     setAudioUrl(null); 
-    setShowExplanation(false); // ▼ 追加：次の名言に切り替わったら解説を閉じる
+    setShowExplanation(false); // 次の名言に切り替わったら解説を閉じる
   };
 
   const playAudio = () => {
@@ -271,6 +271,21 @@ export default function DailyQuote() {
           
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             
+            {/* ▼▼▼ 配置変更：名言解説の表示切替ボタンを「お手本を聞く」の左横へ配置 ▼▼▼ */}
+            <button 
+              onClick={() => setShowExplanation(!showExplanation)}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '4px',
+                padding: '8px 16px', borderRadius: '12px',
+                border: '1px solid #e2e8f0', backgroundColor: showExplanation ? '#f8fafc' : '#ffffff',
+                color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold',
+                cursor: 'pointer', transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}
+            >
+              {showExplanation ? <><ChevronUp size={16} /> 解説を閉じる</> : <><ChevronDown size={16} /> 名言解説</>}
+            </button>
+
             <button
               onClick={playAudio}
               style={baseButtonStyle}
@@ -363,24 +378,7 @@ export default function DailyQuote() {
             </div>
           )}
 
-          {/* ▼▼▼ 追加：名言解説の表示切替ボタン ▼▼▼ */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: showExplanation ? '15px' : '0' }}>
-            <button 
-              onClick={() => setShowExplanation(!showExplanation)}
-              style={{ 
-                display: 'flex', alignItems: 'center', gap: '4px',
-                padding: '8px 16px', borderRadius: '12px',
-                border: '1px solid #e2e8f0', backgroundColor: showExplanation ? '#f8fafc' : '#ffffff',
-                color: '#64748b', fontSize: '0.9rem', fontWeight: 'bold',
-                cursor: 'pointer', transition: 'all 0.2s',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-              }}
-            >
-              {showExplanation ? <><ChevronUp size={16} /> 解説を閉じる</> : <><ChevronDown size={16} /> 名言解説</>}
-            </button>
-          </div>
-
-          {/* ▼▼▼ 変更：文法解説エリア (showExplanationがtrueの時のみ表示) ▼▼▼ */}
+          {/* 文法解説エリア (showExplanationがtrueの時のみ表示) */}
           {showExplanation && (
             <div style={{ 
               backgroundColor: '#f8fafc', 
