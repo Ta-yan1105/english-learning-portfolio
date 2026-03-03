@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
 import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic } from 'lucide-react';
+import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic, Volume2, VolumeX } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 import DailyQuote from './DailyQuote';
@@ -102,6 +102,10 @@ export default function App() {
 
   const [recordingField, setRecordingField] = useState(null);
 
+  // ▼▼▼ 追加：サウンドのON/OFF状態 ▼▼▼
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const isSoundEnabledRef = useRef(true);
+
   const handleNavigateToApp = () => {
     window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
   };
@@ -109,16 +113,22 @@ export default function App() {
   const wakeLockRef = useRef(null);
   const originalTitleRef = useRef(typeof document !== 'undefined' ? document.title : 'English Learning Portfolio');
   
-  // ▼▼▼ 追加：絶対時間補正用のRef ▼▼▼
   const expectedEndTimeRef = useRef(null);
   const timerTimeLeftRef = useRef(timerTimeLeft);
 
-  // 常に最新の残り時間をRefに保持（状態のズレを防ぐため）
   useEffect(() => {
     timerTimeLeftRef.current = timerTimeLeft;
   }, [timerTimeLeft]);
 
-  // 1. タブに残り時間を表示する処理
+  // ▼▼▼ 追加：サウンド切り替え処理 ▼▼▼
+  const toggleSound = useCallback(() => {
+    setIsSoundEnabled(prev => {
+      const next = !prev;
+      isSoundEnabledRef.current = next;
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     if (isTimerRunning) {
       const m = Math.floor(timerTimeLeft / 60).toString().padStart(2, '0');
@@ -129,7 +139,6 @@ export default function App() {
     }
   }, [isTimerRunning, timerTimeLeft]);
 
-  // 2. スマホの画面スリープ（消灯）を防止する処理
   useEffect(() => {
     const manageWakeLock = async () => {
       if (isTimerRunning) {
@@ -161,8 +170,8 @@ export default function App() {
     };
   }, [isTimerRunning]);
 
-  // 3. 外部ファイル不要で鳴らす「ピロン♪」というアラーム音生成処理
   const playAlarmSound = () => {
+    if (!isSoundEnabledRef.current) return; // ▼▼▼ 変更：ミュート時は鳴らさない ▼▼▼
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     try {
@@ -195,26 +204,22 @@ export default function App() {
     }
   };
 
-  // ▼▼▼ 変更：タイマーのトグル（絶対時間の基準をセット） ▼▼▼
   const toggleTimer = useCallback(() => {
     setIsTimerRunning(prev => {
       if (!prev) {
-        // スタートした瞬間の「目標終了時刻（絶対時間）」を計算して保存
         expectedEndTimeRef.current = Date.now() + timerTimeLeftRef.current * 1000;
       }
       return !prev;
     });
   }, []);
 
-  // ▼▼▼ 変更：キーボードショートカットの監視 ▼▼▼
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // 入力フォームにカーソルがある時はショートカットを無効化
       const tagName = document.activeElement?.tagName?.toLowerCase();
       if (tagName === 'input' || tagName === 'textarea') return;
 
       if (e.code === 'Space') {
-        e.preventDefault(); // スペースキーによる画面スクロールを防止
+        e.preventDefault(); 
         toggleTimer();
       }
       if (e.code === 'Escape' && isFullscreen) {
@@ -225,11 +230,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleTimer, isFullscreen]);
 
-  // ▼▼▼ 変更：絶対時間に基づいた狂いのないカウントダウン処理 ▼▼▼
   useEffect(() => {
     let interval = null;
     if (isTimerRunning) {
-      // 250ミリ秒ごとに現在時刻と目標時刻の差分をチェック（タブを戻した瞬間にズレが即座に修正されます）
       interval = setInterval(() => {
         const remaining = Math.round((expectedEndTimeRef.current - Date.now()) / 1000);
         
@@ -246,13 +249,12 @@ export default function App() {
           }, 2500);
           clearInterval(interval);
         } else {
-          setTimerTimeLeft(remaining); // 残り時間が同じ場合はReactが賢くレンダリングをスキップします
+          setTimerTimeLeft(remaining); 
         }
       }, 250); 
     }
     return () => clearInterval(interval);
   }, [isTimerRunning, timerInputMinutes]);
-  // ▲▲▲ ここまで ▲▲▲
 
   const formatTimerDisplay = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -689,6 +691,10 @@ export default function App() {
 
       <section style={{ ...cardStyle, textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative' }}>
+          {/* ▼▼▼ 追加：通常モードのミュートボタン（絶対配置でレイアウト影響ゼロ） ▼▼▼ */}
+          <button onClick={toggleSound} style={{ position: 'absolute', left: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: isSoundEnabled ? '#4f46e5' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={isSoundEnabled ? "アラーム音：オン" : "アラーム音：オフ"}>
+            {isSoundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+          </button>
           <Timer size={24} color="#4f46e5" style={{ marginRight: '8px' }} />
           <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
           <button onClick={() => setIsFullscreen(true)} style={{ position: 'absolute', right: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="全画面表示">
@@ -1189,6 +1195,10 @@ export default function App() {
 
       {isFullscreen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}>
+          {/* ▼▼▼ 追加：全画面モード用のミュートボタン（絶対配置でレイアウト影響ゼロ） ▼▼▼ */}
+          <button onClick={toggleSound} style={{ position: 'absolute', top: '20px', right: '70px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isSoundEnabled ? '#4f46e5' : '#94a3b8', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }} title={isSoundEnabled ? "アラーム音：オン" : "アラーム音：オフ"}>
+            {isSoundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+          </button>
           <button onClick={() => setIsFullscreen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
             <Minimize size={20} />
           </button>
