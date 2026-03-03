@@ -7,24 +7,31 @@ export default function DailyQuote() {
   
   const [isListening, setIsListening] = useState(false);
   const [recognizedText, setRecognizedText] = useState('');
-  const [audioUrl, setAudioUrl] = useState(null); // 録音した音声のURLを保存
+  const [audioUrl, setAudioUrl] = useState(null);
+
+  // 画像の読み込みエラーを検知するState
+  const [imageError, setImageError] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recognitionRef = useRef(null);
 
-  // ブラウザの音声をあらかじめロードしておく（初回再生時の遅延や声質のバラつきを防ぐため）
   useEffect(() => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.getVoices();
     }
   }, []);
 
+  // 名言が切り替わった時に画像エラー状態をリセットする
+  useEffect(() => {
+    setImageError(false);
+  }, [currentQuote]);
+
   const drawRandomQuote = () => {
     const randomIndex = Math.floor(Math.random() * quotesData.length);
     setCurrentQuote(quotesData[randomIndex]);
     setRecognizedText(''); 
-    setAudioUrl(null); // 新しい名言になったら録音データをリセット
+    setAudioUrl(null); 
   };
 
   const playAudio = () => {
@@ -32,9 +39,8 @@ export default function DailyQuote() {
       window.speechSynthesis.cancel(); 
       const utterance = new SpeechSynthesisUtterance(currentQuote.english);
       utterance.lang = 'en-US'; 
-      utterance.rate = 0.85; // 少しゆっくりにして聞き取りやすく
+      utterance.rate = 0.85; 
 
-      // より人間に近い自然な音声（Natural, Premium, Google等）を探して適用する
       const voices = window.speechSynthesis.getVoices();
       const naturalVoice = voices.find(v => 
         (v.lang === 'en-US' || v.lang === 'en-GB') && 
@@ -55,7 +61,6 @@ export default function DailyQuote() {
     setAudioUrl(null);
     audioChunksRef.current = [];
 
-    // --- 1. マイク録音の準備（自分の声を聞くため） ---
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -69,7 +74,7 @@ export default function DailyQuote() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
-        stream.getTracks().forEach(track => track.stop()); // マイクのアクセスを解除
+        stream.getTracks().forEach(track => track.stop()); 
       };
 
       mediaRecorder.start();
@@ -79,7 +84,6 @@ export default function DailyQuote() {
       return;
     }
 
-    // --- 2. 音声認識の準備（発音を文字にするため） ---
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
@@ -104,7 +108,7 @@ export default function DailyQuote() {
       };
 
       recognition.onend = () => {
-        stopListening(); // 音声認識が終わったら録音も止める
+        stopListening(); 
       };
 
       recognition.start();
@@ -133,6 +137,41 @@ export default function DailyQuote() {
 
   if (!currentQuote) return null;
 
+  // ▼▼▼ 追加：写真データの厳密な有効性チェック ▼▼▼
+  const imageUrl = currentQuote.image;
+  // ダミーのイニシャル生成サービスなどがデータに含まれていた場合も弾く
+  const isDummyAvatar = typeof imageUrl === 'string' && (imageUrl.includes('ui-avatars.com') || imageUrl.includes('placeholder'));
+  // URLとして正しい形式（http, /, ./, data: などで始まる）かチェック（空文字やただの名前などの不正データを弾く）
+  const isValidUrlFormat = 
+    typeof imageUrl === 'string' && 
+    imageUrl.trim().length > 4 && 
+    (imageUrl.startsWith('http') || imageUrl.startsWith('/') || imageUrl.startsWith('.') || imageUrl.startsWith('data:')) &&
+    !isDummyAvatar;
+
+  // 正しいURL形式であり、かつ読み込みエラーになっていない場合のみ画像を表示する
+  const showImage = isValidUrlFormat && !imageError;
+
+  const baseButtonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 18px',
+    borderRadius: '50px',
+    border: 'none',
+    backgroundColor: '#e0e7ff', 
+    color: '#4f46e5', 
+    fontSize: '0.95rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)', 
+  };
+
+  const buttonHoverStyle = {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+  };
+
   return (
     <div style={{ width: '100%', marginBottom: '25px', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
       <div style={{ 
@@ -150,34 +189,38 @@ export default function DailyQuote() {
           background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)', 
           color: 'white'
         }}>
-          {/* 左側：写真 */}
-          <div style={{ 
-            flex: '1 1 250px', 
-            padding: 'clamp(20px, 5vw, 40px)', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center',
-            background: 'transparent'
-          }}>
-            <img 
-              src={currentQuote.image} 
-              alt={currentQuote.author} 
-              style={{ 
-                width: '100%',          
-                maxWidth: '260px',      
-                aspectRatio: '1 / 1',   
-                borderRadius: '20px', 
-                objectFit: 'contain', 
-                backgroundColor: 'white', 
-                border: 'clamp(4px, 2vw, 8px) solid rgba(255,255,255,0.1)', 
-                boxShadow: '0 15px 35px rgba(0,0,0,0.4)' 
-              }} 
-            />
-          </div>
+          {/* ▼▼▼ 変更：本当に有効な画像がある場合のみ枠ごと描画する ▼▼▼ */}
+          {showImage && (
+            <div style={{ 
+              flex: '1 1 250px', 
+              padding: 'clamp(20px, 5vw, 40px)', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              background: 'transparent'
+            }}>
+              <img 
+                src={imageUrl} 
+                alt={currentQuote.author} 
+                onError={() => setImageError(true)}
+                style={{ 
+                  width: '100%',          
+                  maxWidth: '240px',      
+                  aspectRatio: '1 / 1',   
+                  borderRadius: '20px', 
+                  objectFit: 'contain', 
+                  backgroundColor: 'white', 
+                  border: 'clamp(4px, 2vw, 8px) solid rgba(255,255,255,0.1)', 
+                  boxShadow: '0 15px 35px rgba(0,0,0,0.4)' 
+                }} 
+              />
+            </div>
+          )}
 
           {/* 右側：名言テキスト */}
           <div style={{ 
-            flex: '2 1 300px', 
+            // ▼▼▼ 変更：写真がない時は枠を消し、横幅100%に広げる ▼▼▼
+            flex: showImage ? '2 1 300px' : '1 1 100%', 
             padding: 'clamp(20px, 5vw, 40px)', 
             display: 'flex', 
             flexDirection: 'column', 
@@ -227,40 +270,37 @@ export default function DailyQuote() {
         {/* 下部：詳細解説と音声コントロールエリア */}
         <div style={{ padding: 'clamp(20px, 5vw, 35px)' }}>
           
-          {/* 文法解説の上のコントロールボタン群 */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             
-            {/* ▼▼▼ 音声コントロールボタンを以前のパステルカラーに戻しました ▼▼▼ */}
             <button
               onClick={playAudio}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '10px 18px', borderRadius: '50px',
-                border: 'none', backgroundColor: '#e0e7ff',
-                color: '#4f46e5', fontSize: '0.95rem', fontWeight: 'bold',
-                cursor: 'pointer', transition: 'all 0.2s',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}
+              style={baseButtonStyle}
+              onMouseOver={(e) => { Object.assign(e.currentTarget.style, buttonHoverStyle); }}
+              onMouseOut={(e) => { Object.assign(e.currentTarget.style, baseButtonStyle, { transform: 'translateY(0)' }); }}
             >
               <Volume2 size={18} /> お手本を聞く
             </button>
             
             <button
               onClick={isListening ? stopListening : startListening}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '10px 18px', borderRadius: '50px',
-                border: 'none', 
-                backgroundColor: isListening ? '#ffe4e6' : '#f1f5f9',
-                color: isListening ? '#e11d48' : '#64748b', 
-                fontSize: '0.95rem', fontWeight: 'bold',
-                cursor: 'pointer', transition: 'all 0.2s',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              style={isListening ? {
+                ...baseButtonStyle,
+                backgroundColor: '#ffe4e6',
+                color: '#e11d48',
+              } : {
+                ...baseButtonStyle,
+                backgroundColor: '#f1f5f9',
+                color: '#64748b',
               }}
-              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+              onMouseOver={(e) => { if (!isListening) Object.assign(e.currentTarget.style, buttonHoverStyle); }}
+              onMouseOut={(e) => { 
+                if (!isListening) Object.assign(e.currentTarget.style, { 
+                  transform: 'translateY(0)', 
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                  backgroundColor: '#f1f5f9',
+                  color: '#64748b'
+                }); 
+              }}
             >
               {isListening ? (
                 <><Square size={16} fill="currentColor" /> 録音停止</>
@@ -273,22 +313,26 @@ export default function DailyQuote() {
               <button
                 onClick={playRecordedAudio}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '10px 18px', borderRadius: '50px',
-                  border: 'none', backgroundColor: '#d1fae5',
-                  color: '#059669', fontSize: '0.95rem', fontWeight: 'bold',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                  ...baseButtonStyle,
+                  backgroundColor: '#d1fae5',
+                  color: '#059669',
                   animation: 'popIn 0.3s ease-out'
                 }}
-                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                onMouseOver={(e) => { Object.assign(e.currentTarget.style, buttonHoverStyle); }}
+                onMouseOut={(e) => { 
+                  Object.assign(e.currentTarget.style, { 
+                    transform: 'translateY(0)', 
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                    backgroundColor: '#d1fae5',
+                    color: '#059669'
+                  }); 
+                }}
               >
                 <Play size={18} fill="currentColor" /> 音読した音声を聞く
               </button>
             )}
 
-            {/* 「次の名言」ボタン (インディゴブルー、右端配置を維持) */}
+            {/* 「次の名言」ボタン */}
             <button 
               onClick={drawRandomQuote} 
               style={{ 
