@@ -102,13 +102,8 @@ export default function App() {
 
   const [recordingField, setRecordingField] = useState(null);
 
-  // ▼▼▼ 追加：サウンドのON/OFF状態 ▼▼▼
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const isSoundEnabledRef = useRef(true);
-
-  const handleNavigateToApp = () => {
-    window.open('https://app.english-t24.com/', '_blank', 'noopener,noreferrer');
-  };
 
   const wakeLockRef = useRef(null);
   const originalTitleRef = useRef(typeof document !== 'undefined' ? document.title : 'English Learning Portfolio');
@@ -120,7 +115,6 @@ export default function App() {
     timerTimeLeftRef.current = timerTimeLeft;
   }, [timerTimeLeft]);
 
-  // ▼▼▼ 追加：サウンド切り替え処理 ▼▼▼
   const toggleSound = useCallback(() => {
     setIsSoundEnabled(prev => {
       const next = !prev;
@@ -171,7 +165,7 @@ export default function App() {
   }, [isTimerRunning]);
 
   const playAlarmSound = () => {
-    if (!isSoundEnabledRef.current) return; // ▼▼▼ 変更：ミュート時は鳴らさない ▼▼▼
+    if (!isSoundEnabledRef.current) return; 
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     try {
@@ -216,7 +210,7 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       const tagName = document.activeElement?.tagName?.toLowerCase();
-      if (tagName === 'input' || tagName === 'textarea') return;
+      if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') return;
 
       if (e.code === 'Space') {
         e.preventDefault(); 
@@ -597,7 +591,7 @@ export default function App() {
   const unitSmallStyle = { fontSize: '14px', fontWeight: '900' };
 
   const todayDate = new Date();
-  const todayStringJP = `${todayDate.getFullYear()}年${todayDate.getMonth() + 1}月${todayDate.getDate()}日`;
+  const todayStringJP = `${todayDate.getFullYear()}/${todayDate.getMonth() + 1}/${todayDate.getDate()}`;
 
   const isDayEmpty = selectedRange === 'day' && stats.total === 0;
   const pieData = isDayEmpty ? [{ name: 'Empty', value: 1, color: '#f1f5f9' }] : dashboardChartData;
@@ -617,81 +611,39 @@ export default function App() {
         }
       `}</style>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <button
-            onClick={handleNavigateToApp}
-            style={{
-              backgroundColor: '#4f46e5',
-              color: '#ffffff',
-              border: 'none',
-              padding: '8px 24px',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              borderRadius: '9999px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>📱</span> アプリを全画面で開く
-          </button>
-          <span style={{ fontSize: '10px', color: '#64748b', marginTop: '6px', fontWeight: 'bold' }}>※はじめに、こちらのボタンをタップしてください</span>
-        </div>
+      {/* 統合・簡略化されたヘッダーセクション（日付・氏名・目標・試験） */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+        
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
+        
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>氏名</span>
+          <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px', textAlign: 'center' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 200px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>目標</span>
+          <input style={{ ...inputStyle, padding: '8px 10px', fontSize: '12px', width: '100%' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <input style={{ ...inputStyle, width: '90px', padding: '8px 6px', fontSize: '12px' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="試験名" />
+          <input type="date" style={{ ...inputStyle, width: '115px', padding: '8px 4px', fontSize: '12px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
+          {profile.otherDate && (
+            <span style={{ display: 'flex', alignItems: 'baseline', color: '#4f46e5', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
+              <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
+              <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.otherDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
+              <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
+            </span>
+          )}
+        </div>
+
       </div>
 
       <DailyQuote />
 
-      <section style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h2 style={{ ...headerStyle, margin: 0 }}><User size={18} color="#4f46e5" /> 学習者情報・目標</h2>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto', maxWidth: '100%' }}>
-            <input style={{ ...inputStyle, width: '45px', flex: '1 1 45px', padding: '8px 6px', fontSize: '12px', textAlign: 'center' }} value={profile.grade || ''} onChange={e => handleProfileUpdate('grade', e.target.value)} placeholder="学年" />
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>年</span>
-            <input style={{ ...inputStyle, width: '45px', flex: '1 1 45px', padding: '8px 6px', fontSize: '12px', textAlign: 'center' }} value={profile.classNum || ''} onChange={e => handleProfileUpdate('classNum', e.target.value)} placeholder="組" />
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>組</span>
-            <input style={{ ...inputStyle, width: '45px', flex: '1 1 45px', padding: '8px 6px', fontSize: '12px', textAlign: 'center' }} value={profile.studentNum || ''} onChange={e => handleProfileUpdate('studentNum', e.target.value)} placeholder="番号" />
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>番</span>
-            <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap', marginLeft: '4px' }}>氏名</span>
-            <input style={{ ...inputStyle, width: '160px', flex: '3 1 160px', padding: '8px 10px', fontSize: '12px', textAlign: 'center' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
-          </div>
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%', flexWrap: 'wrap' }}>
-            <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap', minWidth: '40px' }}>目標</label>
-            <input style={{ ...inputStyle, flex: '1 1 200px' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', width: '100%', flexWrap: 'wrap' }}>
-            <label style={{ ...labelStyle, marginBottom: 0, whiteSpace: 'nowrap', minWidth: '40px' }}>試験日</label>
-            <div style={{ display: 'flex', gap: '10px', flex: '1 1 200px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                <input style={{ ...inputStyle, width: '120px', flex: '1 1 120px', padding: '10px' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="試験名を入力" />
-                <input type="date" style={{ ...inputStyle, width: '130px', flex: '1 1 130px', padding: '10px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
-                {profile.otherDate && (
-                  <span style={{ display: 'flex', alignItems: 'baseline', color: '#4f46e5', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
-                    <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
-                    <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.otherDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
-                    <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section style={{ ...cardStyle, textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative' }}>
-          {/* ▼▼▼ 追加：通常モードのミュートボタン（絶対配置でレイアウト影響ゼロ） ▼▼▼ */}
           <button onClick={toggleSound} style={{ position: 'absolute', left: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: isSoundEnabled ? '#4f46e5' : '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title={isSoundEnabled ? "アラーム音：オン" : "アラーム音：オフ"}>
             {isSoundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
@@ -802,7 +754,6 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', alignSelf: isMobile ? 'flex-end' : 'auto', flexShrink: 0 }}>
-            {/* 前回の記録をコピーするボタン */}
             {!editingLogId && logs.length > 0 && (
               <button type="button" onClick={handleCopyRecent} style={{ padding: '8px 16px', background: '#e0e7ff', color: '#4f46e5', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <RefreshCw size={14} /> 前回をコピー
@@ -1195,7 +1146,6 @@ export default function App() {
 
       {isFullscreen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}>
-          {/* ▼▼▼ 追加：全画面モード用のミュートボタン（絶対配置でレイアウト影響ゼロ） ▼▼▼ */}
           <button onClick={toggleSound} style={{ position: 'absolute', top: '20px', right: '70px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isSoundEnabled ? '#4f46e5' : '#94a3b8', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }} title={isSoundEnabled ? "アラーム音：オン" : "アラーム音：オフ"}>
             {isSoundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
