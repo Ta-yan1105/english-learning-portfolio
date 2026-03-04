@@ -271,7 +271,14 @@ export default function App() {
   };
 
   const recordLap = () => {
-    setLaps(prev => [...prev, formatTimerDisplay(timerTimeLeft)]);
+    const elapsedSeconds = (timerInputMinutes * 60) - timerTimeLeft;
+    setLaps(prev => [
+      ...prev, 
+      {
+        elapsed: formatTimerDisplay(elapsedSeconds),
+        remaining: formatTimerDisplay(timerTimeLeft)
+      }
+    ]);
   };
 
   const handleCopyRecent = () => {
@@ -617,12 +624,13 @@ export default function App() {
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
         
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>氏名</span>
+          {/* 変更箇所：氏名のラベルを削除 */}
           <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px', textAlign: 'center' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 200px' }}>
-          <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', whiteSpace: 'nowrap' }}>目標</span>
+          {/* 変更箇所：目標の文字色を赤（#ef4444）に変更 */}
+          <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444', whiteSpace: 'nowrap' }}>目標</span>
           <input style={{ ...inputStyle, padding: '8px 10px', fontSize: '12px', width: '100%' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
         </div>
 
@@ -699,7 +707,10 @@ export default function App() {
               {laps.map((lap, index) => (
                 <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', color: '#1e293b', padding: '6px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
                   <span>ラップ {index + 1}</span>
-                  <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontVariantNumeric: 'tabular-nums' }}>{lap}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: "'Helvetica Neue', Arial, sans-serif", fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ color: '#4f46e5' }}>{lap.elapsed}</span>
+                    <span style={{ color: '#94a3b8', fontSize: '12px' }}>(残り {lap.remaining})</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1196,6 +1207,7 @@ export default function App() {
             )}
           </div>
 
+          {/* 変更箇所：全画面モードのラップ表示部。経過時間と残り時間を並べて表示 */}
           {laps.length > 0 && (
             <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
               <div style={{ width: '100%', maxWidth: '350px', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: '25vh', overflowY: 'auto' }}>
@@ -1203,7 +1215,10 @@ export default function App() {
                 {laps.map((lap, index) => (
                   <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', padding: '8px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
                     <span>ラップ {index + 1}</span>
-                    <span style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontVariantNumeric: 'tabular-nums' }}>{lap}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: "'Helvetica Neue', Arial, sans-serif", fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ color: '#4f46e5' }}>{lap.elapsed}</span>
+                      <span style={{ color: '#94a3b8', fontSize: '14px' }}>(残り {lap.remaining})</span>
+                    </div>
                   </div>
                 ))}
               </div>
