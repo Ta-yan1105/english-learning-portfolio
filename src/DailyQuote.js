@@ -176,6 +176,21 @@ export default function DailyQuote() {
 
   return (
     <div style={{ width: '100%', marginBottom: '25px', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
+      
+      {/* 桜のアニメーション用のスタイル定義 */}
+      <style>{`
+        @keyframes sakuraFall {
+          0% { top: -10%; transform: rotate(0deg); opacity: 0; }
+          10% { opacity: 0.8; }
+          90% { opacity: 0.8; }
+          100% { top: 110%; transform: rotate(720deg); opacity: 0; }
+        }
+        @keyframes sakuraSway {
+          0% { margin-left: -20px; }
+          100% { margin-left: 20px; }
+        }
+      `}</style>
+
       <div style={{ 
         width: '100%', 
         backgroundColor: '#ffffff', 
@@ -185,14 +200,46 @@ export default function DailyQuote() {
       }}>
         {/* 上部：ヒーローセクション（写真と英文） */}
         <div style={{ 
+          position: 'relative', 
+          overflow: 'hidden', 
           display: 'flex', 
           flexDirection: 'row', 
           flexWrap: 'wrap', 
-          background: 'linear-gradient(135deg, #4f46e5 0%, #312e81 100%)', 
+          /* ▼▼▼ 変更：青の透明度を下げて、背後の桜の風景をより鮮明に表示 ▼▼▼ */
+          background: `linear-gradient(135deg, rgba(79, 70, 229, 0.45) 0%, rgba(49, 46, 129, 0.7) 100%), url('https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat`,
           color: 'white'
         }}>
+          
+          {/* 桜のパーティクル（pointer-events: noneで干渉しない） */}
+          {[...Array(25)].map((_, i) => {
+            const size = 6 + Math.random() * 8; // 6px ~ 14px
+            const left = Math.random() * 100; // 0% ~ 100%
+            const fallDuration = 6 + Math.random() * 6; // 6s ~ 12s
+            const swayDuration = 2 + Math.random() * 3; // 2s ~ 5s
+            const delay = Math.random() * -15; // 初期状態から降らせるためのマイナス遅延
+
+            return (
+              <div
+                key={i}
+                style={{
+                  position: 'absolute',
+                  left: `${left}%`,
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  backgroundColor: 'rgba(253, 164, 175, 0.8)', // 桜の薄いピンク
+                  borderRadius: '100% 0% 100% 0%', // 桜の花びら風の形
+                  pointerEvents: 'none',
+                  animation: `sakuraFall ${fallDuration}s linear ${delay}s infinite, sakuraSway ${swayDuration}s ease-in-out ${delay}s infinite alternate`,
+                  zIndex: 0
+                }}
+              />
+            );
+          })}
+
           {showImage && (
             <div style={{ 
+              position: 'relative', 
+              zIndex: 1, 
               flex: '1 1 250px', 
               padding: 'clamp(20px, 5vw, 40px)', 
               display: 'flex', 
@@ -220,6 +267,8 @@ export default function DailyQuote() {
 
           {/* 右側：名言テキスト */}
           <div style={{ 
+            position: 'relative', 
+            zIndex: 1, 
             flex: showImage ? '2 1 300px' : '1 1 100%', 
             padding: 'clamp(20px, 5vw, 40px)', 
             display: 'flex', 
@@ -232,7 +281,7 @@ export default function DailyQuote() {
               margin: '0 0 12px 0', 
               lineHeight: '1.3',
               fontWeight: '900',
-              textShadow: '0 2px 8px rgba(0,0,0,0.5)'
+              textShadow: '0 2px 8px rgba(0,0,0,0.6)'
             }}>
               "{currentQuote.english}"
             </h2>
@@ -243,7 +292,7 @@ export default function DailyQuote() {
               color: '#f8fafc', 
               margin: '0 0 20px 0', 
               lineHeight: '1.4',
-              textShadow: '0 1px 4px rgba(0,0,0,0.4)'
+              textShadow: '0 1px 5px rgba(0,0,0,0.5)'
             }}>
               {currentQuote.japanese}
             </p>
@@ -257,7 +306,7 @@ export default function DailyQuote() {
               alignItems: 'baseline',
               flexWrap: 'wrap',
               gap: '8px',
-              textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+              textShadow: '0 1px 3px rgba(0,0,0,0.4)'
             }}>
               <span>— {currentQuote.author}</span>
               <span style={{ fontSize: '0.85em', fontWeight: 'bold', color: '#fef08a' }}> 
@@ -272,12 +321,11 @@ export default function DailyQuote() {
           
           <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             
-            {/* ▼▼▼ 変更：名言解説ボタンのカラーリング＆他のボタンと形を統一 ▼▼▼ */}
             <button 
               onClick={() => setShowExplanation(!showExplanation)}
               style={{ 
                 ...baseButtonStyle,
-                backgroundColor: showExplanation ? '#fffbeb' : '#fef3c7', // 開閉状態で色を切り替え
+                backgroundColor: showExplanation ? '#fffbeb' : '#fef3c7', 
                 color: showExplanation ? '#f59e0b' : '#d97706',
                 boxShadow: showExplanation ? 'none' : '0 2px 4px rgba(0,0,0,0.05)'
               }}
@@ -386,7 +434,7 @@ export default function DailyQuote() {
             </div>
           )}
 
-          {/* 文法解説エリア (showExplanationがtrueの時のみ表示) */}
+          {/* 文法解説エリア */}
           {showExplanation && (
             <div style={{ 
               backgroundColor: '#f8fafc', 
