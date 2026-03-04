@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
 import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
-import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic, Volume2, VolumeX } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic, Volume2, VolumeX, Sun, CalendarDays, TrendingUp } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, LabelList } from 'recharts';
 
 import DailyQuote from './DailyQuote';
 
@@ -25,12 +25,12 @@ const auth = initializeAuth(app, {
 const db = getFirestore(app);
 
 const CATEGORIES = [
-  { id: 'Reading', label: '読む', icon: <BookOpen size={16}/>, color: '#3b82f6' },
-  { id: 'Listening', label: '聞く', icon: <Headphones size={16}/>, color: '#10b981' },
-  { id: 'Speaking', label: '話す', icon: <MessageCircle size={16}/>, color: '#f43f5e' },
-  { id: 'Writing', label: '書く', icon: <PenTool size={16}/>, color: '#f59e0b' },
-  { id: 'Vocabulary', label: '単語', icon: <Book size={16}/>, color: '#8b5cf6' },
-  { id: 'ReadingAloud', label: '音読', icon: <Mic size={16}/>, color: '#0ea5e9' },
+  { id: 'Reading', label: '読む', icon: <BookOpen size={16}/>, color: '#38bdf8' },
+  { id: 'Listening', label: '聞く', icon: <Headphones size={16}/>, color: '#4ade80' },
+  { id: 'Speaking', label: '話す', icon: <MessageCircle size={16}/>, color: '#fb7185' },
+  { id: 'Writing', label: '書く', icon: <PenTool size={16}/>, color: '#fbbf24' },
+  { id: 'Vocabulary', label: '単語', icon: <Book size={16}/>, color: '#c084fc' },
+  { id: 'ReadingAloud', label: '音読', icon: <Mic size={16}/>, color: '#22d3ee' },
 ];
 
 const calculateStreak = (allLogs) => {
@@ -48,8 +48,11 @@ const calculateStreak = (allLogs) => {
   return streak;
 };
 
-const formatMinutes = m => m >= 60 ? (m/60).toFixed(1) : m;
-const getUnit = m => m >= 60 ? 'h' : 'm';
+const formatMinutes = m => {
+  const val = Number(m) || 0;
+  return val >= 60 ? (val / 60).toFixed(1) : Math.round(val);
+};
+const getUnit = m => Number(m) >= 60 ? 'h' : 'm';
 
 const getLocalDateString = (dateObj) => {
   const y = dateObj.getFullYear();
@@ -398,7 +401,7 @@ export default function App() {
 
   const dashboardChartData = useMemo(() => {
     if (selectedRange === 'day') {
-      return CATEGORIES.map(cat => ({ name: cat.label, value: stats.skillMap[cat.id] || 0, color: cat.color })).filter(d => d.value > 0);
+      return CATEGORIES.map(cat => ({ name: cat.label, value: stats.skillMap[cat.id] || 0, color: cat.color }));
     }
     if (selectedRange === 'week') {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -561,47 +564,29 @@ export default function App() {
   const cardStyle = { background: 'white', borderRadius: '24px', padding: '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' };
   const inputStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 'bold', boxSizing: 'border-box', outline: 'none' };
   const labelStyle = { fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' };
-  const tabStyle = (r) => ({ padding: '8px 16px', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', border: 'none', backgroundColor: selectedRange === r ? '#4f46e5' : '#f1f5f9', color: selectedRange === r ? 'white' : '#94a3b8' });
-
-  const topSkillId = Object.entries(stats.skillMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || '';
-  const topSkillLabel = CATEGORIES.find(c => c.id === topSkillId)?.label || 'なし';
-
-  const aiFeedbackMessage = useMemo(() => {
-    if (!logs || logs.length === 0) return '学習データを蓄積すると分析が表示されます。';
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const thisWeekStart = new Date(today);
-    thisWeekStart.setDate(today.getDate() - 7);
-
-    const recentLogs = logs.filter(l => new Date(l.date + "T00:00:00") >= thisWeekStart);
-
-    if (recentLogs.length === 0) {
-      return '最近の学習記録がありません。まずは1日15分から再開してみましょう🚀';
-    }
-
-    const recentTotalMinutes = recentLogs.reduce((sum, l) => sum + Number(l.minutes), 0);
-    const recentAvgQuality = Math.round(recentLogs.reduce((sum, l) => sum + Number(l.quality), 0) / recentLogs.length);
-
-    if (recentTotalMinutes >= 120 && recentAvgQuality >= 80) {
-      return `直近7日間で${formatMinutes(recentTotalMinutes)}${getUnit(recentTotalMinutes)}学習し、集中度も${recentAvgQuality}%と非常に高く維持できています！最高の状態です🔥`;
-    } else if (recentTotalMinutes < 120 && recentAvgQuality >= 80) {
-      return `時間は短めですが、平均集中度${recentAvgQuality}%と質の高い学習ができています！この集中力を継続しましょう✨`;
-    } else if (recentTotalMinutes >= 120 && recentAvgQuality < 80) {
-      return `学習時間は${formatMinutes(recentTotalMinutes)}${getUnit(recentTotalMinutes)}と確保できていますが、集中度が${recentAvgQuality}%と少し疲れ気味かも？適度に休憩を挟みましょう☕`;
-    } else {
-      return `現在の平均集中度は${recentAvgQuality}%です。まずは短い時間で集中して取り組むサイクル（ポモドーロ等）を作りましょう📈`;
-    }
-  }, [logs]);
+  
+  // 変更箇所：トグルボタン用の共通スタイル
+  const tabStyle = (r) => ({ 
+    padding: '6px 12px', 
+    borderRadius: '8px', 
+    fontSize: '11px', 
+    fontWeight: '900', 
+    cursor: 'pointer', 
+    border: 'none', 
+    backgroundColor: selectedRange === r ? '#ffffff' : 'transparent', 
+    color: selectedRange === r ? '#4f46e5' : '#64748b',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    boxShadow: selectedRange === r ? '0 2px 8px rgba(0,0,0,0.05)' : 'none',
+    transition: 'all 0.2s ease'
+  });
 
   const headerStyle = { fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' };
   const unitSmallStyle = { fontSize: '14px', fontWeight: '900' };
 
   const todayDate = new Date();
   const todayStringJP = `${todayDate.getFullYear()}/${todayDate.getMonth() + 1}/${todayDate.getDate()}`;
-
-  const isDayEmpty = selectedRange === 'day' && stats.total === 0;
-  const pieData = isDayEmpty ? [{ name: 'Empty', value: 1, color: '#f1f5f9' }] : dashboardChartData;
 
   return (
     <div style={{ maxWidth: '950px', margin: '0 auto', padding: '30px 20px', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -616,6 +601,18 @@ export default function App() {
           0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
           100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
+        @keyframes climbingWalk {
+          0% { transform: translateY(0) rotate(0deg); }
+          25% { transform: translateY(-3px) rotate(-10deg); }
+          50% { transform: translateY(0) rotate(0deg); }
+          75% { transform: translateY(-3px) rotate(10deg); }
+          100% { transform: translateY(0) rotate(0deg); }
+        }
+        @keyframes sparkleBar {
+          0% { filter: brightness(1); opacity: 0.9; }
+          50% { filter: brightness(1.05); opacity: 1; drop-shadow(0 0 2px rgba(255,255,255,0.3)); }
+          100% { filter: brightness(1); opacity: 0.9; }
+        }
       `}</style>
 
       {/* 統合・簡略化されたヘッダーセクション（日付・氏名・目標・試験） */}
@@ -624,12 +621,10 @@ export default function App() {
         <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
         
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* 変更箇所：氏名のラベルを削除 */}
           <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px', textAlign: 'center' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 200px' }}>
-          {/* 変更箇所：目標の文字色を赤（#ef4444）に変更 */}
           <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444', whiteSpace: 'nowrap' }}>目標</span>
           <input style={{ ...inputStyle, padding: '8px 10px', fontSize: '12px', width: '100%' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
         </div>
@@ -877,10 +872,6 @@ export default function App() {
         </form>
       </section>
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '15px', justifyContent: 'center' }}>
-        {['day', 'week', 'month', 'year'].map(r => (<button key={r} onClick={() => setSelectedRange(r)} style={tabStyle(r)}>{r.toUpperCase()}</button>))}
-      </div>
-
       <section style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
           <h2 style={{ ...headerStyle, margin: 0 }}><Zap size={18} color="#4f46e5" /> 学習状況</h2>
@@ -911,100 +902,133 @@ export default function App() {
             <div style={{ 
               position: 'absolute', 
               left: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}% - 10px)`, 
-              bottom: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}% - 4px)`, 
+              bottom: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}%)`, 
               fontSize: '18px', 
-              transition: 'all 1s ease-out', 
+              transition: 'left 1s ease-out, bottom 1s ease-out', 
               zIndex: 3,
-              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))'
+              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))',
+              transform: Math.floor(stats.total / 60) >= 3015 ? 'none' : 'scaleX(-1)'
             }}>
-              {Math.floor(stats.total / 60) >= 3015 ? '🚩' : '🧗'}
+              <div style={{ animation: Math.floor(stats.total / 60) >= 3015 ? 'none' : 'climbingWalk 1.5s infinite ease-in-out' }}>
+                {Math.floor(stats.total / 60) >= 3015 ? '🚩' : '🚶'}
+              </div>
             </div>
 
             <div style={{ width: '100%', height: '100%', backgroundColor: '#f1f5f9', clipPath: 'polygon(0 100%, 100% 0, 100% 100%)', borderRadius: '4px' }}>
               <div style={{ width: `${Math.min((stats.total / 60 / 3015) * 100, 100)}%`, height: '100%', backgroundColor: '#10b981', transition: 'width 1s ease-out' }}></div>
             </div>
+
+            <div style={{ 
+              position: 'absolute', 
+              left: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}%)`, 
+              top: '52px', 
+              transform: 'translateX(-50%)',
+              fontSize: '11px',
+              fontWeight: '900',
+              color: '#10b981',
+              transition: 'left 1s ease-out',
+              whiteSpace: 'nowrap',
+              zIndex: 2
+            }}>
+              ▲ {Math.floor(stats.total / 60)}歩
+            </div>
           </div>
         </div>
 
-        <div style={{ paddingTop: '20px', borderTop: '1px dashed #e2e8f0', width: '100%' }}>
-          <h2 style={labelStyle}><Sparkles size={12} color="#94a3b8" />AIフィードバック</h2>
-          <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6, fontWeight: 'bold', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-            {aiFeedbackMessage}
-          </div>
-        </div>
       </section>
 
+      {/* 変更箇所：タブを学習傾向セクションの中に移動させ、ヘッダー部分をリッチに */}
       <section style={cardStyle} key={selectedRange}>
-        <h2 style={{ ...headerStyle, marginBottom: '20px' }}><Activity size={18} color="#4f46e5" /> 学習傾向の分析</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+          <h2 style={{ ...headerStyle, margin: 0 }}><Activity size={18} color="#4f46e5" /> 学習傾向の分析</h2>
+          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
+            {[
+              { id: 'day', label: 'DAY', icon: <Sun size={14} /> },
+              { id: 'week', label: 'WEEK', icon: <Calendar size={14} /> },
+              { id: 'month', label: 'MONTH', icon: <CalendarDays size={14} /> },
+              { id: 'year', label: 'YEAR', icon: <TrendingUp size={14} /> }
+            ].map(tab => (
+              <button key={tab.id} onClick={() => setSelectedRange(tab.id)} style={tabStyle(tab.id)}>
+                {tab.icon} <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         
-        <div style={{ height: selectedRange === 'day' && isMobile ? 'auto' : '280px', minHeight: '280px', width: '100%' }}>
+        <div style={{ height: selectedRange === 'day' && isMobile ? 'auto' : '280px', minHeight: '280px', width: '100%', position: 'relative' }}>
+          
+          {/* 変更箇所：各期間における「〜の学習時間」タイトルをグラフ左上に配置 */}
+          <div style={{ position: 'absolute', top: '-5px', left: '10px', fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 10 }}>
+            <Clock size={12} color="#94a3b8" /> 
+            {selectedRange === 'day' ? '本日の学習時間' : 
+             selectedRange === 'week' ? '今週の学習時間' : 
+             selectedRange === 'month' ? '今月の学習時間' : '今年の学習時間'}
+          </div>
+
           {selectedRange === 'day' ? (
-            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', width: '100%', height: '100%', alignItems: 'center' }}>
-              
-              <div style={{ flex: 1, minWidth: 0, width: '100%', height: isMobile ? '280px' : '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={isDayEmpty ? 0 : 5} dataKey="value" stroke="none">
-                      {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                    </Pie>
-                    {!isDayEmpty && <Tooltip formatter={(value) => `${formatMinutes(value)}${getUnit(value)}`} />}
-                    <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: 24, fontWeight: 900, fill: '#1e293b' }}>
-                      {formatMinutes(stats.total)}<tspan dx="2" style={{ fontSize: '14px', fontWeight: '900' }}>{getUnit(stats.total)}</tspan>
-                    </text>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div style={{ 
-                flex: 1, 
-                minWidth: 0, 
-                alignSelf: 'stretch',
-                overflowY: 'auto',
-                width: '100%', 
-                padding: isMobile ? '10px 0 0 0' : '0 5px 0 20px', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'flex-start', 
-                gap: '8px' 
-              }}>
-                <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e293b', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Sparkles size={14} color="#4f46e5" /> スキル別 AIアドバイス
-                </div>
-                {CATEGORIES.map(cat => {
-                  const t = stats.skillMap[cat.id] || 0;
-                  let msg = '本日は未実施です。少しでも触れてみましょう！';
-
-                  if (t > 0) {
-                    if (cat.id === 'Reading') msg = '【読解のコツ】時間を計って読む「速読」と、文構造を意識する「精読」をバランス良く取り入れましょう📖';
-                    else if (cat.id === 'Listening') msg = '【聴解のコツ】聞き流しだけでなく、聞こえた音を書き取るディクテーションやシャドーイングが効果的です🎧';
-                    else if (cat.id === 'Speaking') msg = '【発話のコツ】学んだ表現を使って独り言を言ったり、実際の会話で積極的にアウトプットしましょう🗣️';
-                    else if (cat.id === 'Writing') msg = '【記述のコツ】まずは短い英語日記から。知っている単語を駆使して、毎日書く習慣をつけるのが鍵です✍️';
-                    else if (cat.id === 'Vocabulary') msg = '【単語のコツ】反復学習が定着の鍵です。スキマ時間を活用して何度も復習しましょう📝';
-                    else if (cat.id === 'ReadingAloud') msg = '【音読のコツ】英語の語順のまま理解する力を養えます。声に出してリズムと発音を意識しましょう🗣️';
-                  }
-                  
-                  return (
-                    <div key={cat.id} style={{ backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '12px', borderLeft: `4px solid ${cat.color}` }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: '900', color: cat.color }}>{cat.label}</div>
-                        <div style={{ fontSize: '11px', fontWeight: '900', color: '#1e293b' }}>
-                          {formatMinutes(t)}<span style={{ fontSize: '9px', marginLeft: '1px' }}>{getUnit(t)}</span>
-                        </div>
-                      </div>
-                      <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', lineHeight: 1.3, wordBreak: 'break-word' }}>
-                        {msg}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-            </div>
-          ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
                 data={dashboardChartData} 
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                layout="vertical"
+                margin={{ top: 25, right: 30, left: 10, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} vertical={true} stroke="#cbd5e1" opacity={0.6} />
+                <XAxis 
+                  type="number" 
+                  orientation="top" 
+                  axisLine={{ stroke: '#e2e8f0', strokeWidth: 1 }} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} 
+                  tickFormatter={(val) => val > 0 ? `${formatMinutes(val)}${getUnit(val)}` : '0'}
+                />
+                <YAxis dataKey="name" type="category" axisLine={{ stroke: '#e2e8f0', strokeWidth: 1 }} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#1e293b' }} width={50} />
+                
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }} 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div style={{ backgroundColor: 'white', padding: '10px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 'bold' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: data.color }}>
+                            <span>{data.name}</span>
+                            <span>{formatMinutes(data.value)}{getUnit(data.value)}</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={isMobile ? 20 : 30}>
+                  {dashboardChartData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color} 
+                      style={{ 
+                        animation: 'sparkleBar 4s infinite alternate',
+                        animationDelay: `${index * 0.3}s`
+                      }} 
+                    />
+                  ))}
+                  <LabelList 
+                    dataKey="value" 
+                    position="insideRight" 
+                    formatter={(val) => val > 0 ? `${formatMinutes(val)}${getUnit(val)}` : ''} 
+                    fill="#1e293b" 
+                    fontSize={10} 
+                    fontWeight={900} 
+                    offset={10}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              {/* 変更箇所：タイトルとの被りを防ぐため、topのmarginを25に調整 */}
+              <BarChart 
+                data={dashboardChartData} 
+                margin={{ top: 25, right: 10, left: -20, bottom: 0 }}
                 onClick={(e) => {
                   if (e && e.activePayload && e.activePayload.length > 0) {
                     const payloadDate = e.activePayload[0].payload.fullDate;
@@ -1207,7 +1231,6 @@ export default function App() {
             )}
           </div>
 
-          {/* 変更箇所：全画面モードのラップ表示部。経過時間と残り時間を並べて表示 */}
           {laps.length > 0 && (
             <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
               <div style={{ width: '100%', maxWidth: '350px', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: '25vh', overflowY: 'auto' }}>

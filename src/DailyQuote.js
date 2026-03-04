@@ -205,8 +205,7 @@ export default function DailyQuote() {
           display: 'flex', 
           flexDirection: 'row', 
           flexWrap: 'wrap', 
-          /* ▼▼▼ 変更：青の透明度を下げて、背後の桜の風景をより鮮明に表示 ▼▼▼ */
-          background: `linear-gradient(135deg, rgba(79, 70, 229, 0.45) 0%, rgba(49, 46, 129, 0.7) 100%), url('https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat`,
+          background: `url('https://images.unsplash.com/photo-1522383225653-ed111181a951?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat`,
           color: 'white'
         }}>
           
@@ -245,7 +244,8 @@ export default function DailyQuote() {
               display: 'flex', 
               justifyContent: 'center', 
               alignItems: 'center',
-              background: 'transparent'
+              background: 'transparent',
+              boxSizing: 'border-box' // SP時のレイアウト崩れ防止
             }}>
               <img 
                 src={imageUrl} 
@@ -273,7 +273,10 @@ export default function DailyQuote() {
             padding: 'clamp(20px, 5vw, 40px)', 
             display: 'flex', 
             flexDirection: 'column', 
-            justifyContent: 'center' 
+            justifyContent: 'center',
+            background: 'radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.6) 60%, transparent 100%)',
+            boxSizing: 'border-box', // SP時のレイアウト崩れ防止
+            width: '100%' // SP時のレイアウト崩れ防止
           }}>
             <h2 style={{ 
               fontSize: 'clamp(1.5rem, 5vw, 2.4rem)', 
@@ -281,7 +284,9 @@ export default function DailyQuote() {
               margin: '0 0 12px 0', 
               lineHeight: '1.3',
               fontWeight: '900',
-              textShadow: '0 2px 8px rgba(0,0,0,0.6)'
+              textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+              wordBreak: 'break-word', // SP時の英語の単語折り返し
+              overflowWrap: 'break-word' // SP時のはみ出し防止
             }}>
               "{currentQuote.english}"
             </h2>
@@ -292,7 +297,9 @@ export default function DailyQuote() {
               color: '#f8fafc', 
               margin: '0 0 20px 0', 
               lineHeight: '1.4',
-              textShadow: '0 1px 5px rgba(0,0,0,0.5)'
+              textShadow: '0 1px 5px rgba(0,0,0,0.8)',
+              wordBreak: 'keep-all', // SP時の日本語の不自然な改行を防ぐ
+              overflowWrap: 'break-word' // SP時のはみ出し防止
             }}>
               {currentQuote.japanese}
             </p>
@@ -306,7 +313,9 @@ export default function DailyQuote() {
               alignItems: 'baseline',
               flexWrap: 'wrap',
               gap: '8px',
-              textShadow: '0 1px 3px rgba(0,0,0,0.4)'
+              textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+              wordBreak: 'break-word', // SP時のはみ出し防止
+              overflowWrap: 'break-word' // SP時のはみ出し防止
             }}>
               <span>— {currentQuote.author}</span>
               <span style={{ fontSize: '0.85em', fontWeight: 'bold', color: '#fef08a' }}> 
