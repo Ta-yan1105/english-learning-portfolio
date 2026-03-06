@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from 'firebase/firestore';
-import { initializeAuth, browserLocalPersistence, inMemoryPersistence, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithPopup, signOut } from 'firebase/auth';
 import { BookOpen, Headphones, MessageCircle, PenTool, Download, List, Clipboard, Star, User, Sparkles, Activity, Clock, Zap, Send, Calendar, Trash2, Edit, Timer, Play, Pause, RefreshCw, Maximize, Minimize, Book, Mic, Volume2, VolumeX, Sun, CalendarDays, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, LabelList } from 'recharts';
 
@@ -18,9 +18,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-const auth = initializeAuth(app, {
-  persistence: [browserLocalPersistence, inMemoryPersistence]
-});
+// ⭐️ ポップアップが開ける標準モードで認証をスタート！
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 const db = getFirestore(app);
 
@@ -79,6 +79,7 @@ const getSliderColor = (val, max) => {
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [logs, setLogs] = useState([]);
   const [profile, setProfile] = useState({ grade: '', classNum: '', studentNum: '', name: '', goal: '', toeicDate: '', eikenDate: '', otherDate: '', otherName: '', other2Date: '', other2Name: '' });
   const [selectedRange, setSelectedRange] = useState('day');
@@ -340,12 +341,63 @@ export default function App() {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
-    onAuthStateChanged(auth, async (u) => { if (!u) await signInAnonymously(auth); else setUser(u); });
-    return () => window.removeEventListener('resize', handleResize);
+    
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        setUser(u);
+      } else {
+        setUser(null);
+      }
+      setIsAuthChecking(false);
+    });
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      unsubscribe();
+    };
   }, []);
 
+  // ⭐️ リロード機能付きの賢いログイン機能！
+  const handleGoogleLogin = async () => {
+    try {
+      if (auth.currentUser && auth.currentUser.isAnonymous) {
+        // 過去の匿名データがある場合は、それをGoogleアカウントに統合（紐付け）する
+        await linkWithPopup(auth.currentUser, provider);
+      } else {
+        // 通常のGoogleログイン
+        await signInWithPopup(auth, provider);
+      }
+      
+      // ⭐️ 成功したら画面を強制リロードして最新の画面を表示！
+      window.location.reload();
+      
+    } catch (error) {
+      console.error("Login Error Detailed:", error); 
+      
+      // すでにそのGoogleアカウントが使われていた場合のエラー回避
+      if (error.code === 'auth/credential-already-in-use' || error.code === 'auth/email-already-in-use') {
+         try {
+           await signInWithPopup(auth, provider);
+           // ⭐️ ここでも成功したら強制リロード！
+           window.location.reload();
+         } catch (signInError) {
+           console.error("Fallback Signin Error:", signInError);
+           alert("ログインに失敗しました。");
+         }
+      } 
+      else if (error.code !== 'auth/popup-closed-by-user') {
+         alert(`エラーの正体: ${error.code}`);
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    signOut(auth);
+  };
+
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.isAnonymous) return;
+
     const q = query(collection(db, 'logs'), where('uid', '==', user.uid), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, 
       (s) => setLogs(s.docs.map(d => ({ id: d.id, ...d.data() }))),
@@ -472,7 +524,7 @@ export default function App() {
   const handleProfileUpdate = async (field, value) => {
     const newProfile = { ...profile, [field]: value };
     setProfile(newProfile);
-    if (user) {
+    if (user && !user.isAnonymous) {
       try {
         await setDoc(doc(db, 'profile', user.uid), newProfile);
       } catch (error) {
@@ -565,7 +617,6 @@ export default function App() {
   const inputStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 'bold', boxSizing: 'border-box', outline: 'none' };
   const labelStyle = { fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' };
   
-  // 変更箇所：トグルボタン用の共通スタイル
   const tabStyle = (r) => ({ 
     padding: '6px 12px', 
     borderRadius: '8px', 
@@ -588,59 +639,83 @@ export default function App() {
   const todayDate = new Date();
   const todayStringJP = `${todayDate.getFullYear()}/${todayDate.getMonth() + 1}/${todayDate.getDate()}`;
 
+  if (isAuthChecking) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f4f7fa' }}>
+        <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4f46e5', animation: 'pulse 1.5s infinite' }}>読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (!user || user.isAnonymous) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f4f7fa', fontFamily: 'sans-serif' }}>
+        <div style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
+          <div style={{ background: '#e0e7ff', width: '60px', height: '60px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <BookOpen size={32} color="#4f46e5" />
+          </div>
+          <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', margin: '0 0 10px 0' }}>Reflection</h1>
+          <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '30px', fontWeight: 'bold', lineHeight: '1.6' }}>
+            英単語アプリと学習データを同期するため、<br/>Googleアカウントでログインしてください。
+          </p>
+          <button 
+            onClick={handleGoogleLogin}
+            style={{ width: '100%', padding: '16px', borderRadius: '12px', background: '#4f46e5', color: 'white', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '16px', boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+          >
+            <User size={20} /> Googleでログインして始める
+          </button>
+          
+          {user && user.isAnonymous && (
+            <div style={{ marginTop: '20px', padding: '12px', background: '#fff1f2', borderRadius: '8px', border: '1px dashed #fda4af' }}>
+              <p style={{ color: '#e11d48', fontSize: '12px', margin: 0, fontWeight: 'bold' }}>
+                ※あなたのこれまでの学習記録は<br/>ログイン時に自動で引き継がれます！消えません！
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '950px', margin: '0 auto', padding: '30px 20px', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       
       <style>{`
-        @keyframes popIn {
-          0% { transform: scale(0.8); opacity: 0; }
-          40% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes confettiFall {
-          0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-        @keyframes climbingWalk {
-          0% { transform: translateY(0) rotate(0deg); }
-          25% { transform: translateY(-3px) rotate(-10deg); }
-          50% { transform: translateY(0) rotate(0deg); }
-          75% { transform: translateY(-3px) rotate(10deg); }
-          100% { transform: translateY(0) rotate(0deg); }
-        }
-        @keyframes sparkleBar {
-          0% { filter: brightness(1); opacity: 0.9; }
-          50% { filter: brightness(1.05); opacity: 1; drop-shadow(0 0 2px rgba(255,255,255,0.3)); }
-          100% { filter: brightness(1); opacity: 0.9; }
-        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 40% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes confettiFall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        @keyframes climbingWalk { 0% { transform: translateY(0) rotate(0deg); } 25% { transform: translateY(-3px) rotate(-10deg); } 50% { transform: translateY(0) rotate(0deg); } 75% { transform: translateY(-3px) rotate(10deg); } 100% { transform: translateY(0) rotate(0deg); } }
+        @keyframes sparkleBar { 0% { filter: brightness(1); opacity: 0.9; } 50% { filter: brightness(1.05); opacity: 1; drop-shadow(0 0 2px rgba(255,255,255,0.3)); } 100% { filter: brightness(1); opacity: 0.9; } }
       `}</style>
 
-      {/* 統合・簡略化されたヘッダーセクション（日付・氏名・目標・試験） */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-        
-        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
-        
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px', textAlign: 'center' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#64748b', whiteSpace: 'nowrap' }}>{todayStringJP}</span>
+          
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <input style={{ ...inputStyle, width: '120px', padding: '8px 10px', fontSize: '12px', textAlign: 'center' }} value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)} placeholder="氏名" />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 200px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444', whiteSpace: 'nowrap' }}>目標</span>
+            <input style={{ ...inputStyle, padding: '8px 10px', fontSize: '12px', width: '100%' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <input style={{ ...inputStyle, width: '90px', padding: '8px 6px', fontSize: '12px' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="試験名" />
+            <input type="date" style={{ ...inputStyle, width: '115px', padding: '8px 4px', fontSize: '12px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
+            {profile.otherDate && (
+              <span style={{ display: 'flex', alignItems: 'baseline', color: '#4f46e5', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
+                <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
+                <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.otherDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
+                <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
+              </span>
+            )}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 200px' }}>
-          <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444', whiteSpace: 'nowrap' }}>目標</span>
-          <input style={{ ...inputStyle, padding: '8px 10px', fontSize: '12px', width: '100%' }} value={profile.goal || ''} onChange={e => handleProfileUpdate('goal', e.target.value)} placeholder="達成したい目標を入力" />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          <input style={{ ...inputStyle, width: '90px', padding: '8px 6px', fontSize: '12px' }} value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)} placeholder="試験名" />
-          <input type="date" style={{ ...inputStyle, width: '115px', padding: '8px 4px', fontSize: '12px' }} value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)} />
-          {profile.otherDate && (
-            <span style={{ display: 'flex', alignItems: 'baseline', color: '#4f46e5', fontWeight: '900', whiteSpace: 'nowrap', marginLeft: '4px' }}>
-              <span style={{ fontSize: '11px', marginRight: '2px' }}>あと</span>
-              <span style={{ fontSize: '20px', lineHeight: 1 }}>{Math.ceil((new Date(profile.otherDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
-              <span style={{ fontSize: '11px', marginLeft: '2px' }}>日</span>
-            </span>
-          )}
-        </div>
-
+        <button onClick={handleLogout} style={{ padding: '8px 16px', borderRadius: '10px', backgroundColor: '#e2e8f0', color: '#475569', border: 'none', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          ログアウト
+        </button>
       </div>
 
       <DailyQuote />
@@ -937,7 +1012,6 @@ export default function App() {
 
       </section>
 
-      {/* 変更箇所：タブを学習傾向セクションの中に移動させ、ヘッダー部分をリッチに */}
       <section style={cardStyle} key={selectedRange}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
           <h2 style={{ ...headerStyle, margin: 0 }}><Activity size={18} color="#4f46e5" /> 学習傾向の分析</h2>
@@ -957,7 +1031,6 @@ export default function App() {
         
         <div style={{ height: selectedRange === 'day' && isMobile ? 'auto' : '280px', minHeight: '280px', width: '100%', position: 'relative' }}>
           
-          {/* 変更箇所：各期間における「〜の学習時間」タイトルをグラフ左上に配置 */}
           <div style={{ position: 'absolute', top: '-5px', left: '10px', fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 10 }}>
             <Clock size={12} color="#94a3b8" /> 
             {selectedRange === 'day' ? '本日の学習時間' : 
@@ -1025,7 +1098,6 @@ export default function App() {
             </ResponsiveContainer>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              {/* 変更箇所：タイトルとの被りを防ぐため、topのmarginを25に調整 */}
               <BarChart 
                 data={dashboardChartData} 
                 margin={{ top: 25, right: 10, left: -20, bottom: 0 }}
