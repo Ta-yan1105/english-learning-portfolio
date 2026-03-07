@@ -95,7 +95,6 @@ export default function App() {
 
   const wakeLockRef = useRef(null);
   const originalTitleRef = useRef(typeof document !== 'undefined' ? document.title : 'English Learning Portfolio');
-  const fullscreenRef = useRef(null);
   
   const expectedEndTimeRef = useRef(null);
   const timerTimeLeftRef = useRef(timerTimeLeft);
@@ -179,35 +178,50 @@ export default function App() {
   }, []);
 
   const handleEnterFullscreen = async () => {
-    setIsFullscreen(true);
-    setTimeout(async () => {
-      if (fullscreenRef.current && fullscreenRef.current.requestFullscreen) {
-        try {
-          await fullscreenRef.current.requestFullscreen();
-        } catch (err) {
-          console.error("Fullscreen API error:", err);
-        }
+    const el = document.documentElement;
+    try {
+      if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if (el.webkitRequestFullscreen) {
+        await el.webkitRequestFullscreen();
+      } else if (el.msRequestFullscreen) {
+        await el.msRequestFullscreen();
       }
-    }, 50);
+    } catch (err) {
+      console.log("Fullscreen request failed", err);
+    }
+    setIsFullscreen(true);
   };
 
   const handleExitFullscreen = async () => {
-    if (document.fullscreenElement && document.exitFullscreen) {
-      try {
-        await document.exitFullscreen();
-      } catch (err) {}
-    }
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+      }
+    } catch (err) {}
     setIsFullscreen(false);
   };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
         setIsFullscreen(false);
       }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -1054,14 +1068,7 @@ export default function App() {
       )}
 
       {isFullscreen && (
-        <div 
-          ref={fullscreenRef} 
-          style={{ 
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-            backgroundColor: '#f4f7fa', zIndex: 10000, 
-            overflowY: 'auto', WebkitOverflowScrolling: 'touch' 
-          }}
-        >
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <button className="action-btn" onClick={toggleSound} style={{ position: 'fixed', top: '20px', right: '70px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isSoundEnabled ? '#4f46e5' : '#94a3b8', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', zIndex: 10001 }} title={isSoundEnabled ? "アラーム音：オン" : "アラーム音：オフ"}>
             {isSoundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
