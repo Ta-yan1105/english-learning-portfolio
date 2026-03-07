@@ -95,6 +95,7 @@ export default function App() {
 
   const wakeLockRef = useRef(null);
   const originalTitleRef = useRef(typeof document !== 'undefined' ? document.title : 'English Learning Portfolio');
+  const fullscreenRef = useRef(null);
   
   const expectedEndTimeRef = useRef(null);
   const timerTimeLeftRef = useRef(timerTimeLeft);
@@ -177,12 +178,44 @@ export default function App() {
     });
   }, []);
 
+  const handleEnterFullscreen = async () => {
+    setIsFullscreen(true);
+    setTimeout(async () => {
+      if (fullscreenRef.current && fullscreenRef.current.requestFullscreen) {
+        try {
+          await fullscreenRef.current.requestFullscreen();
+        } catch (err) {
+          console.error("Fullscreen API error:", err);
+        }
+      }
+    }, 50);
+  };
+
+  const handleExitFullscreen = async () => {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      try {
+        await document.exitFullscreen();
+      } catch (err) {}
+    }
+    setIsFullscreen(false);
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       const tagName = document.activeElement?.tagName?.toLowerCase();
       if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') return;
       if (e.code === 'Space') { e.preventDefault(); toggleTimer(); }
-      if (e.code === 'Escape' && isFullscreen) setIsFullscreen(false);
+      if (e.code === 'Escape' && isFullscreen) handleExitFullscreen();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -682,12 +715,11 @@ export default function App() {
           </button>
           <Timer size={24} color="#4f46e5" style={{ marginRight: '8px' }} />
           <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
-          <button className="action-btn" onClick={() => setIsFullscreen(true)} style={{ position: 'absolute', right: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="全画面表示">
+          <button className="action-btn" onClick={handleEnterFullscreen} style={{ position: 'absolute', right: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="全画面表示">
             <Maximize size={20} />
           </button>
         </div>
 
-        {/* ⭐️ エラー修正：タイマーの上下幅（パディング）を大幅に拡張し、数字と線の間に広々とした空間を確保 */}
         <div style={{
           background: timerTimeLeft === 0 ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
           borderRadius: '34px', padding: '4px', margin: '20px auto 30px', maxWidth: '500px', boxShadow: '0 15px 35px rgba(79, 70, 229, 0.1)',
@@ -764,7 +796,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* ⭐️ エラー修正：技能ボタンを囲む要素にスマホ表示時のみ flexWrap: wrap を確実に適用し、綺麗に折り返される（並列表示される）ように修正。これで切れません。 */}
         <div style={{ display: 'flex', gap: '8px', overflowX: isMobile ? 'unset' : 'auto', flexWrap: isMobile ? 'wrap' : 'unset', paddingBottom: '5px', marginBottom: '15px', WebkitOverflowScrolling: 'touch' }}>
           {CATEGORIES.map((cat) => (
             <button key={cat.id} type="button" className="category-btn" onClick={() => selectedCats.includes(cat.id) ? setSelectedCats(prev => prev.filter(c => c !== cat.id)) : setSelectedCats(prev => [...prev, cat.id])}
@@ -1023,15 +1054,22 @@ export default function App() {
       )}
 
       {isFullscreen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', overflowY: 'auto' }}>
+        <div 
+          ref={fullscreenRef} 
+          style={{ 
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+            backgroundColor: '#f4f7fa', zIndex: 10000, 
+            overflowY: 'auto', WebkitOverflowScrolling: 'touch' 
+          }}
+        >
           <button className="action-btn" onClick={toggleSound} style={{ position: 'fixed', top: '20px', right: '70px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: isSoundEnabled ? '#4f46e5' : '#94a3b8', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', zIndex: 10001 }} title={isSoundEnabled ? "アラーム音：オン" : "アラーム音：オフ"}>
             {isSoundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
-          <button className="action-btn" onClick={() => setIsFullscreen(false)} style={{ position: 'fixed', top: '20px', right: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', zIndex: 10001 }}>
+          <button className="action-btn" onClick={handleExitFullscreen} style={{ position: 'fixed', top: '20px', right: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', zIndex: 10001 }}>
             <Minimize size={20} />
           </button>
           
-          <div style={{ margin: 'auto 0', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', flexShrink: 0 }}>
+          <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px 40px', boxSizing: 'border-box', width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
               <Timer size={32} color="#4f46e5" style={{ marginRight: '10px' }} />
               <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
