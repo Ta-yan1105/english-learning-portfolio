@@ -1076,9 +1076,12 @@ export default function App() {
             <Minimize size={20} />
           </button>
           
-          <div style={{ minHeight: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '80px 20px 40px' : '40px', boxSizing: 'border-box', width: '100%', gap: isMobile ? '0' : '40px' }}>
+          <div style={{ minHeight: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '80px 20px 40px' : '40px', boxSizing: 'border-box', width: '100%' }}>
             
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            {/* 左側の見えないスペーサー（PC版で中央を完璧に保つため） */}
+            {!isMobile && <div style={{ flex: 1 }}></div>}
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                 <Timer size={32} color="#4f46e5" style={{ marginRight: '10px' }} />
                 <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
@@ -1124,21 +1127,41 @@ export default function App() {
               </div>
             </div>
 
-            {laps.length > 0 && (
-              <div style={{ marginTop: isMobile ? '30px' : '0', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '350px' }}>
-                <div style={{ width: '100%', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: isMobile ? '25vh' : '60vh', overflowY: 'auto' }}>
-                  <div style={{ fontSize: '14px', fontWeight: '900', color: '#94a3b8', marginBottom: '15px', textAlign: 'left' }}>ラップ記録</div>
-                  {laps.map((lap, index) => (
-                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', padding: '8px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
-                      <span>ラップ {index + 1}</span>
-                      <div className="timer-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ color: '#4f46e5' }}>{lap.elapsed}</span>
-                        <span style={{ color: '#94a3b8', fontSize: '14px' }}>(残り {lap.remaining})</span>
+            {/* ラップ記録エリア（PC版は右側に配置、スマホ版は下に配置） */}
+            {!isMobile ? (
+              <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', paddingLeft: '40px' }}>
+                {laps.length > 0 && (
+                  <div style={{ width: '100%', maxWidth: '350px', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: '60vh', overflowY: 'auto' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '900', color: '#94a3b8', marginBottom: '15px', textAlign: 'left' }}>ラップ記録</div>
+                    {laps.map((lap, index) => (
+                      <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', padding: '8px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
+                        <span>ラップ {index + 1}</span>
+                        <div className="timer-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: '#4f46e5' }}>{lap.elapsed}</span>
+                          <span style={{ color: '#94a3b8', fontSize: '14px' }}>(残り {lap.remaining})</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
+            ) : (
+              laps.length > 0 && (
+                <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '350px' }}>
+                  <div style={{ width: '100%', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: '25vh', overflowY: 'auto' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '900', color: '#94a3b8', marginBottom: '15px', textAlign: 'left' }}>ラップ記録</div>
+                    {laps.map((lap, index) => (
+                      <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', padding: '8px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
+                        <span>ラップ {index + 1}</span>
+                        <div className="timer-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: '#4f46e5' }}>{lap.elapsed}</span>
+                          <span style={{ color: '#94a3b8', fontSize: '14px' }}>(残り {lap.remaining})</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
             )}
 
           </div>
