@@ -323,10 +323,22 @@ export default function App() {
   };
 
   const recordLap = () => {
-    const elapsedSeconds = timerInputTime - timerTimeLeft;
-    const elapsedStr = `${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
+    const currentElapsed = timerInputTime - timerTimeLeft;
+    let lapElapsedSeconds = currentElapsed;
+    
+    if (laps.length > 0) {
+      const lastLap = laps[laps.length - 1];
+      lapElapsedSeconds = currentElapsed - lastLap.totalElapsed;
+    }
+
+    const lapStr = `${String(Math.floor(lapElapsedSeconds / 60)).padStart(2, '0')}:${String(lapElapsedSeconds % 60).padStart(2, '0')}`;
     const remainingStr = `${String(Math.floor(timerTimeLeft / 60)).padStart(2, '0')}:${String(timerTimeLeft % 60).padStart(2, '0')}`;
-    setLaps(prev => [...prev, { elapsed: elapsedStr, remaining: remainingStr }]);
+    
+    setLaps(prev => [...prev, { 
+      elapsed: lapStr, 
+      remaining: remainingStr,
+      totalElapsed: currentElapsed
+    }]);
   };
 
   const handleCopyRecent = () => {
@@ -421,6 +433,38 @@ export default function App() {
     filteredLogs.forEach(l => (l.categories || []).forEach(cat => skillMap[cat] = (skillMap[cat] || 0) + (Number(l.minutes) || 0)));
     return { total, skillMap, streak: calculateStreak(logs) };
   }, [filteredLogs, logs]);
+
+  const timeStats = useMemo(() => {
+    let dayTotal = 0, weekTotal = 0, monthTotal = 0, yearTotal = 0, allTotal = 0;
+    const targetDate = new Date(date + "T00:00:00");
+    const targetYear = targetDate.getFullYear();
+    const targetMonth = targetDate.getMonth();
+    const targetDayTime = targetDate.getTime();
+    
+    const dayOfWeek = targetDate.getDay() || 7;
+    const weekStart = new Date(targetDate); 
+    if (dayOfWeek !== 1) weekStart.setDate(targetDate.getDate() - dayOfWeek + 1);
+    weekStart.setHours(0,0,0,0);
+    const weekEnd = new Date(weekStart); 
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23,59,59,999);
+
+    logs.forEach(l => {
+      if (!l.date) return;
+      const m = Number(l.minutes) || 0;
+      allTotal += m;
+      
+      const logDate = new Date(l.date + "T00:00:00");
+      if (logDate.getFullYear() === targetYear) {
+        yearTotal += m;
+        if (logDate.getMonth() === targetMonth) monthTotal += m;
+      }
+      if (logDate.getTime() === targetDayTime) dayTotal += m;
+      if (logDate >= weekStart && logDate <= weekEnd) weekTotal += m;
+    });
+
+    return { dayTotal, weekTotal, monthTotal, yearTotal, allTotal };
+  }, [logs, date]);
 
   const dashboardChartData = useMemo(() => {
     if (selectedRange === 'day') {
@@ -864,9 +908,15 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
           <h2 style={{ ...headerStyle, margin: 0 }}><Zap size={18} color="#4f46e5" /> 学習状況</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '14px', fontWeight: '900', color: '#1e293b' }}>
-              合計: <span className="timer-text" style={{ color: '#4f46e5' }}>{formatMinutes(stats.total)}</span><span style={{ fontSize: '12px', marginLeft: '2px' }}>{getUnit(stats.total)}</span>
-            </span>
+            <div style={{ display: 'flex', gap: isMobile ? '6px' : '10px', fontSize: '13px', fontWeight: '900', color: '#1e293b', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#f8fafc', padding: '6px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+              <span>日: <span className="timer-text" style={{ color: '#4f46e5' }}>{formatMinutes(timeStats.dayTotal)}</span><span style={{ fontSize: '11px', marginLeft: '1px' }}>{getUnit(timeStats.dayTotal)}</span></span>
+              <span style={{ color: '#cbd5e1' }}>|</span>
+              <span>週: <span className="timer-text" style={{ color: '#4f46e5' }}>{formatMinutes(timeStats.weekTotal)}</span><span style={{ fontSize: '11px', marginLeft: '1px' }}>{getUnit(timeStats.weekTotal)}</span></span>
+              <span style={{ color: '#cbd5e1' }}>|</span>
+              <span>月: <span className="timer-text" style={{ color: '#4f46e5' }}>{formatMinutes(timeStats.monthTotal)}</span><span style={{ fontSize: '11px', marginLeft: '1px' }}>{getUnit(timeStats.monthTotal)}</span></span>
+              <span style={{ color: '#cbd5e1' }}>|</span>
+              <span>年: <span className="timer-text" style={{ color: '#4f46e5' }}>{formatMinutes(timeStats.yearTotal)}</span><span style={{ fontSize: '11px', marginLeft: '1px' }}>{getUnit(timeStats.yearTotal)}</span></span>
+            </div>
             <div style={{ background: '#fee2e2', padding: '4px 10px', borderRadius: '8px' }}>
               <span style={{ color: '#ef4444', fontSize: '13px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px' }}>🔥 連続 {stats.streak} 日</span>
             </div>
@@ -882,21 +932,21 @@ export default function App() {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span className="timer-text" style={{ fontSize: '48px', fontWeight: '900', color: '#10b981', lineHeight: 1 }}>{Math.floor(stats.total / 60)}</span>
+              <span className="timer-text" style={{ fontSize: '48px', fontWeight: '900', color: '#10b981', lineHeight: 1 }}>{Math.floor(timeStats.allTotal / 60)}</span>
               <span style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8' }}> / 3,015歩</span>
             </div>
           </div>
           
           <div style={{ position: 'relative', width: '100%', height: '50px', marginTop: '10px' }}>
             <div style={{ position: 'absolute', right: '-4px', top: '-15px', fontSize: '20px', zIndex: 1, opacity: 0.8 }}>🗻</div>
-            <div style={{ position: 'absolute', left: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}% - 10px)`, bottom: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}%)`, fontSize: '18px', transition: 'left 1s ease-out, bottom 1s ease-out', zIndex: 3, filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))', transform: Math.floor(stats.total / 60) >= 3015 ? 'none' : 'scaleX(-1)' }}>
-              <div style={{ animation: Math.floor(stats.total / 60) >= 3015 ? 'none' : 'climbingWalk 1.5s infinite ease-in-out' }}>{Math.floor(stats.total / 60) >= 3015 ? '🚩' : '🚶'}</div>
+            <div style={{ position: 'absolute', left: `calc(${Math.min((timeStats.allTotal / 60 / 3015) * 100, 100)}% - 10px)`, bottom: `calc(${Math.min((timeStats.allTotal / 60 / 3015) * 100, 100)}%)`, fontSize: '18px', transition: 'left 1s ease-out, bottom 1s ease-out', zIndex: 3, filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))', transform: Math.floor(timeStats.allTotal / 60) >= 3015 ? 'none' : 'scaleX(-1)' }}>
+              <div style={{ animation: Math.floor(timeStats.allTotal / 60) >= 3015 ? 'none' : 'climbingWalk 1.5s infinite ease-in-out' }}>{Math.floor(timeStats.allTotal / 60) >= 3015 ? '🚩' : '🚶'}</div>
             </div>
             <div style={{ width: '100%', height: '100%', backgroundColor: '#f1f5f9', clipPath: 'polygon(0 100%, 100% 0, 100% 100%)', borderRadius: '4px' }}>
-              <div style={{ width: `${Math.min((stats.total / 60 / 3015) * 100, 100)}%`, height: '100%', backgroundColor: '#10b981', transition: 'width 1s ease-out' }}></div>
+              <div style={{ width: `${Math.min((timeStats.allTotal / 60 / 3015) * 100, 100)}%`, height: '100%', backgroundColor: '#10b981', transition: 'width 1s ease-out' }}></div>
             </div>
-            <div style={{ position: 'absolute', left: `calc(${Math.min((stats.total / 60 / 3015) * 100, 100)}%)`, top: '52px', transform: 'translateX(-50%)', fontSize: '11px', fontWeight: '900', color: '#10b981', transition: 'left 1s ease-out', whiteSpace: 'nowrap', zIndex: 2 }}>
-              ▲ {Math.floor(stats.total / 60)}歩
+            <div style={{ position: 'absolute', left: `calc(${Math.min((timeStats.allTotal / 60 / 3015) * 100, 100)}%)`, top: '52px', transform: 'translateX(-50%)', fontSize: '11px', fontWeight: '900', color: '#10b981', transition: 'left 1s ease-out', whiteSpace: 'nowrap', zIndex: 2 }}>
+              ▲ {Math.floor(timeStats.allTotal / 60)}歩
             </div>
           </div>
         </div>
@@ -1076,7 +1126,7 @@ export default function App() {
             <Minimize size={20} />
           </button>
           
-          <div style={{ minHeight: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '80px 20px 40px' : '40px', boxSizing: 'border-box', width: '100%' }}>
+          <div style={{ minHeight: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '80px 20px 40px' : '40px', boxSizing: 'border-box', width: '100%', gap: isMobile ? '0' : '40px' }}>
             
             {/* 左側の見えないスペーサー（PC版で中央を完璧に保つため） */}
             {!isMobile && <div style={{ flex: 1 }}></div>}
