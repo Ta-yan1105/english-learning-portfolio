@@ -714,7 +714,7 @@ export default function App() {
             {profile.otherDate && (
               <div className="exam-countdown" style={{ padding: '2px 8px' }}>
                 <span className="small-text">あと</span>
-                <span className="countdown-number" style={{ fontSize: isMobile ? '16px' : '18px' }}>{Math.ceil((new Date(profile.otherDate) - new Date().setHours(0,0,0,0)) / 86400000)}</span>
+                <span className="countdown-number" style={{ fontSize: isMobile ? '16px' : '18px' }}>{Math.round((new Date(profile.otherDate + "T00:00:00").getTime() - new Date().setHours(0,0,0,0)) / 86400000)}</span>
                 <span className="small-text">日</span>
               </div>
             )}
