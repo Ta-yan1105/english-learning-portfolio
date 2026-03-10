@@ -1076,54 +1076,57 @@ export default function App() {
             <Minimize size={20} />
           </button>
           
-          <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 20px 40px', boxSizing: 'border-box', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-              <Timer size={32} color="#4f46e5" style={{ marginRight: '10px' }} />
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
-            </div>
+          <div style={{ minHeight: '100%', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '80px 20px 40px' : '40px', boxSizing: 'border-box', width: '100%', gap: isMobile ? '0' : '40px' }}>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+                <Timer size={32} color="#4f46e5" style={{ marginRight: '10px' }} />
+                <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
+              </div>
 
-            <div style={{
-              background: timerTimeLeft === 0 ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
-              borderRadius: '40px', padding: '6px', margin: '30px 0', boxShadow: '0 20px 40px rgba(79, 70, 229, 0.15)',
-            }}>
               <div style={{
-                  display: 'flex', justifyContent: 'center', alignItems: 'center',
-                  background: 'linear-gradient(145deg, #ffffff, #f8fafc)', borderRadius: '34px',
-                  padding: isMobile ? '80px 30px' : '130px 80px', boxShadow: 'inset 0 2px 10px rgba(255, 255, 255, 1)'
+                background: timerTimeLeft === 0 ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
+                borderRadius: '40px', padding: '6px', margin: '20px 0 30px', boxShadow: '0 20px 40px rgba(79, 70, 229, 0.15)',
               }}>
-                <div className="draggable-number" onPointerDown={(e) => handlePointerDown(e, 'timer_min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 10px' }}>
-                  <div className="timer-text" style={timerNumStyleFS}>{timeDisplay.m}</div>
-                </div>
-                <div className="timer-text" style={{ ...timerNumStyleFS, paddingBottom: isMobile ? '10px' : '20px' }}>:</div>
-                <div className="draggable-number" onPointerDown={(e) => handlePointerDown(e, 'timer_sec')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 10px' }}>
-                  <div className="timer-text" style={timerNumStyleFS}>{timeDisplay.s}</div>
+                <div style={{
+                    display: 'flex', justifyContent: 'center', alignItems: 'center',
+                    background: 'linear-gradient(145deg, #ffffff, #f8fafc)', borderRadius: '34px',
+                    padding: isMobile ? '80px 30px' : '100px 60px', boxShadow: 'inset 0 2px 10px rgba(255, 255, 255, 1)'
+                }}>
+                  <div className="draggable-number" onPointerDown={(e) => handlePointerDown(e, 'timer_min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 10px' }}>
+                    <div className="timer-text" style={timerNumStyleFS}>{timeDisplay.m}</div>
+                  </div>
+                  <div className="timer-text" style={{ ...timerNumStyleFS, paddingBottom: isMobile ? '10px' : '20px' }}>:</div>
+                  <div className="draggable-number" onPointerDown={(e) => handlePointerDown(e, 'timer_sec')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 10px' }}>
+                    <div className="timer-text" style={timerNumStyleFS}>{timeDisplay.s}</div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {!isTimerRunning && timerTimeLeft !== 0 && (
-              <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px', animation: 'popIn 0.5s ease' }}>
-                👆 分・秒の数字を上下にスワイプして時間を調整
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-              <button className="action-btn" onClick={toggleTimer} style={{ padding: '18px 45px', borderRadius: '50px', border: 'none', background: isTimerRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                {isTimerRunning ? <><Pause size={24} /> 一時停止</> : <><Play size={24} /> スタート</>}
-              </button>
-              <button className="action-btn" onClick={resetTimer} style={{ padding: '18px 30px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <RefreshCw size={20} /> リセット
-              </button>
-              {!isTimerRunning && timerTimeLeft !== timerInputTime && (
-                <button className="action-btn" onClick={recordLap} style={{ padding: '18px 30px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <List size={20} /> ラップ記録
-                </button>
+              {!isTimerRunning && timerTimeLeft !== 0 && (
+                <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px', animation: 'popIn 0.5s ease' }}>
+                  👆 分・秒の数字を上下にスワイプして時間を調整
+                </div>
               )}
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '10px' : '20px', flexWrap: isMobile ? 'wrap' : 'nowrap', width: '100%' }}>
+                <button className="action-btn" onClick={toggleTimer} style={{ padding: isMobile ? '15px 25px' : '18px 30px', borderRadius: '50px', border: 'none', background: isTimerRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: isMobile ? '16px' : '18px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                  {isTimerRunning ? <><Pause size={isMobile ? 20 : 24} /> 一時停止</> : <><Play size={isMobile ? 20 : 24} /> スタート</>}
+                </button>
+                <button className="action-btn" onClick={resetTimer} style={{ padding: isMobile ? '15px 25px' : '18px 30px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: isMobile ? '16px' : '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <RefreshCw size={isMobile ? 18 : 20} /> リセット
+                </button>
+                {!isTimerRunning && timerTimeLeft !== timerInputTime && (
+                  <button className="action-btn" onClick={recordLap} style={{ padding: isMobile ? '15px 25px' : '18px 30px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: isMobile ? '16px' : '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <List size={isMobile ? 18 : 20} /> ラップ記録
+                  </button>
+                )}
+              </div>
             </div>
 
             {laps.length > 0 && (
-              <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <div style={{ width: '100%', maxWidth: '350px', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: '25vh', overflowY: 'auto' }}>
+              <div style={{ marginTop: isMobile ? '30px' : '0', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '350px' }}>
+                <div style={{ width: '100%', backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', maxHeight: isMobile ? '25vh' : '60vh', overflowY: 'auto' }}>
                   <div style={{ fontSize: '14px', fontWeight: '900', color: '#94a3b8', marginBottom: '15px', textAlign: 'left' }}>ラップ記録</div>
                   {laps.map((lap, index) => (
                     <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', color: '#1e293b', padding: '8px 0', borderBottom: index !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none' }}>
@@ -1137,6 +1140,7 @@ export default function App() {
                 </div>
               </div>
             )}
+
           </div>
         </div>
       )}
