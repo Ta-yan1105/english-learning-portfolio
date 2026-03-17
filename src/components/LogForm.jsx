@@ -37,8 +37,28 @@ export default function LogForm({
   };
   const handlePointerUp = () => { dragStartY.current = null; dragTarget.current = null; };
 
-  const card  = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', boxSizing: 'border-box', width: '100%' };
-  const input = { width: '100%', padding: '16px', borderRadius: '16px', border: '1px solid #f1f5f9', background: '#f8fafc', fontWeight: 'bold', boxSizing: 'border-box', outline: 'none', fontSize: '14px' };
+  const card = {
+    background: 'white', borderRadius: '24px',
+    padding: isMobile ? '20px 15px' : '25px',
+    marginBottom: '20px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+    boxSizing: 'border-box', width: '100%',
+    border: '2px solid #4f46e5',
+    overflow: 'hidden',
+  };
+
+  const input = {
+    width: '100%',
+    padding: '16px',
+    borderRadius: '16px',
+    border: '1px solid #f1f5f9',
+    background: '#f8fafc',
+    fontWeight: 'bold',
+    boxSizing: 'border-box',
+    outline: 'none',
+    fontSize: '14px',
+    display: 'block',
+  };
 
   return (
     <section
@@ -46,7 +66,7 @@ export default function LogForm({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
-      style={{ ...card, border: '2px solid #4f46e5' }}
+      style={card}
     >
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
@@ -74,9 +94,14 @@ export default function LogForm({
       </div>
 
       {/* 日付 */}
-      <div style={{ marginBottom: '15px' }}>
-        <input type="date" className="modern-input" value={date} onChange={e => setDate(e.target.value)}
-          style={{ ...input, cursor: 'pointer' }}/>
+      <div style={{ marginBottom: '15px', width: '100%', boxSizing: 'border-box' }}>
+        <input
+          type="date"
+          className="modern-input"
+          value={date}
+          onChange={e => setDate(e.target.value)}
+          style={{ ...input, cursor: 'pointer' }}
+        />
       </div>
 
       {/* カテゴリ */}
@@ -124,9 +149,13 @@ export default function LogForm({
       </div>
 
       {/* 振り返り */}
-      <textarea className="modern-input" value={reflection} onChange={e => setReflection(e.target.value)}
+      <textarea
+        className="modern-input"
+        value={reflection}
+        onChange={e => setReflection(e.target.value)}
         placeholder="学習内容や気づきを入力..."
-        style={{ ...input, height: '120px', resize: 'vertical' }}/>
+        style={{ ...input, height: '120px', resize: 'vertical' }}
+      />
     </section>
   );
 }
