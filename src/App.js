@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { onAuthStateChanged, signInWithPopup, linkWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { Activity, BookOpen, User, Calendar, Star } from 'lucide-react';
+import { Activity, BookOpen, User, LogOut, ExternalLink, Star, CalendarDays } from 'lucide-react';
 
 import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
@@ -13,18 +13,12 @@ import Dashboard from './components/Dashboard';
 import LogList   from './components/LogList';
 import './App.css';
 
-/* -------------------------------------------------------
-   英検試験日取得
-------------------------------------------------------- */
 const fetchNextEikenDate = async () => {
   const schedule = ['2026-06-07', '2026-10-04', '2027-01-24', '2027-06-06'];
   const today    = getLocalDateString(new Date());
   return schedule.find(d => d >= today) || '';
 };
 
-/* -------------------------------------------------------
-   App
-------------------------------------------------------- */
 export default function App() {
   const [user,           setUser]           = useState(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
@@ -33,7 +27,6 @@ export default function App() {
   const [date,           setDate]           = useState(getLocalDateString(new Date()));
   const [isMobile,       setIsMobile]       = useState(window.innerWidth <= 768);
 
-  /* --- form state --- */
   const [minutes,      setMinutes]      = useState(25);
   const [selectedCats, setSelectedCats] = useState([]);
   const [speakingType, setSpeakingType] = useState('');
@@ -41,19 +34,16 @@ export default function App() {
   const [quality,      setQuality]      = useState(80);
   const [editingLogId, setEditingLogId] = useState(null);
 
-  /* --- praise state --- */
-  const [showPraise,   setShowPraise]   = useState(false);
-  const [praiseText,   setPraiseText]   = useState('');
-  const [praiseSubText,setPraiseSubText]= useState('');
+  const [showPraise,    setShowPraise]    = useState(false);
+  const [praiseText,    setPraiseText]    = useState('');
+  const [praiseSubText, setPraiseSubText] = useState('');
 
   const formRef = useRef(null);
 
-  /* ----- ログフック ----- */
   const { logs, getFilteredLogs, getTimeStats, streak, saveLog, deleteLog, exportLogs } = useLogs(user);
   const filteredLogs = useMemo(() => getFilteredLogs(date, selectedRange), [getFilteredLogs, date, selectedRange]);
   const timeStats    = useMemo(() => getTimeStats(date), [getTimeStats, date]);
 
-  /* ----- praise helper ----- */
   const showPraiseMsg = useCallback((sub) => {
     setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
     setPraiseSubText(sub);
@@ -61,7 +51,6 @@ export default function App() {
     setTimeout(() => setShowPraise(false), 2500);
   }, []);
 
-  /* ----- タイマー完了 → フォームに時間セット & スクロール ----- */
   const handleTimerComplete = useCallback((completedMinutes) => {
     setMinutes(completedMinutes);
     showPraiseMsg('タイマー完了！学習時間を反映しました');
@@ -70,7 +59,6 @@ export default function App() {
     }, 600);
   }, [showPraiseMsg]);
 
-  /* ----- resize / auth ----- */
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', onResize);
@@ -81,7 +69,6 @@ export default function App() {
     return () => { window.removeEventListener('resize', onResize); unsub(); };
   }, []);
 
-  /* ----- profile 読み込み ----- */
   useEffect(() => {
     if (!user || user.isAnonymous) return;
     getDoc(doc(db, 'profile', user.uid)).then(async snap => {
@@ -95,7 +82,6 @@ export default function App() {
     });
   }, [user]);
 
-  /* ----- profile 更新 ----- */
   const handleProfileUpdate = useCallback(async (field, value) => {
     setProfile(prev => {
       const next = { ...prev, [field]: value };
@@ -106,7 +92,6 @@ export default function App() {
     });
   }, [user]);
 
-  /* ----- auth ----- */
   const handleGoogleLogin = async () => {
     try {
       if (auth.currentUser?.isAnonymous) await linkWithPopup(auth.currentUser, provider);
@@ -120,7 +105,6 @@ export default function App() {
   };
   const handleLogout = () => signOut(auth);
 
-  /* ----- form ----- */
   const resetForm = useCallback(() => {
     setEditingLogId(null); setMinutes(25); setSelectedCats([]);
     setSpeakingType(''); setReflection(''); setQuality(80);
@@ -166,9 +150,12 @@ export default function App() {
     setQuality(l.quality || 80);
   }, [logs]);
 
-  /* ----- render guards ----- */
   const today = new Date();
-  const todayJP = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
+  const todayStr = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
+
+  const daysLeft = profile.otherDate
+    ? Math.round((new Date(profile.otherDate + 'T00:00:00').getTime() - new Date().setHours(0,0,0,0)) / 86400000)
+    : null;
 
   if (isAuthChecking) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f4f7fa' }}>
@@ -177,90 +164,163 @@ export default function App() {
   );
 
   if (!user || user.isAnonymous) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f4f7fa', fontFamily: 'sans-serif' }}>
-      <div style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
-        <div style={{ background: '#e0e7ff', width: '60px', height: '60px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-          <BookOpen size={32} color="#4f46e5"/>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg,#f0f4ff 0%,#faf5ff 100%)', fontFamily: 'sans-serif' }}>
+      <div style={{ background: 'white', padding: '48px 40px', borderRadius: '28px', boxShadow: '0 20px 60px rgba(79,70,229,0.12)', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
+        <div style={{ background: 'linear-gradient(135deg,#4f46e5,#0ea5e9)', width: '64px', height: '64px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 8px 24px rgba(79,70,229,0.3)' }}>
+          <BookOpen size={32} color="white"/>
         </div>
-        <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', margin: '0 0 10px 0' }}>BLUEPRINT LOG</h1>
-        <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '30px', fontWeight: 'bold', lineHeight: '1.6' }}>
-          英単語アプリと学習データを同期するため、<br/>Googleアカウントでログインしてください。
-        </p>
+        <h1 style={{ fontSize: '30px', fontWeight: '900', color: '#1e293b', margin: '0 0 8px 0', letterSpacing: '-0.03em' }}>BLUEPRINT LOG</h1>
+        <p style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '700', letterSpacing: '0.15em', marginBottom: '32px' }}>STRATEGIC LEARNING PLATFORM</p>
         <button onClick={handleGoogleLogin} className="action-btn"
-          style={{ width: '100%', padding: '16px', borderRadius: '12px', background: '#4f46e5', color: 'white', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '16px', boxShadow: '0 4px 15px rgba(79,70,229,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+          style={{ width: '100%', padding: '16px', borderRadius: '14px', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: 'white', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '16px', boxShadow: '0 8px 24px rgba(79,70,229,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
           <User size={20}/> Googleでログイン
         </button>
       </div>
     </div>
   );
 
-  /* ----- main render ----- */
   return (
-    <div style={{ maxWidth: '950px', margin: '0 auto', padding: isMobile ? '20px 10px' : '30px 20px', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
+    <div style={{ maxWidth: '950px', margin: '0 auto', padding: isMobile ? '16px 10px' : '24px 20px', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
+
+      <style>{`
+        @keyframes popIn {
+          0%   { transform: scale(0.8); opacity: 0; }
+          70%  { transform: scale(1.05); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes confettiFall {
+          0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes badgePulse {
+          0%, 100% { transform: scale(1); }
+          50%       { transform: scale(1.04); }
+        }
+      `}</style>
 
       {/* ===== ヘッダー ===== */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', background: 'linear-gradient(135deg,#4f46e5,#0ea5e9)', borderRadius: '12px', boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>
-            <Activity size={24} color="white"/>
+      <header style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginBottom: '16px', flexWrap: 'wrap', gap: '12px',
+      }}>
+        {/* ロゴ */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '52px', height: '52px',
+            background: 'linear-gradient(135deg,#4f46e5,#0ea5e9)',
+            borderRadius: '16px',
+            boxShadow: '0 6px 20px rgba(79,70,229,0.4)',
+            flexShrink: 0,
+          }}>
+            <Activity size={26} color="white"/>
           </div>
           <div>
-            <h1 style={{ margin: 0, fontFamily: 'Syne,sans-serif', fontSize: '28px', fontWeight: 800, letterSpacing: '-0.06em', background: 'linear-gradient(90deg,#111827,#4f46e5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              BLUEPRINT LOG
-            </h1>
-            <div style={{ fontFamily: 'Syne,sans-serif', fontSize: '9px', color: '#64748b', fontWeight: 700, letterSpacing: '0.2em', marginTop: '-2px' }}>STRATEGIC LEARNING PLATFORM</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          <button className="action-btn" onClick={() => window.open('https://voca.english-t24.com', '_blank')}
-            style={{ padding: '8px 12px', background: 'white', color: '#4f46e5', border: '1px solid #e0e7ff', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <BookOpen size={14}/> 単語アプリへ
-          </button>
-          <button className="action-btn" onClick={() => window.open('https://english-t24.com', '_blank')}
-            style={{ padding: '8px 12px', background: 'white', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
-            ブログへ
-          </button>
-          <div style={{ width: '1px', height: '20px', background: '#cbd5e1', margin: '0 2px' }}/>
-          <button className="action-btn" onClick={handleLogout}
-            style={{ padding: '8px 12px', borderRadius: '10px', backgroundColor: '#fee2e2', color: '#ef4444', border: 'none', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
-            ログアウト
-          </button>
-        </div>
-      </div>
-
-      {/* ===== プロフィールバー ===== */}
-      <div className="profile-dashboard-bar" style={{ marginBottom: '25px', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', padding: isMobile ? '12px' : '12px 20px' }}>
-        <div style={{ display: 'flex', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-start', alignItems: 'center' }}>
-          <div className="profile-item" style={{ flexShrink: 0 }}>
-            <Calendar size={16}/> <span style={{ fontFamily: 'Inter,sans-serif' }}>{todayJP}</span>
-          </div>
-          {!isMobile && <div style={{ width: '1px', height: '16px', background: '#e2e8f0', margin: '0 8px' }}/>}
-          <div className="profile-item" style={{ flexShrink: 0 }}>
-            <User size={16}/>
-            <input className="clean-input" value={profile.name || ''} onChange={e => handleProfileUpdate('name', e.target.value)}
-              placeholder="氏名" style={{ width: isMobile ? '70px' : '80px', textAlign: isMobile ? 'right' : 'left' }}/>
-          </div>
-        </div>
-        {isMobile && <div style={{ width: '100%', height: '1px', background: '#f1f5f9' }}/>}
-        {!isMobile && <div style={{ width: '1px', height: '16px', background: '#e2e8f0', margin: '0 4px' }}/>}
-        <div className="profile-item exam-item-container" style={{ width: isMobile ? '100%' : 'auto', padding: isMobile ? '8px' : '6px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 1 auto', minWidth: '100px' }}>
-            <Star size={16} color="#f59e0b"/>
-            <input className="clean-input exam-name-input modern-input" value={profile.otherName || ''} onChange={e => handleProfileUpdate('otherName', e.target.value)}
-              placeholder="試験名を入力" style={{ fontSize: isMobile ? '13px' : '14px' }}/>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-            <input type="date" className="clean-input exam-date modern-input" value={profile.otherDate || ''} onChange={e => handleProfileUpdate('otherDate', e.target.value)}/>
-            {profile.otherDate && (
-              <div className="exam-countdown" style={{ padding: '2px 8px' }}>
-                <span className="small-text">あと</span>
-                <span className="countdown-number" style={{ fontSize: isMobile ? '16px' : '18px' }}>
-                  {Math.round((new Date(profile.otherDate + 'T00:00:00').getTime() - new Date().setHours(0,0,0,0)) / 86400000)}
-                </span>
-                <span className="small-text">日</span>
+            <div style={{
+              fontFamily: 'Syne, sans-serif',
+              fontSize: isMobile ? '26px' : '32px',
+              fontWeight: 900,
+              letterSpacing: '-0.05em',
+              background: 'linear-gradient(90deg,#4f46e5 0%,#0ea5e9 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              lineHeight: 1.1,
+            }}>BLUEPRINT LOG</div>
+            {!isMobile && (
+              <div style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 700, letterSpacing: '0.2em', marginTop: '2px' }}>
+                STRATEGIC LEARNING PLATFORM
               </div>
             )}
           </div>
+        </div>
+
+        {/* ナビ */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button className="action-btn" onClick={() => window.open('https://voca.english-t24.com', '_blank')}
+            style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 2px 8px rgba(79,70,229,0.08)' }}>
+            <BookOpen size={14}/> {isMobile ? '単語' : '単語アプリへ'}
+          </button>
+          <button className="action-btn" onClick={() => window.open('https://english-t24.com', '_blank')}
+            style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <ExternalLink size={14}/> {isMobile ? 'Blog' : 'ブログへ'}
+          </button>
+          <button className="action-btn" onClick={handleLogout}
+            style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#ef4444', border: '1.5px solid #fee2e2', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <LogOut size={14}/> {isMobile ? '' : 'ログアウト'}
+          </button>
+        </div>
+      </header>
+
+      {/* ===== プロフィールバー ===== */}
+      <div style={{
+        background: 'white', borderRadius: '16px',
+        padding: isMobile ? '12px 16px' : '14px 20px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        display: 'flex', alignItems: 'center',
+        gap: isMobile ? '10px' : '0',
+        flexWrap: 'wrap',
+        border: '1px solid #f1f5f9',
+      }}>
+        {/* 日付 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>
+          <CalendarDays size={15} color="#94a3b8"/>
+          <span>{todayStr}</span>
+        </div>
+
+        <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 14px', flexShrink: 0, display: isMobile ? 'none' : 'block' }}/>
+
+        {/* 氏名 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          <User size={15} color="#94a3b8"/>
+          <input
+            value={profile.name || ''}
+            onChange={e => handleProfileUpdate('name', e.target.value)}
+            placeholder="氏名"
+            style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: '700', color: '#1e293b', background: 'transparent', width: '80px' }}
+          />
+        </div>
+
+        <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 14px', flexShrink: 0, display: isMobile ? 'none' : 'block' }}/>
+
+        {/* 試験情報 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, flexWrap: 'wrap' }}>
+          <Star size={15} color="#f59e0b" style={{ flexShrink: 0 }}/>
+          <input
+            value={profile.otherName || ''}
+            onChange={e => handleProfileUpdate('otherName', e.target.value)}
+            placeholder="試験名"
+            style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: '700', color: '#1e293b', background: 'transparent', minWidth: '80px', flex: 1 }}
+          />
+          <input
+            type="date"
+            value={profile.otherDate || ''}
+            onChange={e => handleProfileUpdate('otherDate', e.target.value)}
+            style={{ border: '1px solid #e2e8f0', outline: 'none', fontSize: '12px', fontWeight: '600', color: '#64748b', background: '#f8fafc', borderRadius: '8px', padding: '4px 8px', flexShrink: 0 }}
+          />
+          {daysLeft !== null && (
+            <div style={{
+              background: daysLeft <= 7
+                ? 'linear-gradient(135deg,#ef4444,#f97316)'
+                : daysLeft <= 30
+                ? 'linear-gradient(135deg,#f59e0b,#fbbf24)'
+                : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+              color: 'white', borderRadius: '12px', padding: '6px 16px',
+              flexShrink: 0,
+              boxShadow: daysLeft <= 7
+                ? '0 4px 14px rgba(239,68,68,0.45)'
+                : daysLeft <= 30
+                ? '0 4px 14px rgba(245,158,11,0.45)'
+                : '0 4px 14px rgba(79,70,229,0.45)',
+              display: 'flex', alignItems: 'center', gap: '4px',
+              border: '2px solid rgba(255,255,255,0.25)',
+              animation: 'badgePulse 2.5s ease-in-out infinite',
+            }}>
+              <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>あと</span>
+              <span className="timer-text" style={{ fontSize: '24px', fontWeight: '900', lineHeight: 1 }}>{daysLeft}</span>
+              <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>日</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -304,14 +364,14 @@ export default function App() {
         onExport={exportLogs}
       />
 
-      <footer style={{ textAlign: 'center', padding: '40px 0', color: '#cbd5e1', fontSize: '10px', fontWeight: 'bold', fontFamily: 'Syne,sans-serif', letterSpacing: '0.1em' }}>
+      <footer style={{ textAlign: 'center', padding: '40px 0 20px', color: '#cbd5e1', fontSize: '10px', fontWeight: '700', fontFamily: 'Syne, sans-serif', letterSpacing: '0.12em' }}>
         BLUEPRINT LOG © 2026
       </footer>
 
       {/* ===== Praiseオーバーレイ ===== */}
       {showPraise && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          <div style={{ animation: 'popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards', background: 'white', padding: '30px 50px', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', textAlign: 'center', border: '4px solid #4f46e5' }}>
+          <div style={{ animation: 'popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards', background: 'white', padding: '30px 50px', borderRadius: '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.15)', textAlign: 'center', border: '3px solid #4f46e5' }}>
             <div style={{ fontSize: '48px', marginBottom: '8px' }}>🌟</div>
             <div style={{ fontSize: '28px', fontWeight: '900', color: '#4f46e5' }}>{praiseText}</div>
             <div style={{ fontSize: '14px', color: '#64748b', fontWeight: 'bold', marginTop: '10px' }}>{praiseSubText}</div>
@@ -322,9 +382,9 @@ export default function App() {
               <div key={i} style={{
                 position: 'absolute', top: '-20px',
                 left: `${Math.random() * 100}%`,
-                width: '12px', height: '12px',
+                width: '10px', height: '10px',
                 backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                borderRadius: Math.random() > 0.5 ? '50%' : '0',
+                borderRadius: Math.random() > 0.5 ? '50%' : '2px',
                 animation: `confettiFall ${1.5 + Math.random() * 2}s linear ${Math.random() * 0.5}s forwards`,
               }}/>
             );
