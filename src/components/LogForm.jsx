@@ -38,17 +38,21 @@ export default function LogForm({
   const handlePointerUp = () => { dragStartY.current = null; dragTarget.current = null; };
 
   const card = {
-    background: 'white', borderRadius: '24px',
+    background: 'white',
+    borderRadius: '24px',
     padding: isMobile ? '20px 15px' : '25px',
     marginBottom: '20px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-    boxSizing: 'border-box', width: '100%',
+    boxSizing: 'border-box',
+    width: '100%',
+    maxWidth: '100%',
     border: '2px solid #4f46e5',
     overflow: 'hidden',
   };
 
   const input = {
     width: '100%',
+    maxWidth: '100%',
     padding: '16px',
     borderRadius: '16px',
     border: '1px solid #f1f5f9',
@@ -58,6 +62,7 @@ export default function LogForm({
     outline: 'none',
     fontSize: '14px',
     display: 'block',
+    minWidth: 0,
   };
 
   return (
@@ -94,7 +99,7 @@ export default function LogForm({
       </div>
 
       {/* 日付 */}
-      <div style={{ marginBottom: '15px', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ marginBottom: '15px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
         <input
           type="date"
           className="modern-input"
