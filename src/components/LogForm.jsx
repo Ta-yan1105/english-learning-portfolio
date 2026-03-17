@@ -50,6 +50,7 @@ export default function LogForm({
     overflow: 'hidden',
   };
 
+  // 共通の入力フォームスタイル（マージンをリセットして確実にはみ出ないように修正）
   const input = {
     width: '100%',
     maxWidth: '100%',
@@ -63,6 +64,7 @@ export default function LogForm({
     fontSize: '14px',
     display: 'block',
     minWidth: 0,
+    margin: 0, // 外部CSSからの不要なマージンをリセット
   };
 
   return (
@@ -98,16 +100,21 @@ export default function LogForm({
         </div>
       </div>
 
-      {/* 日付 */}
-      <div style={{ marginBottom: '15px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
-        <input
-          type="date"
-          className="modern-input"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          style={{ ...input, cursor: 'pointer' }}
-        />
-      </div>
+      {/* 日付（不要なラッパーを削除し、レイアウトを統一） */}
+      <input
+        type="date"
+        className="modern-input"
+        value={date}
+        onChange={e => setDate(e.target.value)}
+        style={{
+          ...input,
+          cursor: 'pointer',
+          marginBottom: '15px',
+          textAlign: 'center', // 画像のように中央揃えで綺麗に見せる
+          fontSize: '16px',    // タップしやすく見栄えを調整
+          WebkitAppearance: 'none', // iOS等での意図しないデフォルトスタイルを無効化
+        }}
+      />
 
       {/* カテゴリ */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '15px' }}>
