@@ -123,9 +123,30 @@ export default function Dashboard({
     <>
       {/* チャートカード */}
       <section style={card} key={selectedRange}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-          <h2 style={{ ...hStyle, margin: 0 }}><Activity size={18} color="#4f46e5"/> 学習傾向の分析</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+          <h2 style={{ ...hStyle, margin: 0, flexShrink: 0 }}><Activity size={18} color="#4f46e5"/> 学習傾向の分析</h2>
+
+          {/* 時間統計 */}
           <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
+            {[
+              { label: '日', value: timeStats.dayTotal },
+              { label: '週', value: timeStats.weekTotal },
+              { label: '月', value: timeStats.monthTotal },
+              { label: '年', value: timeStats.yearTotal },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ background: 'white', borderRadius: '7px', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{label}</span>
+                <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#4f46e5' }}>{formatMinutes(value)}<span style={{ fontSize: '10px' }}>{getUnit(value)}</span></span>
+              </div>
+            ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#fff1f2', borderRadius: '7px', padding: '5px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+              <Flame size={12} color="#ef4444"/>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: '#f87171' }}>連続</span>
+              <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#ef4444' }}>{streak}<span style={{ fontSize: '10px' }}>日</span></span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px', flexShrink: 0 }}>
             {[
               { id: 'day',   label: 'DAY',   icon: <Sun size={14}/> },
               { id: 'week',  label: 'WEEK',  icon: <Calendar size={14}/> },
@@ -136,26 +157,6 @@ export default function Dashboard({
                 {tab.icon} <span>{tab.label}</span>
               </button>
             ))}
-          </div>
-        </div>
-
-        {/* 時間統計 */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '16px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px', flexWrap: 'wrap' }}>
-          {[
-            { label: '日', value: timeStats.dayTotal },
-            { label: '週', value: timeStats.weekTotal },
-            { label: '月', value: timeStats.monthTotal },
-            { label: '年', value: timeStats.yearTotal },
-          ].map(({ label, value }) => (
-            <div key={label} style={{ flex: '1 1 0', background: 'white', borderRadius: '7px', padding: '5px 8px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-              <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{label}</span>
-              <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#4f46e5' }}>{formatMinutes(value)}<span style={{ fontSize: '10px' }}>{getUnit(value)}</span></span>
-            </div>
-          ))}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#fff1f2', borderRadius: '7px', padding: '5px 10px', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-            <Flame size={12} color="#ef4444"/>
-            <span style={{ fontSize: '11px', fontWeight: '900', color: '#f87171' }}>連続</span>
-            <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#ef4444' }}>{streak}<span style={{ fontSize: '10px' }}>日</span></span>
           </div>
         </div>
 
