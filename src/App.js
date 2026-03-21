@@ -27,6 +27,7 @@ export default function App() {
   const [date,           setDate]           = useState(getLocalDateString(new Date()));
   const [isMobile,       setIsMobile]       = useState(window.innerWidth <= 768);
 
+  const [formDate,     setFormDate]     = useState(getLocalDateString(new Date()));
   const [minutes,      setMinutes]      = useState(25);
   const [selectedCats, setSelectedCats] = useState([]);
   const [speakingType, setSpeakingType] = useState('');
@@ -43,6 +44,11 @@ export default function App() {
   const { logs, getFilteredLogs, getTimeStats, streak, saveLog, deleteLog, exportLogs } = useLogs(user);
   const filteredLogs = useMemo(() => getFilteredLogs(date, selectedRange), [getFilteredLogs, date, selectedRange]);
   const timeStats    = useMemo(() => getTimeStats(date), [getTimeStats, date]);
+
+  const handleRangeChange = useCallback((range) => {
+    setSelectedRange(range);
+    if (range === 'day') setDate(getLocalDateString(new Date()));
+  }, []);
 
   const showPraiseMsg = useCallback((sub) => {
     setPraiseText(PRAISE_MESSAGES[Math.floor(Math.random() * PRAISE_MESSAGES.length)]);
@@ -106,15 +112,14 @@ export default function App() {
   const handleLogout = () => signOut(auth);
 
   const resetForm = useCallback(() => {
-    setEditingLogId(null); setMinutes(25); setSelectedCats([]);
+    setEditingLogId(null); setFormDate(getLocalDateString(new Date())); setMinutes(25); setSelectedCats([]);
     setSpeakingType(''); setReflection(''); setQuality(80);
-    setDate(getLocalDateString(new Date()));
   }, []);
 
   const handleSave = useCallback(async () => {
     if (!auth.currentUser || !minutes || selectedCats.length === 0) return;
     const logData = {
-      date, minutes: Number(minutes), categories: selectedCats,
+      date: formDate, minutes: Number(minutes), categories: selectedCats,
       reflection, quality: Number(quality),
       speakingType: selectedCats.includes('Speaking') && speakingType ? speakingType : null,
     };
@@ -125,10 +130,10 @@ export default function App() {
     } catch {
       alert('学習記録の保存に失敗しました。通信環境を確認してください。');
     }
-  }, [date, minutes, selectedCats, reflection, quality, speakingType, editingLogId, saveLog, resetForm, showPraiseMsg]);
+  }, [formDate, minutes, selectedCats, reflection, quality, speakingType, editingLogId, saveLog, resetForm, showPraiseMsg]);
 
   const handleEdit = useCallback((log) => {
-    setEditingLogId(log.id); setDate(log.date); setMinutes(log.minutes);
+    setEditingLogId(log.id); setFormDate(log.date); setMinutes(log.minutes);
     setSelectedCats(log.categories || []); setSpeakingType(log.speakingType || '');
     setReflection(log.reflection || log.content || ''); setQuality(log.quality || 80);
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -145,6 +150,7 @@ export default function App() {
   const handleCopyRecent = useCallback(() => {
     if (!logs.length) return;
     const l = logs[0];
+    setFormDate(getLocalDateString(new Date()));
     setMinutes(l.minutes || 25); setSelectedCats(l.categories || []);
     setSpeakingType(l.speakingType || ''); setReflection(l.reflection || l.content || '');
     setQuality(l.quality || 80);
@@ -330,7 +336,7 @@ export default function App() {
       <LogForm
         isMobile={isMobile}
         logs={logs}
-        date={date}             setDate={setDate}
+        date={formDate}         setDate={setFormDate}
         minutes={minutes}       setMinutes={setMinutes}
         selectedCats={selectedCats} setSelectedCats={setSelectedCats}
         speakingType={speakingType} setSpeakingType={setSpeakingType}
@@ -346,7 +352,7 @@ export default function App() {
       <Dashboard
         isMobile={isMobile}
         logs={logs}
-        selectedRange={selectedRange} setSelectedRange={setSelectedRange}
+        selectedRange={selectedRange} setSelectedRange={handleRangeChange}
         date={date}
         timeStats={timeStats}
         streak={streak}
