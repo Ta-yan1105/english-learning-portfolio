@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { onAuthStateChanged, signInWithPopup, linkWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { Activity, BookOpen, User, LogOut, ExternalLink, Star, CalendarDays } from 'lucide-react';
+import { Activity, BookOpen, User, LogOut, Star, CalendarDays } from 'lucide-react';
 
 import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
@@ -246,11 +246,7 @@ export default function App() {
             style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 2px 8px rgba(79,70,229,0.08)' }}>
             <BookOpen size={14}/> {isMobile ? '単語' : '単語アプリへ'}
           </button>
-          <button className="action-btn" onClick={() => window.open('https://english-t24.com', '_blank')}
-            style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <ExternalLink size={14}/> {isMobile ? 'Blog' : 'ブログへ'}
-          </button>
-          <button className="action-btn" onClick={handleLogout}
+<button className="action-btn" onClick={handleLogout}
             style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#ef4444', border: '1.5px solid #fee2e2', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <LogOut size={14}/> {isMobile ? '' : 'ログアウト'}
           </button>
