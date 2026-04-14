@@ -4,7 +4,7 @@ import {
   where, updateDoc, deleteDoc, doc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { CATEGORIES, getLocalDateString, calculateStreak } from '../constants';
+import { calculateStreak } from '../constants';
 
 export const useLogs = (user) => {
   const [logs, setLogs] = useState([]);
@@ -94,20 +94,31 @@ export const useLogs = (user) => {
   }, []);
 
   /* ----- export ----- */
-  const exportLogs = useCallback((filteredLogs, format) => {
-    const header = 'Date,Skill,Reflection,Duration,Quality\n';
-    const rows = filteredLogs.map(log => {
+  const exportLogs = useCallback((logsToExport, format, rangeLabel = '') => {
+    if (!logsToExport || logsToExport.length === 0) {
+      alert('この期間の学習記録がありません');
+      return;
+    }
+    const header = 'Date,Skill,Reflection,Duration,Quality,VocabCount\n';
+    const rows = logsToExport.map(log => {
       const text    = log.reflection || log.content || '';
       const catsStr = (log.categories || [])
         .map(c => c === 'Speaking' && log.speakingType ? `${c}(${log.speakingType})` : c)
         .join('/');
-      return `${log.date},${catsStr},"${text.replace(/"/g, '""')}",${log.minutes},${log.quality}%`;
+      const vocab = log.vocabCount != null ? log.vocabCount : '';
+      return `${log.date},${catsStr},"${text.replace(/"/g, '""')}",${log.minutes},${log.quality}%,${vocab}`;
     }).join('\n');
-    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), header, rows], { type: 'text/csv' });
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const safeName = rangeLabel.replace(/[/〜\s]/g, '_');
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `learning_log_${format}.csv`;
+    link.setAttribute('href', url);
+    link.setAttribute('download', `learning_log_${safeName}_${format}.csv`);
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }, []);
 
   return { logs, getFilteredLogs, getTimeStats, streak, saveLog, deleteLog, exportLogs };

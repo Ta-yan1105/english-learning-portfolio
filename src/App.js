@@ -31,6 +31,7 @@ export default function App() {
   const [minutes,      setMinutes]      = useState(25);
   const [selectedCats, setSelectedCats] = useState([]);
   const [speakingType, setSpeakingType] = useState('');
+  const [vocabCount,   setVocabCount]   = useState(0);
   const [reflection,   setReflection]   = useState('');
   const [quality,      setQuality]      = useState(80);
   const [editingLogId, setEditingLogId] = useState(null);
@@ -113,7 +114,7 @@ export default function App() {
 
   const resetForm = useCallback(() => {
     setEditingLogId(null); setFormDate(getLocalDateString(new Date())); setMinutes(25); setSelectedCats([]);
-    setSpeakingType(''); setReflection(''); setQuality(80);
+    setSpeakingType(''); setVocabCount(0); setReflection(''); setQuality(80);
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -122,6 +123,7 @@ export default function App() {
       date: formDate, minutes: Number(minutes), categories: selectedCats,
       reflection, quality: Number(quality),
       speakingType: selectedCats.includes('Speaking') && speakingType ? speakingType : null,
+      vocabCount: selectedCats.includes('Vocabulary') ? Number(vocabCount) : null,
     };
     try {
       await saveLog(auth.currentUser.uid, logData, editingLogId);
@@ -130,11 +132,12 @@ export default function App() {
     } catch {
       alert('学習記録の保存に失敗しました。通信環境を確認してください。');
     }
-  }, [formDate, minutes, selectedCats, reflection, quality, speakingType, editingLogId, saveLog, resetForm, showPraiseMsg]);
+  }, [formDate, minutes, selectedCats, reflection, quality, speakingType, vocabCount, editingLogId, saveLog, resetForm, showPraiseMsg]);
 
   const handleEdit = useCallback((log) => {
     setEditingLogId(log.id); setFormDate(log.date); setMinutes(log.minutes);
     setSelectedCats(log.categories || []); setSpeakingType(log.speakingType || '');
+    setVocabCount(log.vocabCount || 0);
     setReflection(log.reflection || log.content || ''); setQuality(log.quality || 80);
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
@@ -152,7 +155,8 @@ export default function App() {
     const l = logs[0];
     setFormDate(getLocalDateString(new Date()));
     setMinutes(l.minutes || 25); setSelectedCats(l.categories || []);
-    setSpeakingType(l.speakingType || ''); setReflection(l.reflection || l.content || '');
+    setSpeakingType(l.speakingType || ''); setVocabCount(l.vocabCount || 0);
+    setReflection(l.reflection || l.content || '');
     setQuality(l.quality || 80);
   }, [logs]);
 
@@ -336,6 +340,7 @@ export default function App() {
         minutes={minutes}       setMinutes={setMinutes}
         selectedCats={selectedCats} setSelectedCats={setSelectedCats}
         speakingType={speakingType} setSpeakingType={setSpeakingType}
+        vocabCount={vocabCount}     setVocabCount={setVocabCount}
         reflection={reflection} setReflection={setReflection}
         quality={quality}       setQuality={setQuality}
         editingLogId={editingLogId}

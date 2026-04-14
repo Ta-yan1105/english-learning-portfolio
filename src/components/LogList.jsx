@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, Edit, Trash2, Clock, Zap } from 'lucide-react';
+import { List, Edit, Trash2, Clock, Zap, BookOpen } from 'lucide-react';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
 
 export default function LogList({
@@ -46,13 +46,16 @@ export default function LogList({
         <h2 style={{ fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <List size={18} color="#4f46e5"/> 学習ログ一覧
         </h2>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {['excel', 'gsheet', 'csv'].map(f => (
-            <button className="action-btn" key={f} onClick={() => onExport(filteredLogs, f)}
-              style={{ padding: '6px 10px', background: f === 'excel' ? '#1d6f42' : f === 'gsheet' ? '#34a853' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>
-              {f.toUpperCase()}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8' }}>{rangeLabel()} 出力:</span>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {['excel', 'gsheet', 'csv'].map(f => (
+              <button className="action-btn" key={f} onClick={() => onExport(filteredLogs, f, rangeLabel())}
+                style={{ padding: '6px 10px', background: f === 'excel' ? '#1d6f42' : f === 'gsheet' ? '#34a853' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer' }}>
+                {f.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -105,7 +108,7 @@ export default function LogList({
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '20px', paddingTop: '10px', borderTop: '1px dashed #e2e8f0', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', paddingTop: '10px', borderTop: '1px dashed #e2e8f0', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Clock size={14} color="#64748b"/>
                     <span className="timer-text" style={{ fontSize: '14px', fontWeight: '900' }}>
@@ -118,6 +121,14 @@ export default function LogList({
                       {log.quality}<span style={{ fontSize: '10px' }}>%</span>
                     </span>
                   </div>
+                  {log.vocabCount != null && (log.categories || []).includes('Vocabulary') && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <BookOpen size={14} color="#c084fc"/>
+                      <span className="timer-text" style={{ fontSize: '14px', fontWeight: '900', color: '#c084fc' }}>
+                        {log.vocabCount}<span style={{ fontSize: '10px' }}>語</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             );
