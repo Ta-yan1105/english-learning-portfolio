@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { onAuthStateChanged, signInWithPopup, linkWithPopup, signOut } from 'firebase/auth';
+import {
+  onAuthStateChanged, signInWithPopup, linkWithPopup, signOut,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
+} from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Activity, BookOpen, User, LogOut, Star, CalendarDays } from 'lucide-react';
 
@@ -26,6 +29,12 @@ export default function App() {
   const [selectedRange,  setSelectedRange]  = useState('day');
   const [date,           setDate]           = useState(getLocalDateString(new Date()));
   const [isMobile,       setIsMobile]       = useState(window.innerWidth <= 768);
+
+  const [authMode,    setAuthMode]    = useState('login'); // 'login' | 'signup'
+  const [authEmail,   setAuthEmail]   = useState('');
+  const [authPass,    setAuthPass]    = useState('');
+  const [authError,   setAuthError]   = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
 
   const [formDate,     setFormDate]     = useState(getLocalDateString(new Date()));
   const [minutes,      setMinutes]      = useState(25);
@@ -110,6 +119,45 @@ export default function App() {
       }
     }
   };
+
+  const EMAIL_ERRORS = {
+    'auth/invalid-email':       'メールアドレスの形式が正しくありません',
+    'auth/user-not-found':      'アカウントが見つかりません',
+    'auth/wrong-password':      'パスワードが間違っています',
+    'auth/email-already-in-use':'このメールアドレスは既に使用されています',
+    'auth/weak-password':       'パスワードは6文字以上にしてください',
+    'auth/too-many-requests':   'しばらく時間をおいてから再試行してください',
+    'auth/invalid-credential':  'メールアドレスまたはパスワードが正しくありません',
+  };
+
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthLoading(true);
+    try {
+      if (authMode === 'signup') {
+        await createUserWithEmailAndPassword(auth, authEmail, authPass);
+      } else {
+        await signInWithEmailAndPassword(auth, authEmail, authPass);
+      }
+    } catch (err) {
+      setAuthError(EMAIL_ERRORS[err.code] || 'エラーが発生しました。再度お試しください。');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!authEmail) { setAuthError('メールアドレスを入力してください'); return; }
+    try {
+      await sendPasswordResetEmail(auth, authEmail);
+      setAuthError('');
+      alert('パスワードリセットメールを送信しました');
+    } catch (err) {
+      setAuthError(EMAIL_ERRORS[err.code] || 'エラーが発生しました');
+    }
+  };
+
   const handleLogout = () => signOut(auth);
 
   const resetForm = useCallback(() => {
@@ -174,16 +222,67 @@ export default function App() {
   );
 
   if (!user || user.isAnonymous) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg,#f0f4ff 0%,#faf5ff 100%)', fontFamily: 'sans-serif' }}>
-      <div style={{ background: 'white', padding: '48px 40px', borderRadius: '28px', boxShadow: '0 20px 60px rgba(79,70,229,0.12)', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
-        <div style={{ background: 'linear-gradient(135deg,#4f46e5,#0ea5e9)', width: '64px', height: '64px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 8px 24px rgba(79,70,229,0.3)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg,#f0f4ff 0%,#faf5ff 100%)', fontFamily: 'sans-serif', padding: '20px', boxSizing: 'border-box' }}>
+      <div style={{ background: 'white', padding: '40px 36px', borderRadius: '28px', boxShadow: '0 20px 60px rgba(79,70,229,0.12)', textAlign: 'center', maxWidth: '400px', width: '100%' }}>
+        {/* ロゴ */}
+        <div style={{ background: 'linear-gradient(135deg,#4f46e5,#0ea5e9)', width: '64px', height: '64px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(79,70,229,0.3)' }}>
           <BookOpen size={32} color="white"/>
         </div>
-        <h1 style={{ fontSize: '30px', fontWeight: '900', color: '#1e293b', margin: '0 0 8px 0', letterSpacing: '-0.03em' }}>BLUEPRINT LOG</h1>
-        <p style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '700', letterSpacing: '0.15em', marginBottom: '32px' }}>STRATEGIC LEARNING PLATFORM</p>
+        <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', margin: '0 0 4px', letterSpacing: '-0.03em' }}>BLUEPRINT LOG</h1>
+        <p style={{ color: '#94a3b8', fontSize: '11px', fontWeight: '700', letterSpacing: '0.15em', marginBottom: '28px' }}>STRATEGIC LEARNING PLATFORM</p>
+
+        {/* モード切替タブ */}
+        <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '12px', padding: '4px', marginBottom: '20px' }}>
+          {[['login', 'ログイン'], ['signup', '新規登録']].map(([mode, label]) => (
+            <button key={mode} onClick={() => { setAuthMode(mode); setAuthError(''); }}
+              style={{ flex: 1, padding: '8px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '900', transition: 'all 0.2s',
+                background: authMode === mode ? 'white' : 'transparent',
+                color: authMode === mode ? '#4f46e5' : '#94a3b8',
+                boxShadow: authMode === mode ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+              }}>{label}</button>
+          ))}
+        </div>
+
+        {/* メール/パスワードフォーム */}
+        <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+          <input
+            type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+            placeholder="メールアドレス" required
+            style={{ padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box', width: '100%' }}
+          />
+          <input
+            type="password" value={authPass} onChange={e => setAuthPass(e.target.value)}
+            placeholder="パスワード（6文字以上）" required
+            style={{ padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box', width: '100%' }}
+          />
+          {authError && (
+            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '700', color: '#ef4444', textAlign: 'left' }}>
+              {authError}
+            </div>
+          )}
+          <button type="submit" disabled={authLoading} className="action-btn"
+            style={{ padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: 'white', fontWeight: '900', border: 'none', cursor: authLoading ? 'not-allowed' : 'pointer', fontSize: '15px', opacity: authLoading ? 0.7 : 1 }}>
+            {authLoading ? '処理中...' : authMode === 'login' ? 'ログイン' : 'アカウント作成'}
+          </button>
+        </form>
+
+        {authMode === 'login' && (
+          <button onClick={handlePasswordReset} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', fontWeight: '700', cursor: 'pointer', marginBottom: '20px' }}>
+            パスワードを忘れた方はこちら
+          </button>
+        )}
+
+        {/* 区切り */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+          <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}/>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: '#cbd5e1' }}>または</span>
+          <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}/>
+        </div>
+
+        {/* Google ログイン（先生用） */}
         <button onClick={handleGoogleLogin} className="action-btn"
-          style={{ width: '100%', padding: '16px', borderRadius: '14px', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: 'white', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '16px', boxShadow: '0 8px 24px rgba(79,70,229,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-          <User size={20}/> Googleでログイン
+          style={{ width: '100%', padding: '13px', borderRadius: '12px', background: 'white', color: '#4f46e5', fontWeight: '900', border: '1.5px solid #e0e7ff', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 2px 8px rgba(79,70,229,0.08)' }}>
+          <User size={16}/> Googleでログイン（先生用）
         </button>
       </div>
     </div>
