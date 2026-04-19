@@ -35,6 +35,7 @@ export default function App() {
   const [authPass,    setAuthPass]    = useState('');
   const [authError,   setAuthError]   = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const [resetSent,   setResetSent]   = useState(false);
 
   const [formDate,     setFormDate]     = useState(getLocalDateString(new Date()));
   const [minutes,      setMinutes]      = useState(25);
@@ -152,7 +153,7 @@ export default function App() {
     try {
       await sendPasswordResetEmail(auth, authEmail);
       setAuthError('');
-      alert('パスワードリセットメールを送信しました');
+      setResetSent(true);
     } catch (err) {
       setAuthError(EMAIL_ERRORS[err.code] || 'エラーが発生しました');
     }
@@ -224,6 +225,7 @@ export default function App() {
   if (!user || user.isAnonymous) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg,#f0f4ff 0%,#faf5ff 100%)', fontFamily: 'sans-serif', padding: '20px', boxSizing: 'border-box' }}>
       <div style={{ background: 'white', padding: '40px 36px', borderRadius: '28px', boxShadow: '0 20px 60px rgba(79,70,229,0.12)', textAlign: 'center', maxWidth: '400px', width: '100%' }}>
+
         {/* ロゴ */}
         <div style={{ background: 'linear-gradient(135deg,#4f46e5,#0ea5e9)', width: '64px', height: '64px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(79,70,229,0.3)' }}>
           <BookOpen size={32} color="white"/>
@@ -231,46 +233,71 @@ export default function App() {
         <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', margin: '0 0 4px', letterSpacing: '-0.03em' }}>BLUEPRINT LOG</h1>
         <p style={{ color: '#94a3b8', fontSize: '11px', fontWeight: '700', letterSpacing: '0.15em', marginBottom: '28px' }}>STRATEGIC LEARNING PLATFORM</p>
 
-        {/* モード切替タブ */}
-        <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '12px', padding: '4px', marginBottom: '20px' }}>
-          {[['login', 'ログイン'], ['signup', '新規登録']].map(([mode, label]) => (
-            <button key={mode} onClick={() => { setAuthMode(mode); setAuthError(''); }}
-              style={{ flex: 1, padding: '8px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '900', transition: 'all 0.2s',
-                background: authMode === mode ? 'white' : 'transparent',
-                color: authMode === mode ? '#4f46e5' : '#94a3b8',
-                boxShadow: authMode === mode ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-              }}>{label}</button>
-          ))}
-        </div>
-
         {/* メール/パスワードフォーム */}
-        <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+        <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
-            type="email" value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+            type="email" value={authEmail} onChange={e => { setAuthEmail(e.target.value); setResetSent(false); }}
             placeholder="メールアドレス" required
             style={{ padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box', width: '100%' }}
           />
-          <input
-            type="password" value={authPass} onChange={e => setAuthPass(e.target.value)}
-            placeholder="パスワード（6文字以上）" required
-            style={{ padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box', width: '100%' }}
-          />
+          {authMode !== 'reset' && (
+            <input
+              type="password" value={authPass} onChange={e => setAuthPass(e.target.value)}
+              placeholder="パスワード（6文字以上）" required
+              style={{ padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box', width: '100%' }}
+            />
+          )}
+
+          {/* 成功メッセージ */}
+          {resetSent && (
+            <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '700', color: '#16a34a', textAlign: 'left' }}>
+              ✅ パスワードリセットメールを送信しました。メールをご確認ください。
+            </div>
+          )}
+
+          {/* エラーメッセージ */}
           {authError && (
             <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '700', color: '#ef4444', textAlign: 'left' }}>
               {authError}
             </div>
           )}
-          <button type="submit" disabled={authLoading} className="action-btn"
+
+          <button type={authMode === 'reset' ? 'button' : 'submit'}
+            onClick={authMode === 'reset' ? handlePasswordReset : undefined}
+            disabled={authLoading}
+            className="action-btn"
             style={{ padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: 'white', fontWeight: '900', border: 'none', cursor: authLoading ? 'not-allowed' : 'pointer', fontSize: '15px', opacity: authLoading ? 0.7 : 1 }}>
-            {authLoading ? '処理中...' : authMode === 'login' ? 'ログイン' : 'アカウント作成'}
+            {authLoading ? '処理中...' : authMode === 'login' ? 'ログイン' : authMode === 'signup' ? 'アカウント作成' : 'リセットメールを送信'}
           </button>
         </form>
 
-        {authMode === 'login' && (
-          <button onClick={handlePasswordReset} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '12px', fontWeight: '700', cursor: 'pointer', marginBottom: '20px' }}>
-            パスワードを忘れた方はこちら
-          </button>
-        )}
+        {/* テキストリンク */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '16px', marginBottom: '20px' }}>
+          {authMode === 'login' && (
+            <>
+              <button onClick={() => { setAuthMode('signup'); setAuthError(''); setResetSent(false); }}
+                style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
+                新規登録はこちら
+              </button>
+              <button onClick={() => { setAuthMode('reset'); setAuthError(''); setResetSent(false); }}
+                style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
+                パスワードを忘れた方
+              </button>
+            </>
+          )}
+          {authMode === 'signup' && (
+            <button onClick={() => { setAuthMode('login'); setAuthError(''); setResetSent(false); }}
+              style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
+              ログインはこちら
+            </button>
+          )}
+          {authMode === 'reset' && (
+            <button onClick={() => { setAuthMode('login'); setAuthError(''); setResetSent(false); }}
+              style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
+              ログインに戻る
+            </button>
+          )}
+        </div>
 
         {/* 区切り */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
@@ -345,7 +372,7 @@ export default function App() {
 
         {/* ナビ */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button className="action-btn" onClick={() => window.open('https://voca.english-t24.com', '_blank')}
+          <button className="action-btn" onClick={() => window.open('https://english-t24.com/%e5%8d%98%e8%aa%9e%e5%ad%a6%e7%bf%92%e3%82%a2%e3%83%97%e3%83%aa/', '_blank')}
             style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 2px 8px rgba(79,70,229,0.08)' }}>
             <BookOpen size={14}/> {isMobile ? '単語' : '単語アプリへ'}
           </button>
