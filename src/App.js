@@ -3,17 +3,18 @@ import {
   onAuthStateChanged, signInWithPopup, linkWithPopup, signOut,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { Activity, BookOpen, User, LogOut, Star, CalendarDays } from 'lucide-react';
 
 import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
 import { useLogs } from './hooks/useLogs';
 
-import Timer     from './components/Timer';
-import LogForm   from './components/LogForm';
-import Dashboard from './components/Dashboard';
-import LogList   from './components/LogList';
+import Timer      from './components/Timer';
+import LogForm    from './components/LogForm';
+import Dashboard  from './components/Dashboard';
+import LogList    from './components/LogList';
+import AdminPanel from './components/AdminPanel';
 import './App.css';
 
 const fetchNextEikenDate = async () => {
@@ -25,6 +26,7 @@ const fetchNextEikenDate = async () => {
 export default function App() {
   const [user,           setUser]           = useState(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [showAdminPanel, setShowAdminPanel] = useState(true);
   const [profile,        setProfile]        = useState({ name: '', eikenDate: '', otherDate: '', otherName: '', weeklyGoal: '' });
   const [selectedRange,  setSelectedRange]  = useState('day');
   const [date,           setDate]           = useState(getLocalDateString(new Date()));
@@ -90,6 +92,28 @@ export default function App() {
     if (!user || user.isAnonymous) return;
     getDoc(doc(db, 'profile', user.uid)).then(async snap => {
       let p = snap.exists() ? snap.data() : {};
+
+      // メールをプロフィールに保存
+      if (user.email && !p.email) {
+        p.email = user.email;
+        try { await setDoc(doc(db, 'profile', user.uid), { email: user.email }, { merge: true }); } catch {}
+      }
+
+      // 教員からの招待（未ログイン時に予約された分）を適用
+      if (user.email && !p.groupId) {
+        try {
+          const invQ = query(collection(db, 'groupInvites'), where('email', '==', user.email));
+          const invSnap = await getDocs(invQ);
+          if (!invSnap.empty) {
+            const invite = invSnap.docs[0];
+            const { groupId } = invite.data();
+            p.groupId = groupId;
+            await setDoc(doc(db, 'profile', user.uid), { groupId }, { merge: true });
+            await deleteDoc(doc(db, 'groupInvites', invite.id));
+          }
+        } catch {}
+      }
+
       const today = getLocalDateString(new Date());
       if (!p.eikenDate || p.eikenDate < today) {
         const next = await fetchNextEikenDate();
@@ -216,10 +240,19 @@ export default function App() {
     ? Math.round((new Date(profile.otherDate + 'T00:00:00').getTime() - new Date().setHours(0,0,0,0)) / 86400000)
     : null;
 
+  const ADMIN_EMAILS = ['tadashi.nishide@gmail.com', 'nishide.tadashi@as.u-toyama.ac.jp'];
+  const isTeacher = user &&
+    user.providerData.some(p => p.providerId === 'google.com') &&
+    ADMIN_EMAILS.includes(user.email);
+
   if (isAuthChecking) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f4f7fa' }}>
       <div style={{ color: '#4f46e5', fontWeight: 'bold', fontSize: '20px' }}>Loading...</div>
     </div>
+  );
+
+  if (isTeacher && showAdminPanel) return (
+    <AdminPanel user={user} onLogout={handleLogout} onGoToApp={() => setShowAdminPanel(false)} isMobile={isMobile}/>
   );
 
   if (!user || user.isAnonymous) return (
@@ -376,7 +409,13 @@ export default function App() {
             style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 2px 8px rgba(79,70,229,0.08)' }}>
             <BookOpen size={14}/> {isMobile ? '単語' : '単語アプリへ'}
           </button>
-<button className="action-btn" onClick={handleLogout}
+          {isTeacher && (
+            <button className="action-btn" onClick={() => setShowAdminPanel(true)}
+              style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Activity size={14}/> {isMobile ? '管理' : '管理画面へ'}
+            </button>
+          )}
+          <button className="action-btn" onClick={handleLogout}
             style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#ef4444', border: '1.5px solid #fee2e2', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <LogOut size={14}/> {isMobile ? '' : 'ログアウト'}
           </button>

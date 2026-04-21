@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence } from 'firebase/auth';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
@@ -13,9 +13,11 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-
-// ブラウザを閉じてもログイン状態を維持する
 setPersistence(auth, browserLocalPersistence);
 
 export const db = getFirestore(app);
 export const provider = new GoogleAuthProvider();
+
+// 生徒一括登録用（教員セッションに影響しないセカンダリ認証）
+const secondaryApp = initializeApp(firebaseConfig, 'secondary');
+export const secondaryAuth = getAuth(secondaryApp);
