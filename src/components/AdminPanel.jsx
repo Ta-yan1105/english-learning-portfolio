@@ -5,7 +5,7 @@ import {
 import { createUserWithEmailAndPassword, signOut as fbSignOut } from 'firebase/auth';
 import {
   Users, Plus, Upload, LogOut, ChevronDown, ChevronRight,
-  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked,
+  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked, Download,
 } from 'lucide-react';
 import { db, secondaryAuth } from '../firebase';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
@@ -24,15 +24,17 @@ const monthStart = () => {
 function calcStats(logs) {
   const t = today(), ws = weekStart(), ms = monthStart();
   let day = 0, week = 0, month = 0, total = 0;
+  let vocabDay = 0, vocabWeek = 0, vocabMonth = 0, vocabTotal = 0;
   logs.forEach(l => {
     const m = Number(l.minutes) || 0;
-    total += m;
-    if (l.date === t) day += m;
+    const v = Number(l.vocabCount) || 0;
+    total += m; vocabTotal += v;
+    if (l.date === t) { day += m; vocabDay += v; }
     const ld = new Date(l.date + 'T00:00:00');
-    if (ld >= ws) week += m;
-    if (ld >= ms) month += m;
+    if (ld >= ws) { week += m; vocabWeek += v; }
+    if (ld >= ms) { month += m; vocabMonth += v; }
   });
-  return { day, week, month, total, count: logs.length };
+  return { day, week, month, total, count: logs.length, vocabDay, vocabWeek, vocabMonth, vocabTotal };
 }
 
 export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
@@ -42,6 +44,8 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
   const [students, setStudents]       = useState([]);
   const [allLogs, setAllLogs]         = useState([]);
   const [expandedUid, setExpandedUid] = useState(null);
+  const [exportUid, setExportUid]     = useState(null);
+  const [exportMonth, setExportMonth] = useState('all');
 
   const [newGroupName, setNewGroupName] = useState('');
   const [creating, setCreating]         = useState(false);
@@ -267,6 +271,27 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
     setImporting(false);
   }, [csvText, csvGroup]);
 
+  /* ── 生徒ログCSVエクスポート ── */
+  const handleExportStudent = useCallback((student, logs, month) => {
+    const filtered = month === 'all' ? logs : logs.filter(l => l.date && l.date.startsWith(month));
+    if (!filtered.length) { alert('該当期間の記録がありません'); return; }
+    const catCols = CATEGORIES.map(c => c.label);
+    const header = `日付,${catCols.join(',')},学習時間(分),集中度(%),単語数,振り返り\n`;
+    const rows = [...filtered].sort((a, b) => b.timestamp - a.timestamp).map(l => {
+      const flags = CATEGORIES.map(c => (l.categories || []).includes(c.id) ? '○' : '');
+      const reflection = (l.reflection || '').replace(/"/g, '""');
+      return `${l.date},${flags.join(',')},${l.minutes || 0},${l.quality || 0},${l.vocabCount || 0},"${reflection}"`;
+    }).join('\n');
+    const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const suffix = month === 'all' ? '全期間' : month;
+    link.download = `${student.name || student.email}_学習ログ_${suffix}.csv`;
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  }, []);
+
   /* ── スタイル定数 ── */
   const card = { background: 'white', borderRadius: '16px', padding: isMobile ? '16px' : '20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9' };
   const tabBtn = (t) => ({
@@ -394,16 +419,21 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {[
-                      { label: '今日',  value: groupStats.day },
-                      { label: '今週',  value: groupStats.week },
-                      { label: '今月',  value: groupStats.month },
-                      { label: '累計',  value: groupStats.total },
-                    ].map(({ label, value }) => (
+                      { label: '今日',  value: groupStats.day,   vocab: groupStats.vocabDay },
+                      { label: '今週',  value: groupStats.week,  vocab: groupStats.vocabWeek },
+                      { label: '今月',  value: groupStats.month, vocab: groupStats.vocabMonth },
+                      { label: '累計',  value: groupStats.total, vocab: groupStats.vocabTotal },
+                    ].map(({ label, value, vocab }) => (
                       <div key={label} style={{ flex: '1 1 80px', background: '#f8fafc', borderRadius: '10px', padding: '10px 12px', textAlign: 'center', border: '1px solid #f1f5f9' }}>
                         <div style={{ fontSize: '10px', fontWeight: '900', color: '#94a3b8', marginBottom: '3px' }}>{label}</div>
                         <div style={{ fontSize: '18px', fontWeight: '900', color: '#4f46e5' }}>
                           {formatMinutes(value)}<span style={{ fontSize: '11px' }}>{getUnit(value)}</span>
                         </div>
+                        {vocab > 0 && (
+                          <div style={{ fontSize: '10px', fontWeight: '700', color: '#c084fc', marginTop: '2px' }}>
+                            {vocab}語
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -422,11 +452,12 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {/* ヘッダー行 */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 60px', gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 55px 55px', gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>
                         <span>氏名</span>
                         <span style={{ textAlign: 'center' }}>今日</span>
                         <span style={{ textAlign: 'center' }}>今週</span>
                         <span style={{ textAlign: 'center' }}>今月</span>
+                        <span style={{ textAlign: 'center' }}>単語累計</span>
                         <span style={{ textAlign: 'center' }}>記録</span>
                       </div>
 
@@ -437,7 +468,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                         return (
                           <div key={s.uid}>
                             <div onClick={() => setExpandedUid(isExp ? null : s.uid)}
-                              style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 60px', gap: '8px', padding: '10px', background: isExp ? '#f0f4ff' : 'white', borderRadius: '10px', border: `1px solid ${isExp ? '#c7d2fe' : '#f1f5f9'}`, cursor: 'pointer', alignItems: 'center' }}>
+                              style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 55px 55px', gap: '8px', padding: '10px', background: isExp ? '#f0f4ff' : 'white', borderRadius: '10px', border: `1px solid ${isExp ? '#c7d2fe' : '#f1f5f9'}`, cursor: 'pointer', alignItems: 'center' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 {isExp ? <ChevronDown size={12} color="#4f46e5"/> : <ChevronRight size={12} color="#94a3b8"/>}
                                 <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>{s.name || s.email || '（未設定）'}</span>
@@ -447,35 +478,62 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                                   {formatMinutes(v)}<span style={{ fontSize: '9px' }}>{getUnit(v)}</span>
                                 </div>
                               ))}
+                              <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '900', color: st.vocabTotal > 0 ? '#c084fc' : '#cbd5e1' }}>
+                                {st.vocabTotal > 0 ? `${st.vocabTotal}語` : '-'}
+                              </div>
                               <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '900', color: '#64748b' }}>{st.count}</div>
                             </div>
 
                             {/* 展開：最近のログ */}
                             {isExp && (
                               <div style={{ margin: '4px 0 4px 20px', background: '#f8fafc', borderRadius: '10px', padding: '10px', border: '1px solid #e0e7ff' }}>
-                                <div style={{ fontSize: '10px', fontWeight: '900', color: '#94a3b8', marginBottom: '8px' }}>直近10件のログ</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                                  <div style={{ fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>直近10件のログ</div>
+                                  <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                    <select
+                                      value={exportUid === s.uid ? exportMonth : 'all'}
+                                      onChange={e => { setExportUid(s.uid); setExportMonth(e.target.value); }}
+                                      style={{ padding: '4px 8px', borderRadius: '7px', border: '1.5px solid #c7d2fe', fontSize: '11px', fontWeight: '700', background: 'white', color: '#4f46e5', outline: 'none', cursor: 'pointer' }}>
+                                      <option value="all">全期間</option>
+                                      {[...new Set(logs.map(l => l.date?.slice(0, 7)).filter(Boolean))].sort((a, b) => b.localeCompare(a)).map(m => (
+                                        <option key={m} value={m}>{m}</option>
+                                      ))}
+                                    </select>
+                                    <button onClick={() => handleExportStudent(s, logs, exportUid === s.uid ? exportMonth : 'all')}
+                                      style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '7px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }}>
+                                      <Download size={11}/> CSV出力
+                                    </button>
+                                  </div>
+                                </div>
                                 {logs.length === 0 ? (
                                   <div style={{ color: '#94a3b8', fontSize: '12px' }}>記録なし</div>
                                 ) : (
                                   [...logs].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10).map(log => (
-                                    <div key={log.id} style={{ display: 'flex', gap: '10px', alignItems: 'center', padding: '6px 0', borderBottom: '1px dashed #e2e8f0', flexWrap: 'wrap' }}>
-                                      <span style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', flexShrink: 0 }}>{log.date}</span>
-                                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                                        {(log.categories || []).map(cid => {
-                                          const cat = CATEGORIES.find(c => c.id === cid);
-                                          return cat ? (
-                                            <span key={cid} style={{ background: cat.color, color: 'white', fontSize: '10px', fontWeight: '900', padding: '1px 7px', borderRadius: '5px' }}>
-                                              {cat.label}
-                                            </span>
-                                          ) : null;
-                                        })}
+                                    <div key={log.id} style={{ padding: '8px 0', borderBottom: '1px dashed #e2e8f0' }}>
+                                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                        <span style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', flexShrink: 0 }}>{log.date}</span>
+                                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                          {(log.categories || []).map(cid => {
+                                            const cat = CATEGORIES.find(c => c.id === cid);
+                                            return cat ? (
+                                              <span key={cid} style={{ background: cat.color, color: 'white', fontSize: '10px', fontWeight: '900', padding: '1px 7px', borderRadius: '5px' }}>
+                                                {cat.label}
+                                              </span>
+                                            ) : null;
+                                          })}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginLeft: 'auto' }}>
+                                          <Clock size={11} color="#94a3b8"/>
+                                          <span style={{ fontSize: '12px', fontWeight: '900', color: '#4f46e5' }}>
+                                            {formatMinutes(log.minutes)}{getUnit(log.minutes)}
+                                          </span>
+                                        </div>
                                       </div>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginLeft: 'auto' }}>
-                                        <Clock size={11} color="#94a3b8"/>
-                                        <span style={{ fontSize: '12px', fontWeight: '900', color: '#4f46e5' }}>
-                                          {formatMinutes(log.minutes)}{getUnit(log.minutes)}
-                                        </span>
-                                      </div>
+                                      {log.reflection && (
+                                        <div style={{ marginTop: '4px', marginLeft: '2px', fontSize: '11px', color: '#475569', background: '#f0f4ff', borderRadius: '6px', padding: '5px 8px', borderLeft: '3px solid #a5b4fc', lineHeight: 1.5 }}>
+                                          {log.reflection}
+                                        </div>
+                                      )}
                                     </div>
                                   ))
                                 )}
