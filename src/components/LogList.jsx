@@ -1,9 +1,11 @@
 import React from 'react';
 import { List, Edit, Trash2, Clock, Zap, BookOpen } from 'lucide-react';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
+import i18n from '../i18n';
 
 export default function LogList({
   isMobile,
+  lang = 'ja',
   filteredLogs,
   selectedRange,
   date, setDate,
@@ -11,6 +13,7 @@ export default function LogList({
   onDelete,
   onExport,
 }) {
+  const T = i18n[lang];
   /* ----- 前後ナビ ----- */
   const navigate = (dir) => {
     const d = new Date(date + 'T00:00:00');
@@ -33,7 +36,7 @@ export default function LogList({
       return `${start.getMonth()+1}/${start.getDate()} 〜 ${end.getMonth()+1}/${end.getDate()}`;
     }
     if (selectedRange === 'month') return `${d.getFullYear()}/${d.getMonth() + 1}`;
-    if (selectedRange === 'year')  return `${d.getFullYear()}年`;
+    if (selectedRange === 'year')  return `${d.getFullYear()}${T.yearSuffix}`;
     return '';
   };
 
@@ -44,10 +47,10 @@ export default function LogList({
       {/* ヘッダー */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <List size={18} color="#4f46e5"/> 学習ログ一覧
+          <List size={18} color="#4f46e5"/> {T.logListTitle}
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8' }}>{rangeLabel()} 出力:</span>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8' }}>{rangeLabel()} {T.exportLabel}</span>
           <div style={{ display: 'flex', gap: '4px' }}>
             {['excel', 'gsheet', 'csv'].map(f => (
               <button className="action-btn" key={f} onClick={() => onExport(filteredLogs, f, rangeLabel())}
@@ -75,7 +78,7 @@ export default function LogList({
       {/* ログ一覧 */}
       {filteredLogs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8', fontWeight: 'bold', fontSize: '14px' }}>
-          📭 この期間の学習記録はありません
+          📭 {T.noLogs}
         </div>
       ) : (
         <div className="custom-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '500px', overflowY: 'auto', paddingRight: '10px' }}>
@@ -96,7 +99,7 @@ export default function LogList({
                     const cat = CATEGORIES.find(x => x.id === c);
                     return (
                       <span key={c} style={{ backgroundColor: cat ? cat.color : '#e0e7ff', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '900' }}>
-                        {cat ? cat.label : c}{c === 'Speaking' && log.speakingType ? `(${log.speakingType})` : ''}
+                        {cat ? (lang === 'en' ? cat.label_en : cat.label) : c}{c === 'Speaking' && log.speakingType ? `(${log.speakingType})` : ''}
                       </span>
                     );
                   })}

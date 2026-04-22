@@ -5,10 +5,11 @@ import {
 import { createUserWithEmailAndPassword, signOut as fbSignOut } from 'firebase/auth';
 import {
   Users, Plus, Upload, LogOut, ChevronDown, ChevronRight,
-  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked, Download,
+  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked, Download, Globe,
 } from 'lucide-react';
 import { db, secondaryAuth } from '../firebase';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
+import i18n from '../i18n';
 
 const today = () => getLocalDateString(new Date());
 const weekStart = () => {
@@ -37,7 +38,8 @@ function calcStats(logs) {
   return { day, week, month, total, count: logs.length, vocabDay, vocabWeek, vocabMonth, vocabTotal };
 }
 
-export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
+export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang = 'ja', toggleLang }) {
+  const T = i18n[lang];
   const [tab, setTab]                 = useState('overview');
   const [groups, setGroups]           = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
@@ -274,9 +276,11 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
   /* ── 生徒ログCSVエクスポート ── */
   const handleExportStudent = useCallback((student, logs, month) => {
     const filtered = month === 'all' ? logs : logs.filter(l => l.date && l.date.startsWith(month));
-    if (!filtered.length) { alert('該当期間の記録がありません'); return; }
-    const catCols = CATEGORIES.map(c => c.label);
-    const header = `日付,${catCols.join(',')},学習時間(分),集中度(%),単語数,振り返り\n`;
+    if (!filtered.length) { alert(lang === 'en' ? 'No records for this period' : '該当期間の記録がありません'); return; }
+    const catCols = CATEGORIES.map(c => lang === 'en' ? c.label_en : c.label);
+    const header = lang === 'en'
+      ? `Date,${catCols.join(',')},Study Time(min),Focus(%),Vocab,Reflection\n`
+      : `日付,${catCols.join(',')},学習時間(分),集中度(%),単語数,振り返り\n`;
     const rows = [...filtered].sort((a, b) => b.timestamp - a.timestamp).map(l => {
       const flags = CATEGORIES.map(c => (l.categories || []).includes(c.id) ? '○' : '');
       const reflection = (l.reflection || '').replace(/"/g, '""');
@@ -286,11 +290,11 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    const suffix = month === 'all' ? '全期間' : month;
+    const suffix = month === 'all' ? (lang === 'en' ? 'all' : '全期間') : month;
     link.download = `${student.name || student.email}_学習ログ_${suffix}.csv`;
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 100);
-  }, []);
+  }, [lang]);
 
   /* ── スタイル定数 ── */
   const card = { background: 'white', borderRadius: '16px', padding: isMobile ? '16px' : '20px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9' };
@@ -315,22 +319,27 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
           </div>
           <div>
             <div style={{ fontSize: isMobile ? '18px' : '22px', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.03em' }}>BLUEPRINT LOG</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.15em' }}>管理コンソール</div>
+            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '700', letterSpacing: '0.15em' }}>{T.adminConsole}</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
+          {toggleLang && (
+            <button onClick={toggleLang} style={{ padding: '8px 10px', background: 'white', border: '1.5px solid #e0e7ff', borderRadius: '10px', color: '#4f46e5', fontWeight: '900', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Globe size={13}/> {lang === 'ja' ? 'EN' : 'JA'}
+            </button>
+          )}
           <button onClick={onGoToApp} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'white', border: '1.5px solid #e0e7ff', borderRadius: '10px', color: '#4f46e5', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
-            <BookMarked size={14}/> 学習記録
+            <BookMarked size={14}/> {T.studyApp}
           </button>
           <button onClick={onLogout} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'white', border: '1.5px solid #fee2e2', borderRadius: '10px', color: '#ef4444', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
-            <LogOut size={14}/> ログアウト
+            <LogOut size={14}/> {T.logout}
           </button>
         </div>
       </div>
 
       {/* タブ */}
       <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '10px', marginBottom: '20px', width: 'fit-content' }}>
-        {[['overview', 'グループ一覧'], ['add', '既存ユーザー追加'], ['import', '生徒一括登録']].map(([t, l]) => (
+        {[['overview', T.tabOverview], ['add', T.tabAdd], ['import', T.tabImport]].map(([t, l]) => (
           <button key={t} onClick={() => setTab(t)} style={tabBtn(t)}>{l}</button>
         ))}
       </div>
@@ -356,7 +365,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                     />
                     <button onClick={e => handleSaveGroupName(e, g.id)}
                       style={{ padding: '4px 10px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '900', fontSize: '12px', cursor: 'pointer' }}>
-                      保存
+                      {T.save}
                     </button>
                     <button onClick={handleCancelEdit}
                       style={{ padding: '4px 8px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '6px', fontWeight: '900', fontSize: '12px', cursor: 'pointer' }}>
@@ -387,11 +396,11 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
 
             {/* 新規グループ作成 */}
             <div style={card}>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8', marginBottom: '8px' }}>新規グループ</div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8', marginBottom: '8px' }}>{T.newGroup}</div>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleCreateGroup()}
-                  placeholder="例: 1年A組"
+                  placeholder={T.groupPlaceholder}
                   style={{ flex: 1, padding: '8px 10px', borderRadius: '8px', border: '1.5px solid #e2e8f0', fontSize: '13px', outline: 'none' }}/>
                 <button onClick={handleCreateGroup} disabled={creating}
                   style={{ padding: '8px 12px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
@@ -405,7 +414,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
           <div>
             {!selectedGroup ? (
               <div style={{ ...card, textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: '700' }}>
-                左のグループを選択してください
+                {T.selectGroup}
               </div>
             ) : (
               <>
@@ -419,10 +428,10 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {[
-                      { label: '今日',  value: groupStats.day,   vocab: groupStats.vocabDay },
-                      { label: '今週',  value: groupStats.week,  vocab: groupStats.vocabWeek },
-                      { label: '今月',  value: groupStats.month, vocab: groupStats.vocabMonth },
-                      { label: '累計',  value: groupStats.total, vocab: groupStats.vocabTotal },
+                      { label: T.statToday,     value: groupStats.day,   vocab: groupStats.vocabDay },
+                      { label: T.statThisWeek,  value: groupStats.week,  vocab: groupStats.vocabWeek },
+                      { label: T.statThisMonth, value: groupStats.month, vocab: groupStats.vocabMonth },
+                      { label: T.statTotal,     value: groupStats.total, vocab: groupStats.vocabTotal },
                     ].map(({ label, value, vocab }) => (
                       <div key={label} style={{ flex: '1 1 80px', background: '#f8fafc', borderRadius: '10px', padding: '10px 12px', textAlign: 'center', border: '1px solid #f1f5f9' }}>
                         <div style={{ fontSize: '10px', fontWeight: '900', color: '#94a3b8', marginBottom: '3px' }}>{label}</div>
@@ -442,23 +451,23 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                 {/* 生徒一覧 */}
                 <div style={card}>
                   <div style={{ fontSize: '13px', fontWeight: '900', color: '#64748b', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <BookOpen size={14} color="#94a3b8"/> 生徒別学習状況
+                    <BookOpen size={14} color="#94a3b8"/> {T.studentStats}
                   </div>
 
                   {students.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: '13px', fontWeight: '700' }}>
-                      生徒がいません。「生徒一括登録」タブから登録してください。
+                      {T.noStudents}
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {/* ヘッダー行 */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 55px 55px', gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>
-                        <span>氏名</span>
-                        <span style={{ textAlign: 'center' }}>今日</span>
-                        <span style={{ textAlign: 'center' }}>今週</span>
-                        <span style={{ textAlign: 'center' }}>今月</span>
-                        <span style={{ textAlign: 'center' }}>単語累計</span>
-                        <span style={{ textAlign: 'center' }}>記録</span>
+                        <span>{T.colName}</span>
+                        <span style={{ textAlign: 'center' }}>{T.colToday}</span>
+                        <span style={{ textAlign: 'center' }}>{T.colWeek}</span>
+                        <span style={{ textAlign: 'center' }}>{T.colMonth}</span>
+                        <span style={{ textAlign: 'center' }}>{T.colVocab}</span>
+                        <span style={{ textAlign: 'center' }}>{T.colCount}</span>
                       </div>
 
                       {students.map(s => {
@@ -488,25 +497,25 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                             {isExp && (
                               <div style={{ margin: '4px 0 4px 20px', background: '#f8fafc', borderRadius: '10px', padding: '10px', border: '1px solid #e0e7ff' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                                  <div style={{ fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>直近10件のログ</div>
+                                  <div style={{ fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>{T.recentLogs}</div>
                                   <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                     <select
                                       value={exportUid === s.uid ? exportMonth : 'all'}
                                       onChange={e => { setExportUid(s.uid); setExportMonth(e.target.value); }}
                                       style={{ padding: '4px 8px', borderRadius: '7px', border: '1.5px solid #c7d2fe', fontSize: '11px', fontWeight: '700', background: 'white', color: '#4f46e5', outline: 'none', cursor: 'pointer' }}>
-                                      <option value="all">全期間</option>
+                                      <option value="all">{T.allTime}</option>
                                       {[...new Set(logs.map(l => l.date?.slice(0, 7)).filter(Boolean))].sort((a, b) => b.localeCompare(a)).map(m => (
                                         <option key={m} value={m}>{m}</option>
                                       ))}
                                     </select>
                                     <button onClick={() => handleExportStudent(s, logs, exportUid === s.uid ? exportMonth : 'all')}
                                       style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 10px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '7px', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }}>
-                                      <Download size={11}/> CSV出力
+                                      <Download size={11}/> {T.exportCsv}
                                     </button>
                                   </div>
                                 </div>
                                 {logs.length === 0 ? (
-                                  <div style={{ color: '#94a3b8', fontSize: '12px' }}>記録なし</div>
+                                  <div style={{ color: '#94a3b8', fontSize: '12px' }}>{T.noLogs2}</div>
                                 ) : (
                                   [...logs].sort((a, b) => b.timestamp - a.timestamp).slice(0, 10).map(log => (
                                     <div key={log.id} style={{ padding: '8px 0', borderBottom: '1px dashed #e2e8f0' }}>
@@ -517,7 +526,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile }) {
                                             const cat = CATEGORIES.find(c => c.id === cid);
                                             return cat ? (
                                               <span key={cid} style={{ background: cat.color, color: 'white', fontSize: '10px', fontWeight: '900', padding: '1px 7px', borderRadius: '5px' }}>
-                                                {cat.label}
+                                                {lang === 'en' ? cat.label_en : cat.label}
                                               </span>
                                             ) : null;
                                           })}

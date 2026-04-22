@@ -4,11 +4,12 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
-import { Activity, BookOpen, User, LogOut, Star, CalendarDays } from 'lucide-react';
+import { Activity, BookOpen, User, LogOut, Star, CalendarDays, Globe } from 'lucide-react';
 
 import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
 import { useLogs } from './hooks/useLogs';
+import i18n from './i18n';
 
 import Timer      from './components/Timer';
 import LogForm    from './components/LogForm';
@@ -38,6 +39,14 @@ export default function App() {
   const [authError,   setAuthError]   = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [resetSent,   setResetSent]   = useState(false);
+
+  const [lang, setLang] = useState(() => localStorage.getItem('lang') || 'ja');
+  const T = i18n[lang];
+  const toggleLang = () => {
+    const next = lang === 'ja' ? 'en' : 'ja';
+    setLang(next);
+    localStorage.setItem('lang', next);
+  };
 
   const [formDate,     setFormDate]     = useState(getLocalDateString(new Date()));
   const [minutes,      setMinutes]      = useState(25);
@@ -252,43 +261,46 @@ export default function App() {
   );
 
   if (isTeacher && showAdminPanel) return (
-    <AdminPanel user={user} onLogout={handleLogout} onGoToApp={() => setShowAdminPanel(false)} isMobile={isMobile}/>
+    <AdminPanel user={user} onLogout={handleLogout} onGoToApp={() => setShowAdminPanel(false)} isMobile={isMobile} lang={lang} toggleLang={toggleLang}/>
   );
 
   if (!user || user.isAnonymous) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'linear-gradient(135deg,#f0f4ff 0%,#faf5ff 100%)', fontFamily: 'sans-serif', padding: '20px', boxSizing: 'border-box' }}>
-      <div style={{ background: 'white', padding: '40px 36px', borderRadius: '28px', boxShadow: '0 20px 60px rgba(79,70,229,0.12)', textAlign: 'center', maxWidth: '400px', width: '100%' }}>
+      <div style={{ background: 'white', padding: '40px 36px', borderRadius: '28px', boxShadow: '0 20px 60px rgba(79,70,229,0.12)', textAlign: 'center', maxWidth: '400px', width: '100%', position: 'relative' }}>
+
+        {/* 言語切り替え */}
+        <button onClick={toggleLang}
+          style={{ position: 'absolute', top: '16px', right: '16px', padding: '4px 10px', borderRadius: '8px', border: '1.5px solid #e0e7ff', background: '#f8fafc', color: '#4f46e5', fontWeight: '900', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Globe size={12}/> {lang === 'ja' ? 'EN' : 'JA'}
+        </button>
 
         {/* ロゴ */}
         <div style={{ background: 'linear-gradient(135deg,#4f46e5,#0ea5e9)', width: '64px', height: '64px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 8px 24px rgba(79,70,229,0.3)' }}>
           <BookOpen size={32} color="white"/>
         </div>
         <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#1e293b', margin: '0 0 4px', letterSpacing: '-0.03em' }}>BLUEPRINT LOG</h1>
-        <p style={{ color: '#94a3b8', fontSize: '11px', fontWeight: '700', letterSpacing: '0.15em', marginBottom: '28px' }}>STRATEGIC LEARNING PLATFORM</p>
+        <p style={{ color: '#94a3b8', fontSize: '11px', fontWeight: '700', letterSpacing: '0.15em', marginBottom: '28px' }}>{T.subtitle}</p>
 
         {/* メール/パスワードフォーム */}
         <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
             type="email" value={authEmail} onChange={e => { setAuthEmail(e.target.value); setResetSent(false); }}
-            placeholder="メールアドレス" required
+            placeholder={T.emailPlaceholder} required
             style={{ padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box', width: '100%' }}
           />
           {authMode !== 'reset' && (
             <input
               type="password" value={authPass} onChange={e => setAuthPass(e.target.value)}
-              placeholder="パスワード（6文字以上）" required
+              placeholder={T.passwordPlaceholder} required
               style={{ padding: '13px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', fontSize: '14px', fontWeight: '600', outline: 'none', boxSizing: 'border-box', width: '100%' }}
             />
           )}
 
-          {/* 成功メッセージ */}
           {resetSent && (
             <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '700', color: '#16a34a', textAlign: 'left' }}>
-              ✅ パスワードリセットメールを送信しました。メールをご確認ください。
+              ✅ {T.resetSuccess}
             </div>
           )}
-
-          {/* エラーメッセージ */}
           {authError && (
             <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '700', color: '#ef4444', textAlign: 'left' }}>
               {authError}
@@ -300,7 +312,7 @@ export default function App() {
             disabled={authLoading}
             className="action-btn"
             style={{ padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: 'white', fontWeight: '900', border: 'none', cursor: authLoading ? 'not-allowed' : 'pointer', fontSize: '15px', opacity: authLoading ? 0.7 : 1 }}>
-            {authLoading ? '処理中...' : authMode === 'login' ? 'ログイン' : authMode === 'signup' ? 'アカウント作成' : 'リセットメールを送信'}
+            {authLoading ? '...' : authMode === 'login' ? T.loginBtn : authMode === 'signup' ? T.signupBtn : T.resetBtn}
           </button>
         </form>
 
@@ -310,24 +322,24 @@ export default function App() {
             <>
               <button onClick={() => { setAuthMode('signup'); setAuthError(''); setResetSent(false); }}
                 style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
-                新規登録はこちら
+                {T.tabSignup}
               </button>
               <button onClick={() => { setAuthMode('reset'); setAuthError(''); setResetSent(false); }}
                 style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
-                パスワードを忘れた方
+                {T.forgotPassword}
               </button>
             </>
           )}
           {authMode === 'signup' && (
             <button onClick={() => { setAuthMode('login'); setAuthError(''); setResetSent(false); }}
               style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
-              ログインはこちら
+              {T.tabLogin}
             </button>
           )}
           {authMode === 'reset' && (
             <button onClick={() => { setAuthMode('login'); setAuthError(''); setResetSent(false); }}
               style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}>
-              ログインに戻る
+              {T.tabLogin}
             </button>
           )}
         </div>
@@ -335,14 +347,14 @@ export default function App() {
         {/* 区切り */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
           <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}/>
-          <span style={{ fontSize: '11px', fontWeight: '700', color: '#cbd5e1' }}>または</span>
+          <span style={{ fontSize: '11px', fontWeight: '700', color: '#cbd5e1' }}>{lang === 'ja' ? 'または' : 'or'}</span>
           <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}/>
         </div>
 
         {/* Google ログイン（先生用） */}
         <button onClick={handleGoogleLogin} className="action-btn"
           style={{ width: '100%', padding: '13px', borderRadius: '12px', background: 'white', color: '#4f46e5', fontWeight: '900', border: '1.5px solid #e0e7ff', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 2px 8px rgba(79,70,229,0.08)' }}>
-          <User size={16}/> Googleでログイン（先生用）
+          <User size={16}/> {T.googleLogin}
         </button>
       </div>
     </div>
@@ -405,19 +417,23 @@ export default function App() {
 
         {/* ナビ */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button onClick={toggleLang}
+            style={{ padding: '8px 10px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '900', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Globe size={13}/> {lang === 'ja' ? 'EN' : 'JA'}
+          </button>
           <button className="action-btn" onClick={() => window.open('https://english-t24.com/%e5%8d%98%e8%aa%9e%e5%ad%a6%e7%bf%92%e3%82%a2%e3%83%97%e3%83%aa/', '_blank')}
             style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 2px 8px rgba(79,70,229,0.08)' }}>
-            <BookOpen size={14}/> {isMobile ? '単語' : '単語アプリへ'}
+            <BookOpen size={14}/> {isMobile ? T.vocabAppShort : T.vocabApp}
           </button>
           {isTeacher && (
             <button className="action-btn" onClick={() => setShowAdminPanel(true)}
               style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Activity size={14}/> {isMobile ? '管理' : '管理画面へ'}
+              <Activity size={14}/> {isMobile ? T.adminPanelShort : T.adminPanel}
             </button>
           )}
           <button className="action-btn" onClick={handleLogout}
             style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#ef4444', border: '1.5px solid #fee2e2', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <LogOut size={14}/> {isMobile ? '' : 'ログアウト'}
+            <LogOut size={14}/> {isMobile ? '' : T.logout}
           </button>
         </div>
       </header>
@@ -500,6 +516,7 @@ export default function App() {
 
       <LogForm
         isMobile={isMobile}
+        lang={lang}
         logs={logs}
         date={formDate}         setDate={setFormDate}
         minutes={minutes}       setMinutes={setMinutes}
@@ -517,6 +534,7 @@ export default function App() {
 
       <Dashboard
         isMobile={isMobile}
+        lang={lang}
         logs={logs}
         selectedRange={selectedRange} setSelectedRange={handleRangeChange}
         date={date}
@@ -528,6 +546,7 @@ export default function App() {
 
       <LogList
         isMobile={isMobile}
+        lang={lang}
         filteredLogs={filteredLogs}
         selectedRange={selectedRange}
         date={date} setDate={setDate}

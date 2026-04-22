@@ -1,9 +1,11 @@
 import { useRef } from 'react';
 import { Clipboard, RefreshCw, Send, Clock, Zap, BookOpen } from 'lucide-react';
 import { CATEGORIES } from '../constants';
+import i18n from '../i18n';
 
 export default function LogForm({
   isMobile,
+  lang = 'ja',
   logs,
   date, setDate,
   minutes, setMinutes,
@@ -18,6 +20,7 @@ export default function LogForm({
   onCancel,
   formRef,
 }) {
+  const T = i18n[lang];
   const dragStartY   = useRef(null);
   const dragStartVal = useRef(null);
   const dragTarget   = useRef(null);
@@ -55,7 +58,6 @@ export default function LogForm({
     overflow: 'hidden',
   };
 
-  // 共通の入力フォームスタイル（マージンをリセットして確実にはみ出ないように修正）
   const input = {
     width: '100%',
     maxWidth: '100%',
@@ -69,8 +71,13 @@ export default function LogForm({
     fontSize: '14px',
     display: 'block',
     minWidth: 0,
-    margin: 0, // 外部CSSからの不要なマージンをリセット
+    margin: 0,
   };
+
+  const speakingTypes = [
+    { key: T.speakingType1, value: T.speakingType1 },
+    { key: T.speakingType2, value: T.speakingType2 },
+  ];
 
   return (
     <section
@@ -83,42 +90,35 @@ export default function LogForm({
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
         <h2 style={{ fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clipboard size={18} color="#4f46e5"/> 学習を記録する
+          <Clipboard size={18} color="#4f46e5"/> {T.logFormTitle}
         </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           {!editingLogId && logs.length > 0 && (
             <button className="action-btn" type="button" onClick={onCopyRecent}
               style={{ padding: '6px 12px', background: '#e0e7ff', color: '#4f46e5', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={12}/> {isMobile ? 'コピー' : '前回をコピー'}
+              <RefreshCw size={12}/> {isMobile ? T.copyPrevShort : T.copyPrev}
             </button>
           )}
           {editingLogId && (
             <button className="action-btn" type="button" onClick={onCancel}
               style={{ padding: '6px 12px', background: '#f1f5f9', color: '#64748b', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '11px' }}>
-              キャンセル
+              {T.cancel}
             </button>
           )}
           <button className="action-btn" onClick={onSave}
             style={{ padding: '6px 16px', background: '#4f46e5', color: 'white', borderRadius: '10px', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Send size={12}/> {editingLogId ? '更新' : '登録'}
+            <Send size={12}/> {editingLogId ? T.update : T.register}
           </button>
         </div>
       </div>
 
-      {/* 日付（不要なラッパーを削除し、レイアウトを統一） */}
+      {/* 日付 */}
       <input
         type="date"
         className="modern-input"
         value={date}
         onChange={e => setDate(e.target.value)}
-        style={{
-          ...input,
-          cursor: 'pointer',
-          marginBottom: '15px',
-          textAlign: 'center', // 画像のように中央揃えで綺麗に見せる
-          fontSize: '16px',    // タップしやすく見栄えを調整
-          WebkitAppearance: 'none', // iOS等での意図しないデフォルトスタイルを無効化
-        }}
+        style={{ ...input, cursor: 'pointer', marginBottom: '15px', textAlign: 'center', fontSize: '16px', WebkitAppearance: 'none' }}
       />
 
       {/* カテゴリ */}
@@ -133,7 +133,7 @@ export default function LogForm({
               if (cat.id === 'Class' && isAdding) setMinutes(50);
             }}
             style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '12px', border: 'none', backgroundColor: selectedCats.includes(cat.id) ? cat.color : '#f1f5f9', color: selectedCats.includes(cat.id) ? 'white' : '#64748b', fontSize: '13px', fontWeight: '900', cursor: 'pointer' }}>
-            {cat.icon} {cat.label}
+            {cat.icon} {lang === 'en' ? cat.label_en : cat.label}
           </button>
         ))}
       </div>
@@ -141,11 +141,11 @@ export default function LogForm({
       {/* Speaking サブタイプ */}
       {selectedCats.includes('Speaking') && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingLeft: '4px', animation: 'popIn 0.3s ease-out', marginBottom: '15px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '900', color: '#f43f5e' }}>↳ 話す内容:</span>
-          {['発表', 'やり取り'].map(type => (
-            <button key={type} type="button" className="action-btn" onClick={() => setSpeakingType(type)}
-              style={{ padding: '4px 12px', borderRadius: '8px', border: speakingType === type ? 'none' : '1px solid #fda4af', backgroundColor: speakingType === type ? '#f43f5e' : '#fff1f2', color: speakingType === type ? 'white' : '#f43f5e', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }}>
-              {type}
+          <span style={{ fontSize: '11px', fontWeight: '900', color: '#f43f5e' }}>{T.speakingTypeLabel}</span>
+          {speakingTypes.map(({ key, value }) => (
+            <button key={key} type="button" className="action-btn" onClick={() => setSpeakingType(value)}
+              style={{ padding: '4px 12px', borderRadius: '8px', border: speakingType === value ? 'none' : '1px solid #fda4af', backgroundColor: speakingType === value ? '#f43f5e' : '#fff1f2', color: speakingType === value ? 'white' : '#f43f5e', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }}>
+              {key}
             </button>
           ))}
         </div>
@@ -154,9 +154,9 @@ export default function LogForm({
       {/* 学習時間 / 集中度 / 単語数 */}
       <div style={{ display: 'grid', gridTemplateColumns: showVocab ? 'repeat(3, 1fr)' : '1fr 1fr', gap: isMobile ? '8px' : '20px', marginBottom: '20px' }}>
         {[
-          { label: '学習時間', icon: <Clock    size={14} color="#94a3b8"/>, value: minutes,    unit: '分', target: 'log_min' },
-          { label: '集中度',   icon: <Zap      size={14} color="#94a3b8"/>, value: quality,    unit: '%',  target: 'log_quality' },
-          ...(showVocab ? [{ label: '単語数', icon: <BookOpen size={14} color="#94a3b8"/>, value: vocabCount, unit: '語', target: 'log_vocab' }] : []),
+          { label: T.fieldTime,  icon: <Clock    size={14} color="#94a3b8"/>, value: minutes,    unit: T.unitMin,   target: 'log_min' },
+          { label: T.fieldFocus, icon: <Zap      size={14} color="#94a3b8"/>, value: quality,    unit: T.unitPct,   target: 'log_quality' },
+          ...(showVocab ? [{ label: T.fieldVocab, icon: <BookOpen size={14} color="#94a3b8"/>, value: vocabCount, unit: T.unitWords, target: 'log_vocab' }] : []),
         ].map(({ label, icon, value, unit, target }) => (
           <div key={target} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#f8fafc', padding: isMobile ? '12px 4px' : '20px', borderRadius: '16px', border: '1px solid #f1f5f9', boxSizing: 'border-box' }}>
             <label style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '5px', whiteSpace: 'nowrap' }}>
@@ -175,7 +175,7 @@ export default function LogForm({
         className="modern-input"
         value={reflection}
         onChange={e => setReflection(e.target.value)}
-        placeholder="学習内容や気づきを入力..."
+        placeholder={T.reflectionPlaceholder}
         style={{ ...input, height: '120px', resize: 'vertical' }}
       />
     </section>

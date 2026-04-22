@@ -8,6 +8,7 @@ import {
   ResponsiveContainer, CartesianGrid, Cell, LabelList,
 } from 'recharts';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
+import i18n from '../i18n';
 
 const xAxisFormatter = (v) => {
   if (v <= 0) return '0';
@@ -17,14 +18,14 @@ const xAxisFormatter = (v) => {
 
 export default function Dashboard({
   isMobile,
+  lang = 'ja',
   logs,
   selectedRange, setSelectedRange,
   date,
   timeStats,
   streak,
-  profile,
-  onProfileUpdate,
 }) {
+  const T = i18n[lang];
   const chartData = useMemo(() => {
     const getBreakdown = (arr) => {
       const bd = {};
@@ -44,7 +45,7 @@ export default function Dashboard({
       logs.filter(l => l.date === date).forEach(l =>
         (l.categories || []).forEach(c => { skillMap[c] = (skillMap[c] || 0) + (Number(l.minutes) || 0); })
       );
-      return CATEGORIES.map(cat => ({ name: cat.label, value: skillMap[cat.id] || 0, color: cat.color }));
+      return CATEGORIES.map(cat => ({ name: lang === 'en' ? cat.label_en : cat.label, value: skillMap[cat.id] || 0, color: cat.color }));
     }
     if (selectedRange === 'week') {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -108,12 +109,12 @@ export default function Dashboard({
           if (!cat || entry.value === 0) return null;
           return (
             <div key={entry.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: cat.color, marginBottom: '4px' }}>
-              <span>{cat.label}</span><span>{formatMinutes(entry.value)}{getUnit(entry.value)}</span>
+              <span>{lang === 'en' ? cat.label_en : cat.label}</span><span>{formatMinutes(entry.value)}{getUnit(entry.value)}</span>
             </div>
           );
         })}
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: '#1e293b', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #f1f5f9' }}>
-          <span>合計</span><span>{formatMinutes(total)}{getUnit(total)}</span>
+          <span>{T.tooltipTotal}</span><span>{formatMinutes(total)}{getUnit(total)}</span>
         </div>
       </div>
     );
@@ -124,15 +125,15 @@ export default function Dashboard({
       {/* チャートカード */}
       <section style={card} key={selectedRange}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-          <h2 style={{ ...hStyle, margin: 0, flexShrink: 0 }}><Activity size={18} color="#4f46e5"/> 学習傾向の分析</h2>
+          <h2 style={{ ...hStyle, margin: 0, flexShrink: 0 }}><Activity size={18} color="#4f46e5"/> {T.analysisTitle}</h2>
 
           {/* 時間統計 */}
           <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
             {[
-              { label: '日', value: timeStats.dayTotal },
-              { label: '週', value: timeStats.weekTotal },
-              { label: '月', value: timeStats.monthTotal },
-              { label: '年', value: timeStats.yearTotal },
+              { label: T.statDay,   value: timeStats.dayTotal },
+              { label: T.statWeek,  value: timeStats.weekTotal },
+              { label: T.statMonth, value: timeStats.monthTotal },
+              { label: T.statYear,  value: timeStats.yearTotal },
             ].map(({ label, value }) => (
               <div key={label} style={{ background: 'white', borderRadius: '7px', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                 <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{label}</span>
@@ -141,8 +142,8 @@ export default function Dashboard({
             ))}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#fff1f2', borderRadius: '7px', padding: '5px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
               <Flame size={12} color="#ef4444"/>
-              <span style={{ fontSize: '11px', fontWeight: '900', color: '#f87171' }}>連続</span>
-              <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#ef4444' }}>{streak}<span style={{ fontSize: '10px' }}>日</span></span>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: '#f87171' }}>{T.streakLabel}</span>
+              <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#ef4444' }}>{streak}<span style={{ fontSize: '10px' }}>{T.streakUnit}</span></span>
             </div>
           </div>
 
@@ -163,7 +164,7 @@ export default function Dashboard({
         <div style={{ height: '280px', width: '100%', position: 'relative' }}>
           <div style={{ position: 'absolute', top: '-5px', left: '10px', fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 10 }}>
             <Clock size={12} color="#94a3b8"/>
-            {{ day: '本日', week: '今週', month: '今月', year: '今年' }[selectedRange]}の学習時間
+            {{ day: T.chartLabelDay, week: T.chartLabelWeek, month: T.chartLabelMonth, year: T.chartLabelYear }[selectedRange]}{T.chartStudyTime}
           </div>
 
           {selectedRange === 'day' ? (
