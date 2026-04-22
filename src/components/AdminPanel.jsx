@@ -5,7 +5,7 @@ import {
 import { createUserWithEmailAndPassword, signOut as fbSignOut } from 'firebase/auth';
 import {
   Users, Plus, Upload, LogOut, ChevronDown, ChevronRight,
-  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked, Download, Globe,
+  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked, Download, Globe, ShieldCheck, Ban, ShieldOff,
 } from 'lucide-react';
 import { db, secondaryAuth } from '../firebase';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
@@ -38,7 +38,7 @@ function calcStats(logs) {
   return { day, week, month, total, count: logs.length, vocabDay, vocabWeek, vocabMonth, vocabTotal };
 }
 
-export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang = 'ja', toggleLang }) {
+export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang = 'ja', toggleLang, isSuperAdmin = false }) {
   const T = i18n[lang];
   const [tab, setTab]                 = useState('overview');
   const [groups, setGroups]           = useState([]);
@@ -67,6 +67,13 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
   const [addCsvText, setAddCsvText]   = useState('');
   const [addCsvResult, setAddCsvResult] = useState(null);
   const [addCsvLoading, setAddCsvLoading] = useState(false);
+
+  /* 管理者管理 */
+  const [teachers, setTeachers]           = useState([]);
+  const [newTeacherEmail, setNewTeacherEmail] = useState('');
+  const [newTeacherName,  setNewTeacherName]  = useState('');
+  const [teacherAdding,   setTeacherAdding]   = useState(false);
+  const [teacherMsg,      setTeacherMsg]      = useState(null);
 
   /* ── グループ一覧 ── */
   useEffect(() => {
@@ -105,6 +112,59 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
     });
     return () => unsubs.forEach(u => u());
   }, [students]);
+
+  /* ── 管理者一覧（スーパー管理者のみ） ── */
+  useEffect(() => {
+    if (!isSuperAdmin) return;
+    return onSnapshot(collection(db, 'teachers'), snap =>
+      setTeachers(snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.email || '').localeCompare(b.email || '')))
+    );
+  }, [isSuperAdmin]);
+
+  const handleAddTeacher = async () => {
+    if (!newTeacherEmail.trim()) return;
+    setTeacherAdding(true); setTeacherMsg(null);
+    try {
+      await addDoc(collection(db, 'teachers'), {
+        email: newTeacherEmail.trim().toLowerCase(),
+        name: newTeacherName.trim(),
+        addedBy: user.email,
+        addedAt: Date.now(),
+        disabled: false,
+      });
+      setNewTeacherEmail(''); setNewTeacherName('');
+      setTeacherMsg({ ok: true, text: lang === 'en' ? 'Teacher added.' : '追加しました。' });
+    } catch {
+      setTeacherMsg({ ok: false, text: lang === 'en' ? 'Failed to add.' : '追加に失敗しました。' });
+    }
+    setTeacherAdding(false);
+  };
+
+  const handleToggleTeacher = async (t) => {
+    await updateDoc(doc(db, 'teachers', t.id), { disabled: !t.disabled });
+  };
+
+  const handleDeleteTeacher = async (t) => {
+    if (!window.confirm(lang === 'en' ? `Remove ${t.email}?` : `${t.email} を削除しますか？`)) return;
+    await deleteDoc(doc(db, 'teachers', t.id));
+  };
+
+  /* ── 生徒アカウント操作（スーパー管理者のみ） ── */
+  const handleToggleStudent = async (s) => {
+    const msg = s.disabled
+      ? (lang === 'en' ? `Re-enable ${s.name || s.email}?` : `${s.name || s.email} を有効化しますか？`)
+      : (lang === 'en' ? `Disable ${s.name || s.email}?` : `${s.name || s.email} を無効化しますか？`);
+    if (!window.confirm(msg)) return;
+    await updateDoc(doc(db, 'profile', s.uid), { disabled: !s.disabled });
+  };
+
+  const handleDeleteStudent = async (s) => {
+    if (!window.confirm(lang === 'en'
+      ? `Delete ${s.name || s.email}'s profile? (Auth account remains)`
+      : `${s.name || s.email} のデータを削除しますか？（認証アカウントは残ります）`)) return;
+    await deleteDoc(doc(db, 'profile', s.uid));
+  };
 
   /* ── グループ作成 ── */
   const handleCreateGroup = async () => {
@@ -339,7 +399,12 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
 
       {/* タブ */}
       <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '10px', marginBottom: '20px', width: 'fit-content' }}>
-        {[['overview', T.tabOverview], ['add', T.tabAdd], ['import', T.tabImport]].map(([t, l]) => (
+        {[
+          ['overview', T.tabOverview],
+          ['add', T.tabAdd],
+          ['import', T.tabImport],
+          ...(isSuperAdmin ? [['admins', lang === 'en' ? 'Admin Mgmt' : '管理者管理']] : []),
+        ].map(([t, l]) => (
           <button key={t} onClick={() => setTab(t)} style={tabBtn(t)}>{l}</button>
         ))}
       </div>
@@ -461,13 +526,14 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {/* ヘッダー行 */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 55px 55px', gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: `1fr 60px 70px 70px 55px 55px${isSuperAdmin ? ' 60px' : ''}`, gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>
                         <span>{T.colName}</span>
                         <span style={{ textAlign: 'center' }}>{T.colToday}</span>
                         <span style={{ textAlign: 'center' }}>{T.colWeek}</span>
                         <span style={{ textAlign: 'center' }}>{T.colMonth}</span>
                         <span style={{ textAlign: 'center' }}>{T.colVocab}</span>
                         <span style={{ textAlign: 'center' }}>{T.colCount}</span>
+                        {isSuperAdmin && <span style={{ textAlign: 'center' }}>{lang === 'en' ? 'Action' : '操作'}</span>}
                       </div>
 
                       {students.map(s => {
@@ -477,10 +543,11 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                         return (
                           <div key={s.uid}>
                             <div onClick={() => setExpandedUid(isExp ? null : s.uid)}
-                              style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 55px 55px', gap: '8px', padding: '10px', background: isExp ? '#f0f4ff' : 'white', borderRadius: '10px', border: `1px solid ${isExp ? '#c7d2fe' : '#f1f5f9'}`, cursor: 'pointer', alignItems: 'center' }}>
+                              style={{ display: 'grid', gridTemplateColumns: `1fr 60px 70px 70px 55px 55px${isSuperAdmin ? ' 60px' : ''}`, gap: '8px', padding: '10px', background: s.disabled ? '#fff5f5' : isExp ? '#f0f4ff' : 'white', borderRadius: '10px', border: `1px solid ${s.disabled ? '#fecaca' : isExp ? '#c7d2fe' : '#f1f5f9'}`, cursor: 'pointer', alignItems: 'center' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 {isExp ? <ChevronDown size={12} color="#4f46e5"/> : <ChevronRight size={12} color="#94a3b8"/>}
-                                <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>{s.name || s.email || '（未設定）'}</span>
+                                <span style={{ fontSize: '13px', fontWeight: '700', color: s.disabled ? '#ef4444' : '#1e293b', textDecoration: s.disabled ? 'line-through' : 'none' }}>{s.name || s.email || '（未設定）'}</span>
+                                {s.disabled && <span style={{ fontSize: '9px', background: '#fee2e2', color: '#ef4444', borderRadius: '4px', padding: '1px 5px', fontWeight: '900' }}>{lang === 'en' ? 'OFF' : '無効'}</span>}
                               </div>
                               {[st.day, st.week, st.month].map((v, i) => (
                                 <div key={i} style={{ textAlign: 'center', fontSize: '13px', fontWeight: '900', color: v > 0 ? '#4f46e5' : '#cbd5e1' }}>
@@ -491,6 +558,18 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                                 {st.vocabTotal > 0 ? `${st.vocabTotal}語` : '-'}
                               </div>
                               <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '900', color: '#64748b' }}>{st.count}</div>
+                              {isSuperAdmin && (
+                                <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                  <button onClick={() => handleToggleStudent(s)} title={s.disabled ? (lang === 'en' ? 'Enable' : '有効化') : (lang === 'en' ? 'Disable' : '無効化')}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: s.disabled ? '#22c55e' : '#f59e0b' }}>
+                                    {s.disabled ? <ShieldCheck size={14}/> : <ShieldOff size={14}/>}
+                                  </button>
+                                  <button onClick={() => handleDeleteStudent(s)} title={lang === 'en' ? 'Delete' : '削除'}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#ef4444' }}>
+                                    <Trash2 size={14}/>
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             {/* 展開：最近のログ */}
@@ -755,6 +834,96 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ===== 管理者管理タブ（スーパー管理者のみ） ===== */}
+      {tab === 'admins' && isSuperAdmin && (
+        <div style={{ maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* 新規追加 */}
+          <div style={card}>
+            <h2 style={{ margin: '0 0 14px', fontSize: '16px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={16} color="#4f46e5"/> {lang === 'en' ? 'Add Teacher Account' : '管理者アカウントを追加'}
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <input type="text" value={newTeacherName} onChange={e => setNewTeacherName(e.target.value)}
+                placeholder={lang === 'en' ? 'Name (optional)' : '氏名（任意）'}
+                style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '13px', outline: 'none' }}/>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input type="email" value={newTeacherEmail} onChange={e => setNewTeacherEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddTeacher()}
+                  placeholder={lang === 'en' ? 'Google email address' : 'Googleメールアドレス'}
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '13px', outline: 'none' }}/>
+                <button onClick={handleAddTeacher} disabled={teacherAdding || !newTeacherEmail.trim()}
+                  style={{ padding: '10px 18px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '900', fontSize: '13px', cursor: 'pointer' }}>
+                  <Plus size={14}/>
+                </button>
+              </div>
+              {teacherMsg && (
+                <div style={{ fontSize: '12px', fontWeight: '700', color: teacherMsg.ok ? '#16a34a' : '#ef4444', background: teacherMsg.ok ? '#f0fdf4' : '#fff1f2', padding: '8px 12px', borderRadius: '8px' }}>
+                  {teacherMsg.text}
+                </div>
+              )}
+              <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>
+                {lang === 'en'
+                  ? '⚠ The teacher must log in with this Google account. Super admins cannot be added here.'
+                  : '⚠ 登録したGoogleアカウントでログインすると管理画面にアクセスできます。スーパー管理者はここでは追加できません。'}
+              </p>
+            </div>
+          </div>
+
+          {/* 管理者一覧 */}
+          <div style={card}>
+            <h2 style={{ margin: '0 0 14px', fontSize: '16px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Users size={16} color="#4f46e5"/> {lang === 'en' ? 'Teacher List' : '管理者一覧'} <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>{teachers.length}{lang === 'en' ? ' accounts' : '件'}</span>
+            </h2>
+            {teachers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontSize: '13px' }}>
+                {lang === 'en' ? 'No teachers registered.' : '登録された管理者はいません。'}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {teachers.map(t => (
+                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: t.disabled ? '#fff5f5' : '#f8fafc', borderRadius: '10px', border: `1px solid ${t.disabled ? '#fecaca' : '#f1f5f9'}` }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: t.disabled ? '#ef4444' : '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {t.name || t.email}
+                      </div>
+                      {t.name && <div style={{ fontSize: '11px', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.email}</div>}
+                    </div>
+                    {t.disabled && (
+                      <span style={{ fontSize: '10px', background: '#fee2e2', color: '#ef4444', borderRadius: '6px', padding: '2px 8px', fontWeight: '900', flexShrink: 0 }}>
+                        {lang === 'en' ? 'DISABLED' : '無効'}
+                      </span>
+                    )}
+                    <button onClick={() => handleToggleTeacher(t)}
+                      title={t.disabled ? (lang === 'en' ? 'Enable' : '有効化') : (lang === 'en' ? 'Disable' : '無効化')}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: t.disabled ? '#22c55e' : '#f59e0b', flexShrink: 0 }}>
+                      {t.disabled ? <ShieldCheck size={16}/> : <ShieldOff size={16}/>}
+                    </button>
+                    <button onClick={() => handleDeleteTeacher(t)}
+                      title={lang === 'en' ? 'Delete' : '削除'}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#ef4444', flexShrink: 0 }}>
+                      <Trash2 size={16}/>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 注記 */}
+          <div style={{ ...card, background: '#fffbeb', border: '1px solid #fde68a' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <Ban size={16} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }}/>
+              <div style={{ fontSize: '12px', color: '#92400e', fontWeight: '600', lineHeight: 1.6 }}>
+                {lang === 'en'
+                  ? 'Disabling a teacher prevents them from accessing the admin panel on next login. Deleting removes them from this list but does not delete their Google account.'
+                  : '無効化すると次回ログイン時から管理画面にアクセスできなくなります。削除はこのリストから削除するのみで、Googleアカウント自体は削除されません。'}
+              </div>
+            </div>
           </div>
         </div>
       )}

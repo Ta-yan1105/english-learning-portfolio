@@ -27,6 +27,9 @@ const fetchNextEikenDate = async () => {
 export default function App() {
   const [user,           setUser]           = useState(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isRoleChecked,  setIsRoleChecked]  = useState(false);
+  const [isTeacher,      setIsTeacher]      = useState(false);
+  const [isSuperAdmin,   setIsSuperAdmin]   = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(true);
   const [profile,        setProfile]        = useState({ name: '', eikenDate: '', otherDate: '', otherName: '', weeklyGoal: '' });
   const [selectedRange,  setSelectedRange]  = useState('day');
@@ -97,18 +100,44 @@ export default function App() {
     return () => { window.removeEventListener('resize', onResize); unsub(); };
   }, []);
 
+  const SUPER_ADMIN_EMAILS = ['tadashi.nishide@gmail.com', 'nishide.tadashi@as.u-toyama.ac.jp'];
+
+  /* ── ロール判定 ── */
+  useEffect(() => {
+    if (isAuthChecking) return;
+    if (!user || user.isAnonymous) {
+      setIsTeacher(false); setIsSuperAdmin(false); setIsRoleChecked(true); return;
+    }
+    const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
+    if (!isGoogle) { setIsTeacher(false); setIsSuperAdmin(false); setIsRoleChecked(true); return; }
+
+    if (SUPER_ADMIN_EMAILS.includes(user.email)) {
+      setIsSuperAdmin(true); setIsTeacher(true); setIsRoleChecked(true); return;
+    }
+    getDocs(query(collection(db, 'teachers'), where('email', '==', user.email))).then(snap => {
+      const found = !snap.empty && !snap.docs[0].data().disabled;
+      setIsTeacher(found); setIsSuperAdmin(false); setIsRoleChecked(true);
+    }).catch(() => { setIsTeacher(false); setIsSuperAdmin(false); setIsRoleChecked(true); });
+  }, [user, isAuthChecking]); // eslint-disable-line
+
+  /* ── プロフィール取得 & 招待適用 ── */
   useEffect(() => {
     if (!user || user.isAnonymous) return;
     getDoc(doc(db, 'profile', user.uid)).then(async snap => {
       let p = snap.exists() ? snap.data() : {};
 
-      // メールをプロフィールに保存
+      // 無効化された生徒はログアウト
+      if (p.disabled && !SUPER_ADMIN_EMAILS.includes(user.email)) {
+        await signOut(auth);
+        setAuthError('このアカウントは無効化されています。管理者にお問い合わせください。');
+        return;
+      }
+
       if (user.email && !p.email) {
         p.email = user.email;
         try { await setDoc(doc(db, 'profile', user.uid), { email: user.email }, { merge: true }); } catch {}
       }
 
-      // 教員からの招待（未ログイン時に予約された分）を適用
       if (user.email && !p.groupId) {
         try {
           const invQ = query(collection(db, 'groupInvites'), where('email', '==', user.email));
@@ -130,7 +159,7 @@ export default function App() {
       }
       setProfile(prev => ({ ...prev, ...p }));
     });
-  }, [user]);
+  }, [user]); // eslint-disable-line
 
   const handleProfileUpdate = useCallback(async (field, value) => {
     setProfile(prev => {
@@ -249,19 +278,14 @@ export default function App() {
     ? Math.round((new Date(profile.otherDate + 'T00:00:00').getTime() - new Date().setHours(0,0,0,0)) / 86400000)
     : null;
 
-  const ADMIN_EMAILS = ['tadashi.nishide@gmail.com', 'nishide.tadashi@as.u-toyama.ac.jp'];
-  const isTeacher = user &&
-    user.providerData.some(p => p.providerId === 'google.com') &&
-    ADMIN_EMAILS.includes(user.email);
-
-  if (isAuthChecking) return (
+  if (isAuthChecking || !isRoleChecked) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f4f7fa' }}>
       <div style={{ color: '#4f46e5', fontWeight: 'bold', fontSize: '20px' }}>Loading...</div>
     </div>
   );
 
   if (isTeacher && showAdminPanel) return (
-    <AdminPanel user={user} onLogout={handleLogout} onGoToApp={() => setShowAdminPanel(false)} isMobile={isMobile} lang={lang} toggleLang={toggleLang}/>
+    <AdminPanel user={user} onLogout={handleLogout} onGoToApp={() => setShowAdminPanel(false)} isMobile={isMobile} lang={lang} toggleLang={toggleLang} isSuperAdmin={isSuperAdmin}/>
   );
 
   if (!user || user.isAnonymous) return (
