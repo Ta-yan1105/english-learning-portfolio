@@ -647,42 +647,52 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
           <div style={card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
               <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Upload size={16} color="#4f46e5"/> CSV一括追加
+                <Upload size={16} color="#4f46e5"/> {lang === 'en' ? 'Bulk Add via CSV' : 'CSV一括追加'}
               </h2>
               <button onClick={handleDownloadTemplate}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '900', color: '#4f46e5', cursor: 'pointer' }}>
-                ⬇ テンプレートDL
+                ⬇ {lang === 'en' ? 'Template DL' : 'テンプレートDL'}
               </button>
             </div>
             <p style={{ margin: '0 0 16px', fontSize: '12px', color: '#94a3b8', fontWeight: '600' }}>
-              テンプレートをダウンロードしてメールアドレスとグループ名を記入し、貼り付けてください。
+              {lang === 'en'
+                ? 'Download the template, fill in emails and group names, then paste below.'
+                : 'テンプレートをダウンロードしてメールアドレスとグループ名を記入し、貼り付けてください。'}
             </p>
 
             <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '10px 12px', marginBottom: '14px', border: '1px solid #f1f5f9' }}>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', marginBottom: '4px' }}>CSVフォーマット（1行目はヘッダー、不要なら省略可）</div>
-              <code style={{ fontSize: '12px', color: '#4f46e5', fontWeight: '700' }}>メールアドレス, グループ名</code>
-              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>例：yamada@example.com, 1年A組</div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', marginBottom: '4px' }}>
+                {lang === 'en' ? 'CSV format (header row optional)' : 'CSVフォーマット（1行目はヘッダー、不要なら省略可）'}
+              </div>
+              <code style={{ fontSize: '12px', color: '#4f46e5', fontWeight: '700' }}>
+                {lang === 'en' ? 'email, group' : 'メールアドレス, グループ名'}
+              </code>
+              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                {lang === 'en' ? 'e.g. yamada@example.com, Class 1A' : '例：yamada@example.com, 1年A組'}
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: '#e0e7ff', color: '#4f46e5', borderRadius: '8px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', flexShrink: 0 }}>
-                📂 ファイルを選択
+                📂 {lang === 'en' ? 'Select File' : 'ファイルを選択'}
                 <input type="file" accept=".csv,text/csv" style={{ display: 'none' }}
                   onChange={e => { handleFileRead(e.target.files[0], setAddCsvText); e.target.value = ''; }}
                 />
               </label>
-              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>またはCSVの内容を直接貼り付け</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>
+                {lang === 'en' ? 'or paste CSV directly' : 'またはCSVの内容を直接貼り付け'}
+              </span>
             </div>
 
             <textarea
               value={addCsvText} onChange={e => { setAddCsvText(e.target.value); setAddCsvResult(null); }}
-              placeholder={'yamada@example.com, 1年A組\nsuzuki@example.com, 1年B組'}
+              placeholder={lang === 'en' ? 'yamada@example.com, Class 1A\nsuzuki@example.com, Class 1B' : 'yamada@example.com, 1年A組\nsuzuki@example.com, 1年B組'}
               style={{ width: '100%', height: '140px', padding: '12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '13px', fontFamily: 'monospace', outline: 'none', resize: 'vertical', boxSizing: 'border-box', marginBottom: '12px' }}
             />
 
             <button onClick={handleAddCsv} disabled={addCsvLoading || !addCsvText.trim()}
               style={{ width: '100%', padding: '13px', background: addCsvLoading ? '#e0e7ff' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: addCsvLoading ? '#94a3b8' : 'white', border: 'none', borderRadius: '10px', fontWeight: '900', fontSize: '14px', cursor: addCsvLoading ? 'not-allowed' : 'pointer' }}>
-              {addCsvLoading ? '処理中...' : 'グループに一括追加する'}
+              {addCsvLoading ? '...' : (lang === 'en' ? 'Add to Groups' : 'グループに一括追加する')}
             </button>
 
             {addCsvResult && (
@@ -691,7 +701,9 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                   <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                       <CheckCircle size={14} color="#16a34a"/>
-                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#16a34a' }}>追加成功 {addCsvResult.ok.length}名</span>
+                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#16a34a' }}>
+                        {lang === 'en' ? `Added ${addCsvResult.ok.length}` : `追加成功 ${addCsvResult.ok.length}名`}
+                      </span>
                     </div>
                     {addCsvResult.ok.map((n, i) => <div key={i} style={{ fontSize: '12px', color: '#15803d', paddingLeft: '20px' }}>✓ {n}</div>)}
                   </div>
@@ -700,7 +712,9 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                   <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                       <AlertCircle size={14} color="#ef4444"/>
-                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444' }}>エラー {addCsvResult.ng.length}件</span>
+                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444' }}>
+                        {lang === 'en' ? `Error: ${addCsvResult.ng.length}` : `エラー ${addCsvResult.ng.length}件`}
+                      </span>
                     </div>
                     {addCsvResult.ng.map((e, i) => <div key={i} style={{ fontSize: '12px', color: '#dc2626', paddingLeft: '20px' }}>✗ {e}</div>)}
                   </div>
@@ -712,13 +726,15 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
           {/* ── 1件ずつ追加 ── */}
           <div style={card}>
             <h2 style={{ margin: '0 0 14px', fontSize: '16px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <UserPlus size={16} color="#4f46e5"/> 1件ずつ追加
+              <UserPlus size={16} color="#4f46e5"/> {lang === 'en' ? 'Add One by One' : '1件ずつ追加'}
             </h2>
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'block', marginBottom: '6px' }}>追加先グループ</label>
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                {lang === 'en' ? 'Target Group' : '追加先グループ'}
+              </label>
               <select value={addGroup} onChange={e => { setAddGroup(e.target.value); setAddStatus(null); }}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '14px', outline: 'none', background: 'white' }}>
-                <option value="">グループを選択...</option>
+                <option value="">{lang === 'en' ? 'Select group...' : 'グループを選択...'}</option>
                 {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
               </select>
             </div>
@@ -731,7 +747,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
               />
               <button onClick={handleAddExisting} disabled={addLoading || !addEmail || !addGroup}
                 style={{ padding: '11px 18px', background: addLoading ? '#e0e7ff' : '#4f46e5', color: addLoading ? '#94a3b8' : 'white', border: 'none', borderRadius: '10px', fontWeight: '900', fontSize: '13px', cursor: addLoading ? 'not-allowed' : 'pointer' }}>
-                {addLoading ? '...' : '追加'}
+                {addLoading ? '...' : (lang === 'en' ? 'Add' : '追加')}
               </button>
             </div>
             {addStatus && (
@@ -753,7 +769,9 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
           </div>
 
           <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px 14px', fontSize: '12px', color: '#92400e', fontWeight: '600', lineHeight: 1.6 }}>
-            ⚠ 生徒が一度もログインしていない場合は検索できません。その場合は「生徒一括登録」タブから新規登録してください。
+            {lang === 'en'
+              ? '⚠ Students who have never logged in cannot be found here. Use the "Bulk Register" tab to create new accounts.'
+              : '⚠ 生徒が一度もログインしていない場合は検索できません。その場合は「生徒一括登録」タブから新規登録してください。'}
           </div>
         </div>
       )}
@@ -762,54 +780,62 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
       {tab === 'import' && (
         <div style={{ maxWidth: '600px' }}>
           <div style={card}>
-            {/* ヘッダー */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
               <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Upload size={16} color="#4f46e5"/> 生徒一括登録（CSV）
+                <Upload size={16} color="#4f46e5"/> {lang === 'en' ? 'Bulk Register Students (CSV)' : '生徒一括登録（CSV）'}
               </h2>
               <button onClick={handleDownloadNewTemplate}
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '12px', fontWeight: '900', color: '#4f46e5', cursor: 'pointer' }}>
-                ⬇ テンプレートDL
+                ⬇ {lang === 'en' ? 'Template DL' : 'テンプレートDL'}
               </button>
             </div>
 
-            {/* グループ選択 */}
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'block', marginBottom: '6px' }}>登録先グループ</label>
+              <label style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                {lang === 'en' ? 'Target Group' : '登録先グループ'}
+              </label>
               <select value={csvGroup} onChange={e => setCsvGroup(e.target.value)}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '14px', outline: 'none', background: 'white' }}>
-                <option value="">グループを選択...</option>
+                <option value="">{lang === 'en' ? 'Select group...' : 'グループを選択...'}</option>
                 {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
               </select>
             </div>
 
-            {/* CSVフォーマット説明 */}
             <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '12px', marginBottom: '14px', border: '1px solid #f1f5f9' }}>
-              <div style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', marginBottom: '4px' }}>CSVフォーマット（1行目はヘッダー、不要なら省略可）</div>
-              <code style={{ fontSize: '12px', color: '#4f46e5', fontWeight: '700' }}>氏名, メールアドレス, パスワード</code>
-              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>例：山田太郎, yamada@example.com, pass1234</div>
+              <div style={{ fontSize: '11px', fontWeight: '900', color: '#64748b', marginBottom: '4px' }}>
+                {lang === 'en' ? 'CSV format (header row optional)' : 'CSVフォーマット（1行目はヘッダー、不要なら省略可）'}
+              </div>
+              <code style={{ fontSize: '12px', color: '#4f46e5', fontWeight: '700' }}>
+                {lang === 'en' ? 'name, email, password' : '氏名, メールアドレス, パスワード'}
+              </code>
+              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                {lang === 'en' ? 'e.g. John, john@example.com, pass1234' : '例：山田太郎, yamada@example.com, pass1234'}
+              </div>
             </div>
 
-            {/* ファイル選択 or テキスト貼り付け */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: '#e0e7ff', color: '#4f46e5', borderRadius: '8px', fontSize: '12px', fontWeight: '900', cursor: 'pointer', flexShrink: 0 }}>
-                📂 ファイルを選択
+                📂 {lang === 'en' ? 'Select File' : 'ファイルを選択'}
                 <input type="file" accept=".csv,text/csv" style={{ display: 'none' }}
                   onChange={e => { handleFileRead(e.target.files[0], setCsvText); e.target.value = ''; }}
                 />
               </label>
-              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>またはCSVの内容を直接貼り付け</span>
+              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600' }}>
+                {lang === 'en' ? 'or paste CSV directly' : 'またはCSVの内容を直接貼り付け'}
+              </span>
             </div>
 
             <textarea
               value={csvText} onChange={e => { setCsvText(e.target.value); setImportResult(null); }}
-              placeholder={'山田太郎, yamada@example.com, pass1234\n鈴木花子, suzuki@example.com, pass5678'}
+              placeholder={lang === 'en'
+                ? 'John, john@example.com, pass1234\nJane, jane@example.com, pass5678'
+                : '山田太郎, yamada@example.com, pass1234\n鈴木花子, suzuki@example.com, pass5678'}
               style={{ width: '100%', height: '160px', padding: '12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '13px', fontFamily: 'monospace', outline: 'none', resize: 'vertical', boxSizing: 'border-box', marginBottom: '12px' }}
             />
 
             <button onClick={handleImport} disabled={importing || !csvGroup || !csvText.trim()}
               style={{ width: '100%', padding: '13px', background: importing ? '#e0e7ff' : 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: importing ? '#94a3b8' : 'white', border: 'none', borderRadius: '10px', fontWeight: '900', fontSize: '14px', cursor: importing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <Upload size={15}/> {importing ? '登録中...' : '一括登録する'}
+              <Upload size={15}/> {importing ? '...' : (lang === 'en' ? 'Register All' : '一括登録する')}
             </button>
 
             {importResult && (
@@ -818,7 +844,9 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                   <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                       <CheckCircle size={14} color="#16a34a"/>
-                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#16a34a' }}>登録成功 {importResult.ok.length}名</span>
+                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#16a34a' }}>
+                        {lang === 'en' ? `Registered ${importResult.ok.length}` : `登録成功 ${importResult.ok.length}名`}
+                      </span>
                     </div>
                     {importResult.ok.map((n, i) => <div key={i} style={{ fontSize: '12px', color: '#15803d', paddingLeft: '20px' }}>✓ {n}</div>)}
                   </div>
@@ -827,7 +855,9 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                   <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '10px', padding: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                       <AlertCircle size={14} color="#ef4444"/>
-                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444' }}>エラー {importResult.ng.length}件</span>
+                      <span style={{ fontSize: '12px', fontWeight: '900', color: '#ef4444' }}>
+                        {lang === 'en' ? `Error: ${importResult.ng.length}` : `エラー ${importResult.ng.length}件`}
+                      </span>
                     </div>
                     {importResult.ng.map((e, i) => <div key={i} style={{ fontSize: '12px', color: '#dc2626', paddingLeft: '20px' }}>✗ {e}</div>)}
                   </div>

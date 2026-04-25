@@ -49,7 +49,12 @@ export default function App() {
     const next = lang === 'ja' ? 'en' : 'ja';
     setLang(next);
     localStorage.setItem('lang', next);
+    document.documentElement.lang = next;
   };
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const [formDate,     setFormDate]     = useState(getLocalDateString(new Date()));
   const [minutes,      setMinutes]      = useState(25);
@@ -487,7 +492,7 @@ export default function App() {
           <input
             value={profile.name || ''}
             onChange={e => handleProfileUpdate('name', e.target.value)}
-            placeholder="氏名"
+            placeholder={lang === 'en' ? 'Name' : '氏名'}
             style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: '700', color: '#1e293b', background: 'transparent', width: '80px' }}
           />
         </div>
@@ -500,7 +505,7 @@ export default function App() {
           <input
             value={profile.otherName || ''}
             onChange={e => handleProfileUpdate('otherName', e.target.value)}
-            placeholder="試験名"
+            placeholder={lang === 'en' ? 'Exam name' : '試験名'}
             style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: '700', color: '#1e293b', background: 'transparent', minWidth: '80px', flex: 1 }}
           />
           <input
@@ -527,16 +532,16 @@ export default function App() {
               border: '2px solid rgba(255,255,255,0.25)',
               animation: 'badgePulse 2.5s ease-in-out infinite',
             }}>
-              <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>あと</span>
+              {lang === 'ja' && <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>あと</span>}
               <span className="timer-text" style={{ fontSize: '24px', fontWeight: '900', lineHeight: 1 }}>{daysLeft}</span>
-              <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>日</span>
+              <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>{lang === 'en' ? 'days' : '日'}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* ===== コンポーネント群 ===== */}
-      <Timer isMobile={isMobile} onTimerComplete={handleTimerComplete}/>
+      <Timer isMobile={isMobile} lang={lang} onTimerComplete={handleTimerComplete}/>
 
       <LogForm
         isMobile={isMobile}

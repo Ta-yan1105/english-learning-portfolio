@@ -5,8 +5,9 @@ import {
 } from 'lucide-react';
 import { useTimer } from '../hooks/useTimer';
 
-function LapList({ laps, maxHeight = '300px' }) {
+function LapList({ laps, lang = 'ja', maxHeight = '300px' }) {
   if (laps.length === 0) return null;
+  const isEn = lang === 'en';
   return (
     <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
       <div style={{
@@ -14,17 +15,19 @@ function LapList({ laps, maxHeight = '300px' }) {
         borderRadius: '12px', padding: '15px', border: '1px solid #f1f5f9',
         maxHeight, overflowY: 'auto',
       }}>
-        <div style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', marginBottom: '10px' }}>ラップ記録</div>
+        <div style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', marginBottom: '10px' }}>
+          {isEn ? 'Lap Records' : 'ラップ記録'}
+        </div>
         {laps.map((lap, i) => (
           <div key={i} style={{
             display: 'flex', justifyContent: 'space-between',
             fontSize: '14px', fontWeight: 'bold', color: '#1e293b',
             padding: '6px 0', borderBottom: i !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none',
           }}>
-            <span>ラップ {i + 1}</span>
+            <span>{isEn ? `Lap ${i + 1}` : `ラップ ${i + 1}`}</span>
             <div className="timer-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ color: '#4f46e5' }}>{lap.elapsed}</span>
-              <span style={{ color: '#94a3b8', fontSize: '12px' }}>(残り {lap.remaining})</span>
+              <span style={{ color: '#94a3b8', fontSize: '12px' }}>({isEn ? 'left ' : '残り '}{lap.remaining})</span>
             </div>
           </div>
         ))}
@@ -33,7 +36,8 @@ function LapList({ laps, maxHeight = '300px' }) {
   );
 }
 
-export default function Timer({ isMobile, onTimerComplete }) {
+export default function Timer({ isMobile, lang = 'ja', onTimerComplete }) {
+  const isEn = lang === 'en';
   const {
     timerInputTime, setTimerInputTime,
     timerTimeLeft,  setTimerTimeLeft,
@@ -123,14 +127,14 @@ export default function Timer({ isMobile, onTimerComplete }) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
         <button className="action-btn" onClick={toggleTimer} style={{ padding: pad, borderRadius: '50px', border: 'none', background: isTimerRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-          {isTimerRunning ? <><Pause size={icon}/> 一時停止</> : <><Play size={icon}/> スタート</>}
+          {isTimerRunning ? <><Pause size={icon}/> {isEn ? 'Pause' : '一時停止'}</> : <><Play size={icon}/> {isEn ? 'Start' : 'スタート'}</>}
         </button>
         <button className="action-btn" onClick={resetTimer} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <RefreshCw size={icon}/> リセット
+          <RefreshCw size={icon}/> {isEn ? 'Reset' : 'リセット'}
         </button>
         {timerTimeLeft !== timerInputTime && (
           <button className="action-btn" onClick={recordLap} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <List size={icon}/> ラップ記録
+            <List size={icon}/> {isEn ? 'Lap' : 'ラップ記録'}
           </button>
         )}
       </div>
@@ -138,13 +142,16 @@ export default function Timer({ isMobile, onTimerComplete }) {
   };
 
   const soundBtn = (fixed = false) => (
-    <button className="action-btn" onClick={toggleSound} title={isSoundEnabled ? 'アラーム音：オン' : 'アラーム音：オフ'}
+    <button className="action-btn" onClick={toggleSound}
+      title={isSoundEnabled ? (isEn ? 'Sound: ON' : 'アラーム音：オン') : (isEn ? 'Sound: OFF' : 'アラーム音：オフ')}
       style={{ ...(fixed ? { position: 'fixed', top: '20px', right: '70px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', zIndex: 10001 } : { position: 'absolute', left: 0, background: 'none', border: 'none' }), display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '4px', color: isSoundEnabled ? '#4f46e5' : '#94a3b8' }}>
       {isSoundEnabled ? <Volume2 size={20}/> : <VolumeX size={20}/>}
     </button>
   );
 
   const card = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', boxSizing: 'border-box', width: '100%', textAlign: 'center' };
+  const title = isEn ? 'Study Timer' : '学習タイマー';
+  const swipeHint = isEn ? '👆 Swipe min/sec up or down to set time' : '👆 分・秒の数字を上下にスワイプして時間を調整';
 
   return (
     <>
@@ -157,8 +164,8 @@ export default function Timer({ isMobile, onTimerComplete }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative' }}>
           {soundBtn(false)}
           <TimerIcon size={24} color="#4f46e5" style={{ marginRight: '8px' }}/>
-          <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
-          <button className="action-btn" onClick={handleEnterFullscreen} title="全画面表示"
+          <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', margin: 0 }}>{title}</h2>
+          <button className="action-btn" onClick={handleEnterFullscreen} title={isEn ? 'Fullscreen' : '全画面表示'}
             style={{ position: 'absolute', right: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Maximize size={20}/>
           </button>
@@ -168,11 +175,11 @@ export default function Timer({ isMobile, onTimerComplete }) {
 
         {!isTimerRunning && timerTimeLeft !== 0 && (
           <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px' }}>
-            👆 分・秒の数字を上下にスワイプして時間を調整
+            {swipeHint}
           </div>
         )}
         {controls(false)}
-        <LapList laps={laps}/>
+        <LapList laps={laps} lang={lang}/>
       </section>
 
       {isFullscreen && (
@@ -193,12 +200,12 @@ export default function Timer({ isMobile, onTimerComplete }) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                 <TimerIcon size={32} color="#4f46e5" style={{ marginRight: '10px' }}/>
-                <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>学習タイマー</h2>
+                <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>{title}</h2>
               </div>
               {faceFullscreen(numStyleFS)}
               {!isTimerRunning && timerTimeLeft !== 0 && (
                 <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px' }}>
-                  👆 分・秒の数字を上下にスワイプして時間を調整
+                  {swipeHint}
                 </div>
               )}
               {controls(true)}
@@ -206,10 +213,10 @@ export default function Timer({ isMobile, onTimerComplete }) {
 
             {!isMobile ? (
               <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', paddingLeft: '40px' }}>
-                <LapList laps={laps} maxHeight="60vh"/>
+                <LapList laps={laps} lang={lang} maxHeight="60vh"/>
               </div>
             ) : (
-              <LapList laps={laps} maxHeight="25vh"/>
+              <LapList laps={laps} lang={lang} maxHeight="25vh"/>
             )}
           </div>
         </div>
