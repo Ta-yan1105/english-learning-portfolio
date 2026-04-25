@@ -166,22 +166,22 @@ export default function LogForm({
               <label style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '5px', whiteSpace: 'nowrap' }}>
                 {icon} {label}
               </label>
-              <div className="draggable-number" onPointerDown={e => handlePointerDown(e, target)} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'ns-resize' }}>
+              <div className="draggable-number" onPointerDown={e => handlePointerDown(e, target)} style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', cursor: 'ns-resize', paddingBottom: '4px' }}>
                 <span className="timer-text" style={{ fontSize: isMobile ? (showVocab ? 'clamp(28px,7vw,40px)' : 'clamp(36px,10vw,48px)') : '56px', fontWeight: '900', color: '#4f46e5', lineHeight: 1, letterSpacing: '-0.02em', pointerEvents: 'none' }}>{value}</span>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', pointerEvents: 'none' }}>
-                  <span style={{ fontSize: isMobile ? '11px' : '14px', fontWeight: '900', color: '#4f46e5', lineHeight: 1 }}>{unit}</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', pointerEvents: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <span style={{ fontSize: isMobile ? '11px' : '14px', fontWeight: '900', color: '#4f46e5', lineHeight: 1, pointerEvents: 'none' }}>{unit}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                     <button
                       type="button"
                       onPointerDown={e => e.stopPropagation()}
                       onClick={() => setter(value + 1)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '16px', background: '#e0e7ff', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '15px', background: '#e0e7ff', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
                     ><ChevronUp size={11} color="#4f46e5" strokeWidth={2.5}/></button>
                     <button
                       type="button"
                       onPointerDown={e => e.stopPropagation()}
                       onClick={() => setter(value - 1)}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '16px', background: '#e0e7ff', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '15px', background: '#e0e7ff', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
                     ><ChevronDown size={11} color="#4f46e5" strokeWidth={2.5}/></button>
                   </div>
                 </div>
