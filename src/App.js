@@ -3,8 +3,8 @@ import {
   onAuthStateChanged, signInWithPopup, linkWithPopup, signOut,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
-import { Activity, BookOpen, User, LogOut, Star, CalendarDays, Globe } from 'lucide-react';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { Activity, BookOpen, User, LogOut, Star, CalendarDays, Globe, X, MessageSquare } from 'lucide-react';
 
 import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
@@ -68,6 +68,20 @@ export default function App() {
   const [showPraise,    setShowPraise]    = useState(false);
   const [praiseText,    setPraiseText]    = useState('');
   const [praiseSubText, setPraiseSubText] = useState('');
+
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    if (!user || isTeacher || isSuperAdmin) return;
+    const q = query(collection(db, 'messages'), where('toUid', '==', user.uid), where('read', '==', false));
+    return onSnapshot(q, snap =>
+      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt - a.createdAt))
+    );
+  }, [user, isTeacher, isSuperAdmin]);
+
+  const dismissMessage = async (id) => {
+    await updateDoc(doc(db, 'messages', id), { read: true });
+  };
 
   const formRef = useRef(null);
 
@@ -466,6 +480,27 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {/* ===== 管理者からのメッセージバナー ===== */}
+      {messages.length > 0 && (
+        <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {messages.map(msg => (
+            <div key={msg.id} style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1.5px solid #fcd34d', borderRadius: '14px', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px', boxShadow: '0 2px 8px rgba(245,158,11,0.1)' }}>
+              <MessageSquare size={18} color="#f59e0b" style={{ flexShrink: 0, marginTop: '1px' }}/>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '11px', fontWeight: '900', color: '#92400e', marginBottom: '3px' }}>
+                  {lang === 'en' ? `Message from ${msg.fromEmail}` : `${msg.fromEmail} からのメッセージ`}
+                </div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#78350f', lineHeight: 1.5 }}>{msg.text}</div>
+              </div>
+              <button onClick={() => dismissMessage(msg.id)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#d97706', padding: '2px', flexShrink: 0 }}>
+                <X size={16}/>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ===== プロフィールバー ===== */}
       <div style={{

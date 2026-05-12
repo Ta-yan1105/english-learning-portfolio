@@ -5,7 +5,7 @@ import {
 import { createUserWithEmailAndPassword, signOut as fbSignOut } from 'firebase/auth';
 import {
   Users, Plus, Upload, LogOut, ChevronDown, ChevronRight,
-  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked, Download, Globe, ShieldCheck, Ban, ShieldOff,
+  Activity, Clock, BookOpen, Trash2, CheckCircle, AlertCircle, UserPlus, Pencil, BookMarked, Download, Globe, ShieldCheck, Ban, ShieldOff, MessageSquare, Send,
 } from 'lucide-react';
 import { db, secondaryAuth } from '../firebase';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
@@ -48,6 +48,12 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
   const [expandedUid, setExpandedUid] = useState(null);
   const [exportUid, setExportUid]     = useState(null);
   const [exportMonth, setExportMonth] = useState('all');
+  const [studentSort, setStudentSort] = useState('recent');
+  const [editingStudentUid,  setEditingStudentUid]  = useState(null);
+  const [editingStudentName, setEditingStudentName] = useState('');
+  const [editingStudentId,   setEditingStudentId]   = useState('');
+  const [msgStudentUid, setMsgStudentUid] = useState(null);
+  const [msgText,       setMsgText]       = useState('');
 
   const [newGroupName, setNewGroupName] = useState('');
   const [creating, setCreating]         = useState(false);
@@ -91,8 +97,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
     if (!selectedGroup) { setStudents([]); return; }
     const q = query(collection(db, 'profile'), where('groupId', '==', selectedGroup.id));
     return onSnapshot(q, snap =>
-      setStudents(snap.docs.map(d => ({ uid: d.id, ...d.data() }))
-        .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ja')))
+      setStudents(snap.docs.map(d => ({ uid: d.id, ...d.data() })))
     );
   }, [selectedGroup]);
 
@@ -149,6 +154,38 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
     if (!window.confirm(lang === 'en' ? `Remove ${t.email}?` : `${t.email} を削除しますか？`)) return;
     await deleteDoc(doc(db, 'teachers', t.id));
   };
+
+  /* ── 管理者→生徒メッセージ送信 ── */
+  const handleSendMessage = async (student) => {
+    if (!msgText.trim()) return;
+    await addDoc(collection(db, 'messages'), {
+      toUid: student.uid,
+      toName: student.name || student.email,
+      fromEmail: user.email,
+      text: msgText.trim(),
+      createdAt: Date.now(),
+      read: false,
+    });
+    setMsgText('');
+    setMsgStudentUid(null);
+  };
+
+  /* ── 生徒情報編集 ── */
+  const handleStartEditStudent = (e, s) => {
+    e.stopPropagation();
+    setEditingStudentUid(s.uid);
+    setEditingStudentName(s.name || '');
+    setEditingStudentId(s.studentId || '');
+  };
+  const handleSaveStudent = async (e, s) => {
+    e.stopPropagation();
+    await updateDoc(doc(db, 'profile', s.uid), {
+      name: editingStudentName.trim(),
+      studentId: editingStudentId.trim(),
+    });
+    setEditingStudentUid(null);
+  };
+  const handleCancelEditStudent = (e) => { e.stopPropagation(); setEditingStudentUid(null); };
 
   /* ── 生徒アカウント操作（スーパー管理者のみ） ── */
   const handleToggleStudent = async (s) => {
@@ -227,7 +264,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
 
   /* ── 新規登録用テンプレートDL ── */
   const handleDownloadNewTemplate = () => {
-    const content = '氏名,メールアドレス,パスワード\n山田太郎,yamada@example.com,pass1234\n鈴木花子,suzuki@example.com,pass5678';
+    const content = '氏名,学籍番号,メールアドレス,パスワード\n山田太郎,2024001,yamada@example.com,pass1234\n鈴木花子,2024002,suzuki@example.com,pass5678';
     const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -310,12 +347,19 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
     const ok = [], ng = [];
 
     for (const line of lines) {
-      const [name = '', email = '', password = ''] = line.split(',').map(s => s.trim());
+      const parts = line.split(',').map(s => s.trim());
+      let name, studentId, email, password;
+      if (parts.length >= 4) {
+        [name = '', studentId = '', email = '', password = ''] = parts;
+      } else {
+        [name = '', email = '', password = ''] = parts;
+        studentId = '';
+      }
       if (!email || !password) { ng.push(`${email || '(空)'}: データ不足`); continue; }
       try {
         const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         await setDoc(doc(db, 'profile', cred.user.uid), {
-          name, email, groupId: csvGroup, role: 'student',
+          name, ...(studentId && { studentId }), email, groupId: csvGroup, role: 'student', createdAt: Date.now(),
         });
         await fbSignOut(secondaryAuth);
         ok.push(name || email);
@@ -515,8 +559,18 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
 
                 {/* 生徒一覧 */}
                 <div style={card}>
-                  <div style={{ fontSize: '13px', fontWeight: '900', color: '#64748b', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <BookOpen size={14} color="#94a3b8"/> {T.studentStats}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '900', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <BookOpen size={14} color="#94a3b8"/> {T.studentStats}
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
+                      {[['recent', lang === 'en' ? 'Newest' : '最新順'], ['name', lang === 'en' ? 'Name' : '名前順']].map(([val, label]) => (
+                        <button key={val} onClick={() => setStudentSort(val)}
+                          style={{ padding: '4px 10px', borderRadius: '6px', border: 'none', fontSize: '11px', fontWeight: '900', cursor: 'pointer', background: studentSort === val ? 'white' : 'transparent', color: studentSort === val ? '#4f46e5' : '#94a3b8', boxShadow: studentSort === val ? '0 1px 4px rgba(0,0,0,0.06)' : 'none' }}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {students.length === 0 ? (
@@ -526,28 +580,54 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {/* ヘッダー行 */}
-                      <div style={{ display: 'grid', gridTemplateColumns: `1fr 60px 70px 70px 55px 55px${isSuperAdmin ? ' 60px' : ''}`, gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 55px 55px 80px', gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', fontSize: '10px', fontWeight: '900', color: '#94a3b8' }}>
                         <span>{T.colName}</span>
                         <span style={{ textAlign: 'center' }}>{T.colToday}</span>
                         <span style={{ textAlign: 'center' }}>{T.colWeek}</span>
                         <span style={{ textAlign: 'center' }}>{T.colMonth}</span>
                         <span style={{ textAlign: 'center' }}>{T.colVocab}</span>
                         <span style={{ textAlign: 'center' }}>{T.colCount}</span>
-                        {isSuperAdmin && <span style={{ textAlign: 'center' }}>{lang === 'en' ? 'Action' : '操作'}</span>}
+                        <span style={{ textAlign: 'center' }}>{lang === 'en' ? 'Action' : '操作'}</span>
                       </div>
 
-                      {students.map(s => {
+                      {[...students].sort((a, b) => {
+                        if (studentSort === 'recent') return (b.createdAt || 0) - (a.createdAt || 0);
+                        return (a.name || '').localeCompare(b.name || '', 'ja');
+                      }).map(s => {
                         const logs = allLogs.filter(l => l.uid === s.uid);
                         const st = calcStats(logs);
                         const isExp = expandedUid === s.uid;
+                        const isEditing = editingStudentUid === s.uid;
                         return (
                           <div key={s.uid}>
+                            {isEditing ? (
+                              /* 編集モード */
+                              <div onClick={e => e.stopPropagation()} style={{ padding: '10px', background: '#f0f4ff', borderRadius: '10px', border: '1.5px solid #c7d2fe', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <input autoFocus value={editingStudentName} onChange={e => setEditingStudentName(e.target.value)}
+                                  placeholder={lang === 'en' ? 'Name' : '氏名'}
+                                  style={{ flex: '1 1 100px', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid #c7d2fe', fontSize: '13px', fontWeight: '700', outline: 'none' }}/>
+                                <input value={editingStudentId} onChange={e => setEditingStudentId(e.target.value)}
+                                  placeholder={lang === 'en' ? 'Student ID' : '学籍番号'}
+                                  style={{ flex: '1 1 80px', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid #c7d2fe', fontSize: '13px', fontWeight: '700', outline: 'none' }}/>
+                                <button onClick={e => handleSaveStudent(e, s)}
+                                  style={{ padding: '6px 14px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '12px', cursor: 'pointer' }}>
+                                  {lang === 'en' ? 'Save' : '保存'}
+                                </button>
+                                <button onClick={handleCancelEditStudent}
+                                  style={{ padding: '6px 10px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '12px', cursor: 'pointer' }}>
+                                  ✕
+                                </button>
+                              </div>
+                            ) : (<>
                             <div onClick={() => setExpandedUid(isExp ? null : s.uid)}
-                              style={{ display: 'grid', gridTemplateColumns: `1fr 60px 70px 70px 55px 55px${isSuperAdmin ? ' 60px' : ''}`, gap: '8px', padding: '10px', background: s.disabled ? '#fff5f5' : isExp ? '#f0f4ff' : 'white', borderRadius: '10px', border: `1px solid ${s.disabled ? '#fecaca' : isExp ? '#c7d2fe' : '#f1f5f9'}`, cursor: 'pointer', alignItems: 'center' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              style={{ display: 'grid', gridTemplateColumns: '1fr 60px 70px 70px 55px 55px 80px', gap: '8px', padding: '10px', background: s.disabled ? '#fff5f5' : isExp ? '#f0f4ff' : 'white', borderRadius: '10px', border: `1px solid ${s.disabled ? '#fecaca' : isExp ? '#c7d2fe' : '#f1f5f9'}`, cursor: 'pointer', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                                 {isExp ? <ChevronDown size={12} color="#4f46e5"/> : <ChevronRight size={12} color="#94a3b8"/>}
-                                <span style={{ fontSize: '13px', fontWeight: '700', color: s.disabled ? '#ef4444' : '#1e293b', textDecoration: s.disabled ? 'line-through' : 'none' }}>{s.name || s.email || '（未設定）'}</span>
-                                {s.disabled && <span style={{ fontSize: '9px', background: '#fee2e2', color: '#ef4444', borderRadius: '4px', padding: '1px 5px', fontWeight: '900' }}>{lang === 'en' ? 'OFF' : '無効'}</span>}
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ fontSize: '13px', fontWeight: '700', color: s.disabled ? '#ef4444' : '#1e293b', textDecoration: s.disabled ? 'line-through' : 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name || s.email || '（未設定）'}</div>
+                                  {s.studentId && <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '600' }}>{s.studentId}</div>}
+                                </div>
+                                {s.disabled && <span style={{ fontSize: '9px', background: '#fee2e2', color: '#ef4444', borderRadius: '4px', padding: '1px 5px', fontWeight: '900', flexShrink: 0 }}>{lang === 'en' ? 'OFF' : '無効'}</span>}
                               </div>
                               {[st.day, st.week, st.month].map((v, i) => (
                                 <div key={i} style={{ textAlign: 'center', fontSize: '13px', fontWeight: '900', color: v > 0 ? '#4f46e5' : '#cbd5e1' }}>
@@ -558,19 +638,54 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                                 {st.vocabTotal > 0 ? `${st.vocabTotal}語` : '-'}
                               </div>
                               <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '900', color: '#64748b' }}>{st.count}</div>
-                              {isSuperAdmin && (
-                                <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                              {/* 操作ボタン（全管理者） */}
+                              <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '2px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                <button onClick={e => handleStartEditStudent(e, s)} title={lang === 'en' ? 'Edit' : '編集'}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#94a3b8' }}>
+                                  <Pencil size={13}/>
+                                </button>
+                                <button onClick={() => { setMsgStudentUid(msgStudentUid === s.uid ? null : s.uid); setMsgText(''); }} title={lang === 'en' ? 'Send message' : 'メッセージ送信'}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: msgStudentUid === s.uid ? '#4f46e5' : '#94a3b8' }}>
+                                  <MessageSquare size={13}/>
+                                </button>
+                                {isSuperAdmin && <>
                                   <button onClick={() => handleToggleStudent(s)} title={s.disabled ? (lang === 'en' ? 'Enable' : '有効化') : (lang === 'en' ? 'Disable' : '無効化')}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: s.disabled ? '#22c55e' : '#f59e0b' }}>
-                                    {s.disabled ? <ShieldCheck size={14}/> : <ShieldOff size={14}/>}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: s.disabled ? '#22c55e' : '#f59e0b' }}>
+                                    {s.disabled ? <ShieldCheck size={13}/> : <ShieldOff size={13}/>}
                                   </button>
                                   <button onClick={() => handleDeleteStudent(s)} title={lang === 'en' ? 'Delete' : '削除'}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', color: '#ef4444' }}>
-                                    <Trash2 size={14}/>
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '3px', color: '#ef4444' }}>
+                                    <Trash2 size={13}/>
+                                  </button>
+                                </>}
+                              </div>
+                            </div>
+                            {/* メッセージ入力エリア */}
+                            {msgStudentUid === s.uid && (
+                              <div onClick={e => e.stopPropagation()} style={{ margin: '4px 0 4px 20px', background: '#fffbeb', borderRadius: '10px', padding: '10px 12px', border: '1.5px solid #fde68a' }}>
+                                <div style={{ fontSize: '11px', fontWeight: '900', color: '#92400e', marginBottom: '6px' }}>
+                                  💬 {lang === 'en' ? `Message to ${s.name || s.email}` : `${s.name || s.email} へメッセージ`}
+                                </div>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <input
+                                    autoFocus
+                                    value={msgText}
+                                    onChange={e => setMsgText(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(s); if (e.key === 'Escape') setMsgStudentUid(null); }}
+                                    placeholder={lang === 'en' ? 'e.g. Keep it up! You can do it!' : '例：頑張ってください！応援しています！'}
+                                    style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1.5px solid #fcd34d', fontSize: '13px', outline: 'none', background: 'white' }}
+                                  />
+                                  <button onClick={() => handleSendMessage(s)} disabled={!msgText.trim()}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '7px 12px', background: msgText.trim() ? '#f59e0b' : '#e5e7eb', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '12px', cursor: msgText.trim() ? 'pointer' : 'not-allowed' }}>
+                                    <Send size={12}/> {lang === 'en' ? 'Send' : '送信'}
+                                  </button>
+                                  <button onClick={() => setMsgStudentUid(null)}
+                                    style={{ padding: '7px 10px', background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '8px', fontWeight: '900', fontSize: '12px', cursor: 'pointer' }}>
+                                    ✕
                                   </button>
                                 </div>
-                              )}
-                            </div>
+                              </div>
+                            )}
 
                             {/* 展開：最近のログ */}
                             {isExp && (
@@ -627,6 +742,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                                 )}
                               </div>
                             )}
+                            </>)}
                           </div>
                         );
                       })}
@@ -806,10 +922,13 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                 {lang === 'en' ? 'CSV format (header row optional)' : 'CSVフォーマット（1行目はヘッダー、不要なら省略可）'}
               </div>
               <code style={{ fontSize: '12px', color: '#4f46e5', fontWeight: '700' }}>
-                {lang === 'en' ? 'name, email, password' : '氏名, メールアドレス, パスワード'}
+                {lang === 'en' ? 'name, student ID, email, password' : '氏名, 学籍番号, メールアドレス, パスワード'}
               </code>
               <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                {lang === 'en' ? 'e.g. John, john@example.com, pass1234' : '例：山田太郎, yamada@example.com, pass1234'}
+                {lang === 'en' ? 'e.g. John, 2024001, john@example.com, pass1234' : '例：山田太郎, 2024001, yamada@example.com, pass1234'}
+              </div>
+              <div style={{ fontSize: '11px', color: '#b0bec5', marginTop: '2px' }}>
+                {lang === 'en' ? '* Student ID is optional (3-column format also accepted)' : '※ 学籍番号は省略可（3列形式にも対応）'}
               </div>
             </div>
 

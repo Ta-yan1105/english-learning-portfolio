@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メタ認知で英語学習が変わる｜最強の学習記録アプリの全貌</title>
+  <meta name="description" content="メタ認知研究に基づいた無料の英語学習ポートフォリオアプリ。生徒が自ら計画・モニタリング・振り返り・評価する力を育てます。教師向け管理パネルも搭載。">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #dbeafe;
+      --accent: #7c3aed;
+      --accent-light: #ede9fe;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --bg: #ffffff;
+      --bg-alt: #f8fafc;
+      --border: #e2e8f0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 2;
+      font-size: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #7c3aed 100%);
+      color: white;
+      padding: 70px 20px 50px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 1.9rem;
+      max-width: 700px;
+      margin: 0 auto 16px;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .hero .subtitle {
+      font-size: 1rem;
+      opacity: 0.9;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .lang-switch {
+      text-align: center;
+      padding: 12px 20px;
+      background: var(--primary-light);
+      font-size: 0.9rem;
+    }
+
+    .lang-switch a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .lang-switch a:hover { text-decoration: underline; }
+
+    .meta {
+      text-align: center;
+      padding: 18px 20px;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    article {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 36px 20px 70px;
+    }
+
+    h2 {
+      font-size: 1.45rem;
+      color: var(--primary);
+      margin: 46px 0 18px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      color: var(--accent);
+      margin: 32px 0 10px;
+    }
+
+    p { margin-bottom: 16px; }
+
+    .callout {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 18px 22px;
+      margin: 26px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.93rem;
+    }
+
+    .callout.accent {
+      background: var(--accent-light);
+      border-left-color: var(--accent);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--primary);
+    }
+
+    .callout.accent strong { color: var(--accent); }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 22px 0;
+    }
+
+    .feature-card {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .feature-card h4 {
+      font-size: 0.95rem;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 0.88rem;
+      margin-bottom: 0;
+      color: var(--text-light);
+    }
+
+    blockquote {
+      border-left: 3px solid var(--border);
+      padding: 12px 20px;
+      margin: 22px 0;
+      color: var(--text-light);
+      font-style: italic;
+      background: var(--bg-alt);
+      border-radius: 0 6px 6px 0;
+    }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.4rem; }
+      .feature-grid { grid-template-columns: 1fr; }
+      body { font-size: 15px; }
+      article { padding: 20px 16px 50px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>メタ認知で英語学習が変わる<br>最強の学習記録アプリの全貌</h1>
+  <p class="subtitle">「学び方を学ぶ」力を育てる ── シンプルな学習記録アプリが、なぜ最強のメタ認知ツールなのか。</p>
+</header>
+
+<div class="lang-switch">
+  📖 <a href="https://english-t24.com/the-ultimate-metacognitive-english-learning-app-for-teachers/">Read this article in English →</a>
+</div>
+
+<div class="meta">
+  西出 忠志 &nbsp;|&nbsp; 2026年4月 &nbsp;|&nbsp; 読了時間 約15分
+</div>
+
+<article>
+
+<p>
+英語教師として、ずっと気になっていたことがあります。同じ時間を勉強に費やしても、ぐんぐん伸びる生徒と伸び悩む生徒がいる。この差は才能でも教材でも、モチベーションですらない。私が10年以上の教壇経験と英検1級の取得を通じてたどり着いた答えは、<strong>メタ認知</strong> ── 自分自身の学びを客観的に捉え、コントロールする力でした。
+</p>
+
+<p>
+その信念から、ReactとFirebaseを使って英語学習ポートフォリオアプリを自作しました。見た目はシンプルな学習記録ツールです。学習時間を記録し、どのスキルを練習したか選び、ダッシュボードで振り返る。しかし、その裏には生徒のメタ認知的気づき（metacognitive awareness）とメタ認知的コントロール（metacognitive control）を育てるための設計思想が詰まっています。
+</p>
+
+<p>
+この記事では、なぜこのアプリが英語学習者にとって最強のメタ認知ツールなのかを、言語学習研究の知見と実際の教室での実践に基づいて解説します。
+</p>
+
+<h2>1. メタ認知とは何か ── 言語学習における重要性</h2>
+
+<p>
+まず用語を整理しましょう。Flavell（1979）が提唱したメタ認知には、言語習得において特に重要な2つの側面があります。
+</p>
+
+<p>
+<strong>メタ認知的知識（Metacognitive Knowledge）</strong>とは、自分自身の学習について知っていることです。「リーディングはまあまあだけど、リスニングが苦手」「例文を書くと単語を覚えやすい」「プレゼンと読解では準備の仕方が違う」── こうした自己理解がメタ認知的知識です。
+</p>
+
+<p>
+<strong>メタ認知的コントロール（Metacognitive Control）</strong>とは、学習を実際に管理・調整する力です。計画（「今日は25分リスニングをやろう」）、モニタリング（「集中力が落ちてきた、休憩しよう」）、評価（「週間データを見ると、スピーキングが足りていない」）の3つのフェーズから成ります。
+</p>
+
+<div class="callout">
+<strong>なぜメタ認知が言語学習で重要なのか？</strong>
+Oxford（1990）、O'Malley & Chamot（1990）、Vandergrift & Goh（2012）らの研究は、成功する言語学習者ほどメタ認知方略を多く使うことを一貫して示しています。メタ認知能力は、適性やモチベーションよりも言語学習の成功を予測する指標だと主張する研究者もいるほどです。
+</div>
+
+<p>
+問題は、ほとんどの言語学習アプリがメタ認知を完全に無視していることです。Duolingoはコンテンツ配信をゲーム化し、Ankiは間隔反復を最適化し、Grammarlyはライティングを添削します。どれも有用ですが、生徒が<em>自分の学習を俯瞰し、自ら調整する力</em>を育てるアプリはありません。生徒はずっと「助手席」に座ったままです。
+</p>
+
+<p>
+この英語学習ポートフォリオアプリは、生徒を「運転席」に座らせるために設計されています。
+</p>
+
+<h2>2. メタ認知的気づきを育てる ── 見えないものを見える化する</h2>
+
+<p>
+メタ認知を育てる上での最初の壁は、学習が目に見えないことです。生徒は自分がどれくらい勉強しているか、何が得意で何が苦手か、伸びているのかいないのか、驚くほど不正確な認識を持っています。ポートフォリオアプリは、この問題を複数の角度から攻めます。
+</p>
+
+<h3>2.1 7つのスキルカテゴリーシステム</h3>
+
+<p>
+学習セッションを記録する際、生徒は「英語の勉強をした」とだけ記録するのではありません。Reading、Listening、Speaking（発表・やり取り）、Writing、Vocabulary、Reading Aloud、Classの7つのスキルカテゴリーから選択します。各カテゴリーには固有の色とアイコンがあります。
+</p>
+
+<p>
+このシンプルなデザインには深いメタ認知的意味があります。学習を分類することを習慣化することで、Wenden（1998）が「person knowledge（自己知識）」と呼ぶもの ── 学習者としての自分への気づきが育ちます。生徒は英語を一つの塊として捉えるのをやめ、相互に関連した複数の能力の集合体として理解するようになります。
+</p>
+
+<p>
+実際に教室でこの変化を目の当たりにしてきました。以前は自分の英語力を単に「ダメ」と表現していた生徒が、「リーディングはまあまあだけど、スピーキングの練習をもっとしないと」と言い始めるのです。固定的な自己評価から、分化された行動可能な自己評価への転換 ── これがメタ認知的気づきの実践です。
+</p>
+
+<h3>2.2 集中度スライダー</h3>
+
+<p>
+学習を記録するたびに、生徒は0〜100%の集中度を自己評価するスライダーに出会います。これは意図的なメタ認知的プロンプトで、学習の<em>量</em>だけでなく<em>質</em>を振り返ることを促します。
+</p>
+
+<p>
+「勉強時間＝学習成果」という誤った等式に陥るのを防ぐ機能です。スマホを触りながら60分間フラッシュカードを眺めた生徒は、実質的には60分間勉強していません。集中度スライダーは、Schraw & Dennison（1994）が言う「モニタリング」スキル ── 自分の認知パフォーマンスを評価する力を育てます。
+</p>
+
+<p>
+数週間使い続けると、生徒は自分のデータにパターンを見出します。「朝の方が集中できる」「30分を超えると集中力が落ちる」。こうした気づきは自己調整の宝の山であり、生徒自身が集めたデータから自然に浮かび上がってきます。
+</p>
+
+<h3>2.3 振り返りフィールド</h3>
+
+<p>
+各記録には「学習内容や気づきを入力...」というプロンプト付きのテキストフィールドがあります。必須の作文ではなく、リフレクティブ・プラクティスへの穏やかな促しです。
+</p>
+
+<p>
+言語学習における振り返り日誌の研究（Matsumoto, 1996; Porto, 2007等）は、学習について書く行為がメタ認知的気づきを深めることを一貫して示しています。ポートフォリオアプリは、この実践を日々の記録習慣に組み込みます。別途ジャーナルを維持する必要はありません。
+</p>
+
+<p>
+特に効果的なのは、その配置です。振り返りフィールドは、スキルカテゴリーを選び、集中度を評価した<em>後</em>に表示されます。振り返りに到達する頃には、生徒はすでにメタ認知的な思考モードに入っているのです。アプリが思考プロセスを足場がけ（scaffold）しています。
+</p>
+
+<h2>3. メタ認知的コントロールを可能にする ── 3つのフェーズ</h2>
+
+<p>
+メタ認知的気づきが「知る」ことだとすれば、メタ認知的コントロールは「実行する」ことです。何を勉強するか計画し、進行中にモニタリングし、結果を評価する ── 学習のエグゼクティブ機能です。ポートフォリオアプリは3つのフェーズすべてをサポートします。
+</p>
+
+<h3>3.1 計画：効果的な学習の土台を作る</h3>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <h4>カスタマイズ可能なタイマー</h4>
+    <p>ポモドーロ式タイマー（デフォルト25分）で、学習時間を意図的に設定。ドラッグ操作で直感的に調整でき、計画が具体的な行動になります。</p>
+  </div>
+  <div class="feature-card">
+    <h4>学習前のスキル選択</h4>
+    <p>事前にスキルカテゴリーを選ぶことで、「何を練習するか」を意識的に決断する習慣が身につきます。</p>
+  </div>
+  <div class="feature-card">
+    <h4>カウントダウン付き目標設定</h4>
+    <p>英検やその他のテスト日を設定し、リアルタイムのカウントダウンを表示。7日以内は赤、30日以内は黄色で緊急度を可視化します。</p>
+  </div>
+  <div class="feature-card">
+    <h4>前回セッションのコピー</h4>
+    <p>「前回をコピー」ボタンで成功した学習計画を再利用。ランダムな練習ではなく、意図的なルーティン構築を促します。</p>
+  </div>
+</div>
+
+<p>
+計画フェーズは、多くの学習者が失敗するポイントです。意図的な計画がなければ、学習は最も楽で慣れた活動 ── たいていはすでに知っている内容の受動的な復習に流れます。ポートフォリオアプリは、計画を<em>デフォルトの行動</em>にします。スキルを選び、学習時間を決めなければ記録できません。計画はオプションではなく、エントリーポイントです。
+</p>
+
+<p>
+試験カウントダウン機能は特筆に値します。Dörnyei（2001）が「goal salience（目標の顕著性）」と呼ぶもの ── 目標に向かい続けるための持続的で低レベルの意識を生み出します。不安を煽るためではなく、目的意識のある方向性を維持するためです。アプリを開くたびに「英検まであと47日」と表示されることで、今日の学習を大きな目標と結びつけて考えるようになります。
+</p>
+
+<h3>3.2 モニタリング：学習中のリアルタイムな気づき</h3>
+
+<p>
+モニタリング ── 学習中に自分の認知パフォーマンスを追跡すること ── は、おそらく最も難しいメタ認知スキルです。心理学者が「二重処理」と呼ぶもの、つまり課題に取り組みながら同時に自分自身を観察することが求められます。ポートフォリオアプリは、これに対するいくつかの足場がけを提供します。
+</p>
+
+<p>
+<strong>ブラウザタブ更新付きのライブタイマー</strong>は、学習時間を常に可視化します。YouTube動画を観たり記事を読んだりして別のタブに切り替えても、ブラウザのタブタイトルにカウントダウンが表示されます（例：「(17:32) BLUEPRINT LOG」）。「今、学習セッション中で時計が動いている」という外部モニタリングの手がかりとして機能します。
+</p>
+
+<p>
+<strong>ラップ記録機能</strong>はモニタリングをさらに一歩進めます。学習中にラップボタンを押して活動の切り替えを記録できます。Winne & Hadwin（1998）が「calibration（較正）」と呼ぶもの ── 計画通りに学習できたかの継続的な比較を促します。
+</p>
+
+<p>
+<strong>画面スリープ防止</strong>も重要な設計判断です。タイマー中にデバイスがスリープしないことで、学習環境が維持されます。画面ロック解除という小さな意思決定の負荷を減らし、集中の文脈を保ちます。
+</p>
+
+<div class="callout accent">
+<strong>設計上の重要原則</strong>
+このアプリのモニタリング機能は、意図的に非侵入的に設計されています。ポップアップで質問したり、強制的なチェックインをしたりしません。代わりに、学習者が必要なときに利用できる「環境的な気づき」を提供します。Sweller（1988）が指摘した認知負荷の制約を尊重しています ── モニタリングツールが、守るべき注意力そのものを消費してはいけません。
+</div>
+
+<h3>3.3 評価：データから意味を読み取る</h3>
+
+<p>
+ここがポートフォリオアプリの真骨頂です。ダッシュボードは、生の学習データを実行可能なメタ認知的洞察に変換する多層的な評価ツールを提供します。
+</p>
+
+<p>
+<strong>4つのタイムフレーム表示</strong> ── 日・週・月・年 ── で、異なる粒度で学習を評価できます。日次は「今日、計画通り勉強できたか？」、週次は「平日はスピーキング練習をサボりがちだな」、月次は「合計時間が増えている」、年次は「今年、7つのスキルで合計340時間勉強した」。
+</p>
+
+<p>
+<strong>スキル別カラーチャート</strong>は、スキル配分を一目で可視化します。「バランスよく勉強している」と思っていた生徒が、実は70%が語彙とリーディングに費やされ、スピーキングとライティングがほぼゼロだと気づく。教師がどれだけ講義しても、自分のデータが示す客観的な事実ほど説得力のあるものはありません。
+</p>
+
+<p>
+<strong>ストリーク（連続学習日数）トラッキング</strong>は、シンプルながら強力な評価指標です。分散学習の研究（Cepeda et al., 2006）は、定期的・分散的な学習が詰め込み学習よりもはるかに優れた長期記憶を生むことを示しています。ストリークカウンターは、一貫性を可視化し、価値あるものにします。
+</p>
+
+<!-- メタ認知サイクル図 -->
+<div style="background:var(--bg-alt);border:1px solid var(--border);border-radius:12px;padding:28px;margin:28px 0;text-align:center;">
+  <div style="font-weight:700;color:var(--primary);margin-bottom:14px;font-size:1rem;">ポートフォリオアプリにおけるメタ認知コントロールサイクル</div>
+  <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;font-size:0.9rem;">
+    <span style="background:var(--primary);color:white;padding:8px 16px;border-radius:20px;font-weight:600;font-size:0.85rem;">計画<br><small>タイマー＋スキル選択</small></span>
+    <span style="color:var(--primary);font-size:1.2rem;font-weight:bold;">→</span>
+    <span style="background:var(--primary);color:white;padding:8px 16px;border-radius:20px;font-weight:600;font-size:0.85rem;">実行<br><small>タイマー学習</small></span>
+    <span style="color:var(--primary);font-size:1.2rem;font-weight:bold;">→</span>
+    <span style="background:var(--primary);color:white;padding:8px 16px;border-radius:20px;font-weight:600;font-size:0.85rem;">モニタリング<br><small>ラップ＋集中度</small></span>
+    <span style="color:var(--primary);font-size:1.2rem;font-weight:bold;">→</span>
+    <span style="background:var(--primary);color:white;padding:8px 16px;border-radius:20px;font-weight:600;font-size:0.85rem;">振り返り<br><small>リフレクション記入</small></span>
+    <span style="color:var(--primary);font-size:1.2rem;font-weight:bold;">→</span>
+    <span style="background:var(--primary);color:white;padding:8px 16px;border-radius:20px;font-weight:600;font-size:0.85rem;">評価<br><small>ダッシュボード分析</small></span>
+    <span style="color:var(--primary);font-size:1.2rem;font-weight:bold;">↩</span>
+  </div>
+</div>
+
+<p>
+アプリが完全なメタ認知コントロールのループを生み出していることに注目してください。各学習セッションは計画（タイマー設定＋スキル選択）から始まり、モニタリングの支援を受けながら実行し（ライブタイマー＋ラップ）、即座の振り返り（集中度評価＋リフレクション）を含み、長期的な評価（ダッシュボード分析）にフィードバックされます。そして評価データが次の計画フェーズに情報を提供し、サイクルが完成します。
+</p>
+
+<p>
+これは偶然ではありません。Zimmerman（2002）が提唱した自己調整学習モデル ── 事前思考・パフォーマンス・自己省察の循環的プロセスを忠実に再現しています。ポートフォリオアプリは、この抽象的なサイクルをデジタルツールとして外在化し、具体的で習慣的なものにしています。
+</p>
+
+<h2>4. 言語学習との接点 ── なぜ英語学習に特に効果的なのか</h2>
+
+<p>
+「どんな学習記録ツールでも同じことができるのでは？」と思うかもしれません。このアプリが<em>言語</em>学習に特に効果的な理由は、第二言語習得（SLA）の具体的な課題との交差点にあります。
+</p>
+
+<h3>4.1 スキルの偏り問題への対処</h3>
+
+<p>
+日本の英語教育における最も根深い問題の一つが、スキルの偏りです。生徒はリーディングや文法に膨大な時間を費やす一方、スピーキングやリスニングにはほとんど時間をかけません。スピーキングの重要性を知らないからではなく、自分の練習配分に対するメタ認知的気づきが欠けているからです。
+</p>
+
+<p>
+ポートフォリオアプリのカラーコード付きスキル別チャートは、この偏りを見て見ぬふりすることを不可能にします。月間ダッシュボードを開いて、青（Reading）と紫（Vocabulary）ばかりで赤（Speaking）や緑（Listening）がほぼない状態を目にすれば、データが全てを語ります。
+</p>
+
+<h3>4.2 Nation の Four Strands との対応</h3>
+
+<p>
+Paul Nation（2007）の「Four Strands（4本の柱）」理論は、効果的な言語学習プログラムは4つの要素をバランスよく含むべきだと主張しています。ポートフォリオアプリの7つのスキルカテゴリーは、この理論と自然に対応します。
+</p>
+
+<!-- Four Strands テーブル -->
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:22px 0;">
+<table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.07);font-size:0.9rem;">
+  <thead>
+    <tr>
+      <th style="background:#3b82f6;color:#fff;padding:14px 18px;text-align:left;font-weight:700;">Nationの4本の柱</th>
+      <th style="background:#3b82f6;color:#fff;padding:14px 18px;text-align:left;font-weight:700;">アプリのカテゴリー</th>
+      <th style="background:#3b82f6;color:#fff;padding:14px 18px;text-align:left;font-weight:700;">メタ認知的メリット</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">意味重視のインプット</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;">
+        <span style="display:inline-block;background:#dbeafe;color:#2563eb;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;margin:2px;">Reading</span>
+        <span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;margin:2px;">Listening</span>
+      </td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">受容スキルの発達を個別に追跡</td>
+    </tr>
+    <tr style="background:#f8fafc;">
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">意味重視のアウトプット</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;">
+        <span style="display:inline-block;background:#ffe4e6;color:#e11d48;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;margin:2px;">Speaking</span>
+        <span style="display:inline-block;background:#fef3c7;color:#d97706;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;margin:2px;">Writing</span>
+      </td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">アウトプット練習が可視化・計測可能に</td>
+    </tr>
+    <tr>
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">言語重視の学習</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;">
+        <span style="display:inline-block;background:#ede9fe;color:#7c3aed;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;margin:2px;">Vocabulary</span>
+        <span style="display:inline-block;background:#ffedd5;color:#ea580c;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;margin:2px;">Class</span>
+      </td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">意図的な学習に専用の記録カテゴリー</td>
+    </tr>
+    <tr style="background:#f8fafc;">
+      <td style="padding:14px 18px;font-weight:700;">流暢さの発達</td>
+      <td style="padding:14px 18px;">
+        <span style="display:inline-block;background:#cffafe;color:#0891b2;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;margin:2px;">Reading Aloud</span>
+      </td>
+      <td style="padding:14px 18px;color:#64748b;">流暢さの練習と正確さの練習を区別</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+ダッシュボードでこれらの柱が可視化されることで、生徒も教師も、SLAの原則に沿ったバランスの取れた学習プログラムになっているかを評価できます ── 理論を明示的に教える必要すらなく。
+</p>
+
+<h3>4.3 語彙カウント機能</h3>
+
+<p>
+Vocabularyカテゴリーを選択すると、学習した単語数を記録する特別なカウンターが表示されます。時間の経過とともに累積語彙数が蓄積され、日々の学習を長期的な語彙成長と結びつけます。
+</p>
+
+<p>
+Nation（2006）は、快適な読解力には約8,000〜9,000語族が必要だと推定しています。語彙入力を追跡することで、抽象的な目標が具体的なベンチマークにつながります。
+</p>
+
+<h3>4.4 スピーキングのサブカテゴリー</h3>
+
+<p>
+アプリは2種類のスピーキング練習を区別します：発表（Presentation）とやり取り（Interaction）。この区別はCEFRの「spoken production」と「spoken interaction」の分離を反映しており、根本的に異なる能力で、異なる練習方法を必要とします。
+</p>
+
+<p>
+スピーチコンテストの準備が必要な生徒には発表練習が、会話で固まってしまう生徒にはやり取り練習が必要です。この違いをアプリのカテゴリーシステムが明示化します。
+</p>
+
+<h2>5. 教師のためのメタ認知ツールキット</h2>
+
+<p>
+メタ認知は孤立して発達するものではありません。教師はメタ認知コーチとして重要な役割を果たします。ポートフォリオアプリの管理者パネルは、その役割を支える強力なツールを教師に提供します。
+</p>
+
+<h3>5.1 生徒モニタリングダッシュボード</h3>
+
+<p>
+教師は個々の生徒データ ── 今日の学習時間、週間合計、月間合計、語彙蓄積、最近の記録 ── を閲覧できます。これは監視ではなく、生徒とメタ認知的な対話をするために教師が必要とするデータです。
+</p>
+
+<p>
+「ちゃんと勉強してる？」（不正直を誘う質問）ではなく、「今週、リーディングは45分やってるけど、リスニングはゼロだね。バランスを取る計画は？」と聞ける。会話が「管理」から「方略」へ、行動管理からメタ認知コーチングへシフトします。
+</p>
+
+<h3>5.2 グループレベルの分析</h3>
+
+<p>
+グループ概要機能で、クラス全体のパターンを把握できます。クラス全体がライティング練習を怠っていれば、指導を調整するシグナルです。ストリークが途切れた生徒がいれば、サポート的な声かけのきっかけです。Hattie（2009）が「visible learning（見える学習）」と呼ぶもの ── 学習プロセスを教師と生徒の双方に透明にすることを実現します。
+</p>
+
+<h3>5.3 CSV エクスポートによる深い分析</h3>
+
+<p>
+生徒データをCSV形式でエクスポートし、ExcelやGoogle Sheetsで詳細分析が可能です。トレンド分析、比較チャート、集中度と成果の相関研究など、より高度なメタ認知的フィードバックの可能性が広がります。
+</p>
+
+<h2>6. メタ認知に奉仕するゲーミフィケーション</h2>
+
+<p>
+多くの学習アプリはゲーミフィケーションでユーザーを引き留めます。ポイント、バッジ、ストリーク、リーダーボードがドーパミンループを生み出します。しかし暗い面もあります：ゲーミフィケーションが目的化すると、学習者は学習ではなく報酬のために最適化します。
+</p>
+
+<p>
+ポートフォリオアプリは根本的に異なるアプローチを取ります。ストリークカウンター、紙吹雪のお祝い、賞賛メッセージ、進捗の可視化 ── これらのゲーミフィケーション要素は、メタ認知的行動を<em>強化する</em>ために設計されており、代替するものではありません。
+</p>
+
+<p>
+ストリークカウンターは学習時間やスキル完了数ではなく、<em>一貫性</em> ── 毎日現れて学習プロセスに取り組むというメタ認知的行動に報酬を与えます。10分の集中リスニングでも2時間でも、同じストリーククレジットです。
+</p>
+
+<p>
+紙吹雪のお祝いは、記録保存時 ── つまり学習時間の計測、スキル選択、集中度評価、振り返り記入というメタ認知サイクル全体を完了したときにトリガーされます。報酬はリフレクティブ・プロセスそのものに紐づいています。正答やレッスン完了にではありません。アプリは自己調整そのものをゲーミファイしているのです。
+</p>
+
+<blockquote>
+最高のゲーミフィケーションは、学習をゲームのように感じさせるものではない。<em>自分の学習を管理するプロセス</em>にやりがいを感じさせるものだ。
+</blockquote>
+
+<h2>7. 他のアプリとの違い</h2>
+
+<!-- 比較テーブル -->
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:22px 0;">
+<table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.07);font-size:0.9rem;">
+  <thead>
+    <tr>
+      <th style="background:#3b82f6;color:#fff;padding:14px 18px;text-align:left;font-weight:700;width:22%;">観点</th>
+      <th style="background:#3b82f6;color:#fff;padding:14px 18px;text-align:left;font-weight:700;width:34%;">一般的なアプリ</th>
+      <th style="background:#3b82f6;color:#fff;padding:14px 18px;text-align:left;font-weight:700;width:44%;">ポートフォリオアプリ</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">学習モデル</td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">コンテンツ配信（レッスン、ドリル）</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">自己調整学習サイクル</span></td>
+    </tr>
+    <tr style="background:#f8fafc;">
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">生徒の役割</td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">既製コンテンツの消費者</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">自分の学習の設計者</span></td>
+    </tr>
+    <tr>
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">データの主権</td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">アプリが裏で追跡</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">生徒が自らデータを生成・解釈</span></td>
+    </tr>
+    <tr style="background:#f8fafc;">
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">スキルモデル</td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">単一の「レベル」や「スコア」</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">7つのカラーコード付きスキル次元</span></td>
+    </tr>
+    <tr>
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">質への着目</td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">勉強時間＝進歩</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">集中度評価で時間と注意を区別</span></td>
+    </tr>
+    <tr style="background:#f8fafc;">
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">振り返り</td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">なし or オプションの日誌</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">毎回の記録に組み込み</span></td>
+    </tr>
+    <tr>
+      <td style="padding:14px 18px;font-weight:700;border-bottom:1px solid #e2e8f0;">教師との連携</td>
+      <td style="padding:14px 18px;color:#64748b;border-bottom:1px solid #e2e8f0;">別の教師用画面 or なし</td>
+      <td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">ロールベースの統合システム</span></td>
+    </tr>
+    <tr style="background:#f8fafc;">
+      <td style="padding:14px 18px;font-weight:700;">ゲーミフィケーション対象</td>
+      <td style="padding:14px 18px;color:#64748b;">コンテンツの完了</td>
+      <td style="padding:14px 18px;"><span style="display:inline-block;background:#dcfce7;color:#16a34a;padding:2px 10px;border-radius:12px;font-size:0.82rem;font-weight:600;">メタ認知的行動（一貫性、振り返り）</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+根本的な哲学の違いはこれです：ほとんどの言語学習アプリは、英語を生徒<em>に</em>教えようとします。ポートフォリオアプリは、生徒が<em>自分で自分に</em>英語を教える方法を教えます。メタツール ── より良い学習者になるためのツールであり、たまたま英語のスキルを軸に整理されているのです。
+</p>
+
+<h2>8. 研究的裏付け ── このアプローチが機能する理由</h2>
+
+<p>
+「最強」と主張する以上、その設計原則を支持する研究に触れないわけにはいきません。
+</p>
+
+<p>
+<strong>メタ認知と言語能力</strong> ── Purpura（1997）は、メタ認知方略の使用が第二言語テストのパフォーマンスに有意な正の効果を持ち、その一部は認知方略の使用への影響を通じて作用することを発見しました。メタ認知は学習を助けるだけでなく、他の学習方略をより効果的に使う力を高めるのです。
+</p>
+
+<p>
+<strong>自己調整学習と成績</strong> ── Zimmerman & Schunk（2011）は、自己調整学習者が一貫して仲間を上回ること、そして自己調整は足場がけされた実践を通じて教えられることを示しました。ポートフォリオアプリはまさにそのような足場がけを提供しています。
+</p>
+
+<p>
+<strong>学習ログとメタ認知の発達</strong> ── Matsumoto（1996）は、学習ログを維持した学習者がそうでない学習者よりも有意にメタ認知的気づきを発達させたことを示しました。ポートフォリオアプリは学習ログの概念をデジタル化・強化し、紙のジャーナルにはない構造（カテゴリー、集中度評価）を加えています。
+</p>
+
+<p>
+<strong>視覚的フィードバックと自己調整</strong> ── Butler & Winne（1995）は、内部フィードバック ── 実際のパフォーマンスと基準との比較 ── が自己調整のエンジンだと論じました。ダッシュボードはこの内部フィードバックの外部表現を提供し、比較プロセスを明示的でデータ駆動的なものにします。
+</p>
+
+<p>
+<strong>分散学習</strong> ── ストリークシステムは毎日の学習を促し、分散学習が詰め込み学習よりも優れた長期記憶を生むという数十年の研究（Cepeda et al., 2006）と一致しています。
+</p>
+
+<h2>9. 実践報告 ── 教室でどう使っているか</h2>
+
+<p>
+理論はわかった、でも本当に教室で機能するのか？ 私が中学校の英語の授業でポートフォリオアプリを実際にどう使っているかを紹介します。
+</p>
+
+<p>
+<strong>導入（第1週）：</strong>管理者パネルのCSV一括登録機能で生徒アカウントを作成します。1コマ使ってプロフィール設定、試験目標の設定、練習記録を行います。各要素を説明しながら、メタ認知スキルを明示的に名前付けします：「スキルカテゴリーを選ぶとき、君は計画を立てている。集中度を評価するとき、自分をモニタリングしている。」
+</p>
+
+<p>
+<strong>日常的な利用：</strong>生徒は家庭で英語学習を記録します。所要時間は約60秒。最初は「語彙を勉強した」程度の振り返りですが、数週間で「辞書なしでニュース記事を読んでみたら、約60%理解できた。文脈から意味を推測する力をもっとつけないと」のように豊かになっていきます。
+</p>
+
+<p>
+<strong>週次チェックイン：</strong>毎週月曜日、5分間で生徒に週間ダッシュボードを見させます。3つの質問をします：「スキル別の練習はバランスが取れていた？」「集中度は安定していた？」「今週の計画は？」 これらはメタ認知コントロールの評価と計画フェーズに直接対応しています。
+</p>
+
+<p>
+<strong>月次面談：</strong>月に一度、個々の生徒データを引き出して短い1対1の対話をします。これは変革的です。「たくさん勉強している」と思っていた生徒が、平均12分/日だったと知る。「英語がダメ」だと思っていた生徒が、一貫性が劇的に向上していることに気づく。漠然とした感覚を、具体的で実行可能な洞察に置き換えるのがデータの力です。
+</p>
+
+<h2>10. メタ認知を支える設計上の判断</h2>
+
+<p>
+一見些細に見えて、実はメタ認知に大きな影響を与える設計判断をいくつか挙げます。
+</p>
+
+<p>
+<strong>日英バイリンガルインターフェース</strong> ── アプリは日本語と英語の両方をサポートしています。記録プロセス中の認知負荷を軽減します。学習の振り返りに集中したいときに、インターフェースの言語で苦労すべきではありません。
+</p>
+
+<p>
+<strong>モバイルファーストのレスポンシブデザイン</strong> ── 生徒はスマホで学習します。モバイル対応でなければ使いません。メタ認知的な記録習慣を、生徒の実際の生活に合わせます。
+</p>
+
+<p>
+<strong>Firebaseによるリアルタイム同期</strong> ── どのデバイスからでも記録でき、データは即座に反映されます。「あとで記録しよう」── ほとんど実現されない約束を排除します。メタ認知的振り返りは学習体験に近いタイミングで行われるほど価値があり、リアルタイム同期はその即時性を支えます。
+</p>
+
+<p>
+<strong>「授業」カテゴリーの50分自動設定</strong> ── 「Class」を選択すると、タイマーが自動的に50分（日本の標準的な授業時間）に設定されます。授業中の学習を記録する際の摩擦を減らし、教室での学習と家庭学習の両方がデータに含まれる完全な学習像を作ります。
+</p>
+
+<!-- 結論ボックス -->
+<div style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 60%,#4f46e5 100%);color:#fff;border-radius:16px;padding:48px 40px;margin:46px 0 0;box-shadow:0 8px 32px rgba(37,99,235,0.25);">
+  <p style="font-size:24px;font-weight:800;margin:0 0 24px;line-height:1.4;color:#fff;border:none;background:none;padding:0;">結論：生徒に「釣り方」を教える</p>
+  <p style="font-size:15px;line-height:1.9;margin:0 0 18px;color:#fff;opacity:0.95;background:none;border:none;padding:0;">
+    古い格言があります：「魚を与えれば一日食べられる。釣り方を教えれば一生食べられる。」 ほとんどの言語学習アプリは生徒に魚を与えます ── 既製のレッスン、アルゴリズムが選んだフラッシュカード、自動採点の演習。それぞれの場所があります。
+  </p>
+  <p style="font-size:15px;line-height:1.9;margin:0 0 18px;color:#fff;opacity:0.95;background:none;border:none;padding:0;">
+    しかし、英語学習ポートフォリオアプリは生徒に釣り方を教えます。学習者が自分自身の言語習得の旅を管理するために必要なメタ認知的気づきとコントロールを育てます ── 学校にいる間だけでなく、一生涯にわたって。
+  </p>
+  <p style="font-size:15px;line-height:1.9;margin:0 0 18px;color:#fff;opacity:0.95;background:none;border:none;padding:0;">
+    生徒が自分のデータを見て、スキルのギャップを特定し、それに対応する学習セッションを計画し、練習中の集中力をモニタリングし、学んだことを振り返り、時間をかけて進捗を評価できるようになったとき ── その生徒は、次に何を勉強すべきかアプリに教えてもらう必要はありません。自分自身の最高の教師になったのです。
+  </p>
+  <p style="font-size:16px;line-height:1.9;margin:0;font-weight:600;border-top:1px solid rgba(255,255,255,0.2);padding-top:18px;color:#fff;background:none;">
+    そしてそれこそが、あらゆる教育ツールの究極の目標だと私は信じています：自分自身を不要にすること。
+  </p>
+</div>
+
+<!-- アプリ紹介CTA -->
+<div style="background:#f8fafc;border-radius:20px;padding:48px 36px;text-align:center;border:1px solid #e2e8f0;margin-top:36px;">
+  <p style="font-size:12px;font-weight:700;letter-spacing:2px;color:#6366f1;text-transform:uppercase;margin:0 0 18px;background:none;border:none;padding:0;">教育者の方は無料でご利用いただけます</p>
+  <p style="font-size:34px;font-weight:900;color:#1e293b;line-height:1.2;margin:0 0 4px;background:none;border:none;padding:0;">Master English.</p>
+  <p style="font-size:34px;font-weight:900;line-height:1.2;margin:0 0 22px;background:none;border:none;padding:0;">
+    <span style="background:linear-gradient(to right,#22d3ee,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Build Your Portfolio.</span>
+  </p>
+  <p style="font-size:15px;color:#64748b;max-width:500px;margin:0 auto 32px;line-height:1.75;background:none;border:none;padding:0;">
+    メタ認知研究に基づいた唯一の英語学習アプリ。生徒が自ら計画・モニタリング・振り返り・評価する力を育て、持続的な英語力を支える自己調整スキルを構築します。
+  </p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;margin:0 0 32px;text-align:center;">
+    <div style="background:#fff;border-radius:14px;padding:22px 14px;border:1px solid #e2e8f0;">
+      <div style="font-size:26px;margin-bottom:6px;">🎯</div>
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px;">計画・目標設定</div>
+      <div style="font-size:11px;color:#94a3b8;line-height:1.5;">ポモドーロタイマー、試験カウントダウン、7スキルカテゴリー選択</div>
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:22px 14px;border:1px solid #e2e8f0;">
+      <div style="font-size:26px;margin-bottom:6px;">📊</div>
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px;">記録・振り返り</div>
+      <div style="font-size:11px;color:#94a3b8;line-height:1.5;">集中度評価、リフレクション付き学習ログ、ストリーク追跡</div>
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:22px 14px;border:1px solid #e2e8f0;">
+      <div style="font-size:26px;margin-bottom:6px;">🧠</div>
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px;">評価・成長</div>
+      <div style="font-size:11px;color:#94a3b8;line-height:1.5;">マルチタイムフレームダッシュボード、スキルバランスチャート、データエクスポート</div>
+    </div>
+  </div>
+  <div style="background:linear-gradient(135deg,#ede9fe,#dbeafe);border-radius:12px;padding:18px 22px;margin:0 0 32px;text-align:left;display:flex;align-items:flex-start;gap:12px;">
+    <span style="font-size:20px;flex-shrink:0;margin-top:2px;">👩‍🏫</span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#4f46e5;margin-bottom:4px;">教師向け機能も充実</div>
+      <div style="font-size:12px;color:#475569;line-height:1.6;">グループ管理、リアルタイム生徒モニタリング、一括アカウント作成、CSVエクスポートなど、メタ認知コーチングに必要なすべてを搭載。</div>
+    </div>
+  </div>
+  <a href="https://app.english-t24.com/" target="_blank" rel="noopener noreferrer"
+     style="display:inline-flex;align-items:center;gap:10px;background:#4f46e5;color:#fff;font-size:16px;font-weight:700;padding:14px 40px;border-radius:14px;text-decoration:none;box-shadow:0 4px 20px rgba(79,70,229,0.35);">
+    無料で試してみる
+    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+  </a>
+  <p style="font-size:11px;color:#94a3b8;margin:12px 0 0;background:none;border:none;padding:0;">クレジットカード不要。どのデバイスでも利用可能。</p>
+</div>
+
+<h2>参考文献</h2>
+
+<p style="font-size: 0.85rem; line-height: 1.7; color: var(--text-light);">
+Butler, D. L., &amp; Winne, P. H. (1995). Feedback and self-regulated learning: A theoretical synthesis. <em>Review of Educational Research</em>, 65(3), 245–281.<br><br>
+Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., &amp; Rohrer, D. (2006). Distributed practice in verbal recall tasks. <em>Review of General Psychology</em>, 10(4), 354–380.<br><br>
+Dörnyei, Z. (2001). <em>Motivational strategies in the language classroom</em>. Cambridge University Press.<br><br>
+Flavell, J. H. (1979). Metacognition and cognitive monitoring. <em>American Psychologist</em>, 34(10), 906–911.<br><br>
+Hattie, J. (2009). <em>Visible learning</em>. Routledge.<br><br>
+Matsumoto, K. (1996). Helping L2 learners reflect on classroom learning. <em>ELT Journal</em>, 50(2), 143–149.<br><br>
+Nation, I. S. P. (2006). How large a vocabulary is needed for reading and listening? <em>Canadian Modern Language Review</em>, 63(1), 59–82.<br><br>
+Nation, I. S. P. (2007). The four strands. <em>Innovation in Language Learning and Teaching</em>, 1(1), 2–13.<br><br>
+O'Malley, J. M., &amp; Chamot, A. U. (1990). <em>Learning strategies in second language acquisition</em>. Cambridge University Press.<br><br>
+Oxford, R. (1990). <em>Language learning strategies: What every teacher should know</em>. Heinle &amp; Heinle.<br><br>
+Porto, M. (2007). Learning diaries in the English as a foreign language classroom. <em>ELT Journal</em>, 61(4), 335–343.<br><br>
+Purpura, J. E. (1997). An analysis of the relationships between test takers' cognitive and metacognitive strategy use and second language test performance. <em>Language Learning</em>, 47(2), 289–325.<br><br>
+Schraw, G., &amp; Dennison, R. S. (1994). Assessing metacognitive awareness. <em>Contemporary Educational Psychology</em>, 19(4), 460–475.<br><br>
+Sweller, J. (1988). Cognitive load during problem solving. <em>Cognitive Science</em>, 12(2), 257–285.<br><br>
+Vandergrift, L., &amp; Goh, C. C. M. (2012). <em>Teaching and learning second language listening: Metacognition in action</em>. Routledge.<br><br>
+Wenden, A. L. (1998). Metacognitive knowledge and language learning. <em>Applied Linguistics</em>, 19(4), 515–537.<br><br>
+Winne, P. H., &amp; Hadwin, A. F. (1998). Studying as self-regulated learning. In D. J. Hacker, J. Dunlosky, &amp; A. C. Graesser (Eds.), <em>Metacognition in educational theory and practice</em> (pp. 277–304). Erlbaum.<br><br>
+Zimmerman, B. J. (2002). Becoming a self-regulated learner: An overview. <em>Theory into Practice</em>, 41(2), 64–70.<br><br>
+Zimmerman, B. J., &amp; Schunk, D. H. (2011). <em>Handbook of self-regulation of learning and performance</em>. Routledge.
+</p>
+
+</article>
+
+</body>
+</html>
