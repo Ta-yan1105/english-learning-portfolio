@@ -127,3 +127,6 @@
   .date-item, .name-item { border-right: none; padding-right: 0; border-bottom: 2px dashed #e2e8f0; padding-bottom: 10px; justify-content: space-between; }
   .exam-item { justify-content: space-between; }
 }
+
+/* コンテンツ幅を超えた左右の余白にも背景色を広げる */
+body, #root { background-color: #f4f7fa; }

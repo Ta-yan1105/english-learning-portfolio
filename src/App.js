@@ -404,7 +404,7 @@ export default function App() {
   );
 
   return (
-    <div style={{ width: '100%', padding: isMobile ? '16px 0' : '24px 0', backgroundColor: '#f4f7fa', minHeight: '100vh', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
+    <div style={{ maxWidth: '1024px', /* 狭めるなら 900px */ margin: '0 auto', width: '100%', padding: isMobile ? '16px 16px' : '24px 20px', minHeight: '100vh', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
 
       <style>{`
         @keyframes popIn {
