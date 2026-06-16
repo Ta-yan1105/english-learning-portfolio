@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   Activity, Sun, Calendar, CalendarDays,
-  TrendingUp, Clock, Flame,
+  TrendingUp, Clock, Flame, BookOpen,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -77,6 +77,22 @@ export default function Dashboard({
     return [];
   }, [selectedRange, logs, date]);
 
+  const vocabStats = useMemo(() => {
+    const todayStr = getLocalDateString(new Date());
+    const ws = (() => { const d = new Date(); d.setHours(0,0,0,0); const day = d.getDay() || 7; if (day !== 1) d.setDate(d.getDate() - day + 1); return d; })();
+    const ms = (() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; })();
+    let day = 0, week = 0, month = 0, total = 0;
+    logs.forEach(l => {
+      const v = Number(l.vocabCount) || 0;
+      total += v;
+      if (l.date === todayStr) day += v;
+      const ld = new Date(l.date + 'T00:00:00');
+      if (ld >= ws) week += v;
+      if (ld >= ms) month += v;
+    });
+    return { day, week, month, total };
+  }, [logs]);
+
   const card   = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', boxSizing: 'border-box', width: '100%' };
   const hStyle = { fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' };
   const tabStyle = (r) => ({
@@ -93,14 +109,41 @@ export default function Dashboard({
     const total = payload[0].payload.value;
     if (selectedRange === 'day') {
       const d = payload[0].payload;
+      const dayVocab = logs.filter(l => l.date === date && (l.categories || []).includes('Vocabulary'))
+        .reduce((a, l) => a + (Number(l.vocabCount) || 0), 0);
       return (
         <div style={{ background: 'white', padding: '10px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 'bold' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: d.color }}>
             <span>{d.name}</span><span>{formatMinutes(d.value)}{getUnit(d.value)}</span>
           </div>
+          {dayVocab > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: '#c084fc', marginTop: '4px' }}>
+              <span>{lang === 'en' ? 'Vocab' : '単語'}</span><span>{dayVocab}{lang === 'en' ? ' words' : '語'}</span>
+            </div>
+          )}
         </div>
       );
     }
+    const periodVocab = (() => {
+      if (selectedRange === 'week') {
+        const base = new Date(date + 'T00:00:00');
+        const idx  = base.getDay() || 7;
+        const start = new Date(base);
+        if (idx !== 1) start.setDate(base.getDate() - idx + 1);
+        const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return getLocalDateString(d); });
+        const dayStr = days[['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].indexOf(label)];
+        return logs.filter(l => l.date === dayStr).reduce((a, l) => a + (Number(l.vocabCount) || 0), 0);
+      }
+      if (selectedRange === 'month') {
+        const y = new Date(date + 'T00:00:00').getFullYear();
+        const mIdx = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(label);
+        return logs.filter(l => { const d = new Date(l.date + 'T00:00:00'); return d.getFullYear() === y && d.getMonth() === mIdx; }).reduce((a, l) => a + (Number(l.vocabCount) || 0), 0);
+      }
+      if (selectedRange === 'year') {
+        return logs.filter(l => new Date(l.date + 'T00:00:00').getFullYear() === Number(label)).reduce((a, l) => a + (Number(l.vocabCount) || 0), 0);
+      }
+      return 0;
+    })();
     return (
       <div style={{ background: 'white', padding: '10px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 'bold' }}>
         <div style={{ color: '#94a3b8', marginBottom: '6px' }}>{label}</div>
@@ -116,6 +159,11 @@ export default function Dashboard({
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: '#1e293b', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid #f1f5f9' }}>
           <span>{T.tooltipTotal}</span><span>{formatMinutes(total)}{getUnit(total)}</span>
         </div>
+        {periodVocab > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: '#c084fc', marginTop: '4px' }}>
+            <span>{lang === 'en' ? 'Vocab' : '単語'}</span><span>{periodVocab}{lang === 'en' ? ' words' : '語'}</span>
+          </div>
+        )}
       </div>
     );
   };
@@ -127,24 +175,42 @@ export default function Dashboard({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <h2 style={{ ...hStyle, margin: 0, flexShrink: 0 }}><Activity size={18} color="#4f46e5"/> {T.analysisTitle}</h2>
 
-          {/* 時間統計 */}
-          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
-            {[
-              { label: T.statDay,   value: timeStats.dayTotal },
-              { label: T.statWeek,  value: timeStats.weekTotal },
-              { label: T.statMonth, value: timeStats.monthTotal },
-              { label: T.statYear,  value: timeStats.yearTotal },
-            ].map(({ label, value }) => (
-              <div key={label} style={{ background: 'white', borderRadius: '7px', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{label}</span>
-                <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#4f46e5' }}>{formatMinutes(value)}<span style={{ fontSize: '10px' }}>{getUnit(value)}</span></span>
+          {/* 時間統計 + 単語数 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
+              {[
+                { label: T.statDay,   value: timeStats.dayTotal },
+                { label: T.statWeek,  value: timeStats.weekTotal },
+                { label: T.statMonth, value: timeStats.monthTotal },
+                { label: T.statYear,  value: timeStats.yearTotal },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ background: 'white', borderRadius: '7px', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{label}</span>
+                  <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#4f46e5' }}>{formatMinutes(value)}<span style={{ fontSize: '10px' }}>{getUnit(value)}</span></span>
+                </div>
+              ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#fff1f2', borderRadius: '7px', padding: '5px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                <Flame size={12} color="#ef4444"/>
+                <span style={{ fontSize: '11px', fontWeight: '900', color: '#f87171' }}>{T.streakLabel}</span>
+                <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#ef4444' }}>{streak}<span style={{ fontSize: '10px' }}>{T.streakUnit}</span></span>
               </div>
-            ))}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#fff1f2', borderRadius: '7px', padding: '5px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-              <Flame size={12} color="#ef4444"/>
-              <span style={{ fontSize: '11px', fontWeight: '900', color: '#f87171' }}>{T.streakLabel}</span>
-              <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#ef4444' }}>{streak}<span style={{ fontSize: '10px' }}>{T.streakUnit}</span></span>
             </div>
+            {vocabStats.total > 0 && (
+              <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f5f3ff', padding: '4px', borderRadius: '10px' }}>
+                <BookOpen size={12} color="#c084fc" style={{ margin: '6px 4px 0 6px', flexShrink: 0 }}/>
+                {[
+                  { label: T.statDay,   value: vocabStats.day },
+                  { label: T.statWeek,  value: vocabStats.week },
+                  { label: T.statMonth, value: vocabStats.month },
+                  { label: lang === 'en' ? 'Total' : '累計', value: vocabStats.total },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ background: 'white', borderRadius: '7px', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{label}</span>
+                    <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#c084fc' }}>{value}<span style={{ fontSize: '10px' }}>{lang === 'en' ? 'w' : '語'}</span></span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px', flexShrink: 0 }}>
