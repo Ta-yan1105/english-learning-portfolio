@@ -5,29 +5,30 @@ import {
 } from 'lucide-react';
 import { useTimer } from '../hooks/useTimer';
 
-function LapList({ laps, lang = 'ja', maxHeight = '300px' }) {
+function LapList({ laps, lang = 'ja', maxHeight = '300px', large = false }) {
   if (laps.length === 0) return null;
   const isEn = lang === 'en';
   return (
     <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
       <div style={{
-        width: '100%', maxWidth: '300px', backgroundColor: '#f8fafc',
-        borderRadius: '12px', padding: '15px', border: '1px solid #f1f5f9',
-        maxHeight, overflowY: 'auto',
+        width: '100%', maxWidth: large ? '520px' : '300px', backgroundColor: '#f8fafc',
+        borderRadius: large ? '20px' : '12px', padding: large ? '24px' : '15px',
+        border: '1px solid #f1f5f9', maxHeight, overflowY: 'auto',
       }}>
-        <div style={{ fontSize: '12px', fontWeight: '900', color: '#94a3b8', marginBottom: '10px' }}>
+        <div style={{ fontSize: large ? '18px' : '12px', fontWeight: '900', color: '#94a3b8', marginBottom: large ? '16px' : '10px' }}>
           {isEn ? 'Lap Records' : 'ラップ記録'}
         </div>
         {laps.map((lap, i) => (
           <div key={i} style={{
-            display: 'flex', justifyContent: 'space-between',
-            fontSize: '14px', fontWeight: 'bold', color: '#1e293b',
-            padding: '6px 0', borderBottom: i !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none',
+            display: 'flex', justifyContent: 'space-between', gap: large ? '32px' : '12px',
+            fontSize: large ? '22px' : '14px', fontWeight: 'bold', color: '#1e293b',
+            padding: large ? '12px 0' : '6px 0',
+            borderBottom: i !== laps.length - 1 ? '1px dashed #e2e8f0' : 'none',
           }}>
             <span>{isEn ? `Lap ${i + 1}` : `ラップ ${i + 1}`}</span>
-            <div className="timer-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="timer-text" style={{ display: 'flex', alignItems: 'center', gap: large ? '10px' : '6px' }}>
               <span style={{ color: '#4f46e5' }}>{lap.elapsed}</span>
-              <span style={{ color: '#94a3b8', fontSize: '12px' }}>({isEn ? 'left ' : '残り '}{lap.remaining})</span>
+              <span style={{ color: '#94a3b8', fontSize: large ? '16px' : '12px' }}>({isEn ? 'left ' : '残り '}{lap.remaining})</span>
             </div>
           </div>
         ))}
@@ -84,7 +85,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete }) {
   const numColor = isComplete ? '#10b981' : '#4f46e5';
   const numBase  = { fontWeight: '900', color: numColor, lineHeight: '1', letterSpacing: '-0.02em', textShadow: '0 4px 15px rgba(79,70,229,0.15)', pointerEvents: 'none' };
   const numStyle   = { ...numBase, fontSize: isMobile ? '100px' : '160px' };
-  const numStyleFS = { ...numBase, fontSize: isMobile ? '140px' : '280px' };
+  const numStyleFS = { ...numBase, fontSize: isMobile ? '200px' : '380px' };
 
   const face = (ns, pad) => (
     <div style={{
@@ -109,13 +110,24 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete }) {
   );
 
   const faceFullscreen = (ns) => (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '20px auto 30px' }}>
-      <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
-        <div className="timer-text" style={ns}>{timeDisplay.m}</div>
-      </div>
-      <div className="timer-text" style={{ ...ns, paddingBottom: isMobile ? '12px' : '20px' }}>:</div>
-      <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'sec')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
-        <div className="timer-text" style={ns}>{timeDisplay.s}</div>
+    <div style={{
+      background: isComplete ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
+      borderRadius: '64px', padding: '8px', margin: '20px auto 30px',
+      width: 'fit-content', boxShadow: '0 24px 60px rgba(79,70,229,0.14)',
+    }}>
+      <div style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '56px',
+        padding: isMobile ? '80px 40px' : '110px 80px',
+        boxShadow: 'inset 0 3px 10px rgba(255,255,255,1)',
+      }}>
+        <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
+          <div className="timer-text" style={ns}>{timeDisplay.m}</div>
+        </div>
+        <div className="timer-text" style={{ ...ns, paddingBottom: isMobile ? '12px' : '20px' }}>:</div>
+        <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'sec')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
+          <div className="timer-text" style={ns}>{timeDisplay.s}</div>
+        </div>
       </div>
     </div>
   );
@@ -213,10 +225,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete }) {
 
             {!isMobile ? (
               <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-start', paddingLeft: '40px' }}>
-                <LapList laps={laps} lang={lang} maxHeight="60vh"/>
+                <LapList laps={laps} lang={lang} maxHeight="60vh" large/>
               </div>
             ) : (
-              <LapList laps={laps} lang={lang} maxHeight="25vh"/>
+              <LapList laps={laps} lang={lang} maxHeight="25vh" large/>
             )}
           </div>
         </div>
