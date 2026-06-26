@@ -111,8 +111,8 @@
 .action-btn:active:not(:disabled) { transform: translateY(0) !important; }
 .category-btn { transition: all 0.2s ease !important; }
 .category-btn:hover { transform: scale(1.05) !important; }
-.modern-input { transition: all 0.3s ease !important; }
-.modern-input:focus { background: #ffffff !important; border-color: #4f46e5 !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important; }
+.modern-input { transition: all 0.3s ease !important; border-color: #c7d2fe !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important; }
+.modern-input:focus { background: #ffffff !important; border-color: #4f46e5 !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18) !important; }
 .timer-text { font-variant-numeric: tabular-nums; font-family: 'Helvetica Neue', Arial, sans-serif; }
 
 /* スクロールバーを美しく */
@@ -130,3 +130,12 @@
 
 /* コンテンツ幅を超えた左右の余白にも背景色を広げる */
 body, #root { background-color: #f4f7fa; }
+
+/* LogForm の日付欄: ブラウザ標準のカレンダーアイコンを隠し、自前のアイコンのみ表示（クリックは欄全体で有効） */
+.logform-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  cursor: pointer;
+}
