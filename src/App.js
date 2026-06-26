@@ -3,7 +3,7 @@ import {
   onAuthStateChanged, signInWithPopup, linkWithPopup, signOut,
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, onSnapshot, updateDoc, arrayUnion } from 'firebase/firestore';
 import { Activity, BookOpen, User, LogOut, Star, CalendarDays, Globe, X, MessageSquare } from 'lucide-react';
 
 import { auth, db, provider } from './firebase';
@@ -81,6 +81,27 @@ export default function App() {
 
   const dismissMessage = async (id) => {
     await updateDoc(doc(db, 'messages', id), { read: true });
+  };
+
+  const [readingLogs, setReadingLogs] = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, 'readingLogs'), where('uid', '==', user.uid));
+    return onSnapshot(q, snap => setReadingLogs(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+  }, [user]);
+
+  const handleSaveReadingRecords = async (records, transcript = '') => {
+    if (!user || records.length === 0) return;
+    const today = getLocalDateString(new Date());
+    const ref = doc(db, 'readingLogs', `${user.uid}_${today}`);
+    await setDoc(ref, {
+      uid: user.uid,
+      date: today,
+      attempts: arrayUnion(...records.map(r => ({ ...r, recordedAt: Date.now() }))),
+      ...(transcript.trim() && { transcript: transcript.trim() }),
+      updatedAt: Date.now(),
+    }, { merge: true });
   };
 
   const formRef = useRef(null);
@@ -576,7 +597,7 @@ export default function App() {
       </div>
 
       {/* ===== コンポーネント群 ===== */}
-      <Timer isMobile={isMobile} lang={lang} onTimerComplete={handleTimerComplete}/>
+      <Timer isMobile={isMobile} lang={lang} onTimerComplete={handleTimerComplete} onSaveReadingRecords={handleSaveReadingRecords}/>
 
       <LogForm
         isMobile={isMobile}
@@ -612,6 +633,7 @@ export default function App() {
         isMobile={isMobile}
         lang={lang}
         filteredLogs={filteredLogs}
+        readingLogs={readingLogs}
         selectedRange={selectedRange}
         date={date} setDate={setDate}
         onEdit={handleEdit}

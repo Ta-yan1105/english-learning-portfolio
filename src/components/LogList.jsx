@@ -1,12 +1,14 @@
 import React from 'react';
-import { List, Edit, Trash2, Clock, Zap, BookOpen } from 'lucide-react';
+import { List, Edit, Trash2, Clock, Zap, BookOpen, Mic } from 'lucide-react';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
+import { getWpmLevel } from '../utils/wpmLevels';
 import i18n from '../i18n';
 
 export default function LogList({
   isMobile,
   lang = 'ja',
   filteredLogs,
+  readingLogs = [],
   selectedRange,
   date, setDate,
   onEdit,
@@ -74,6 +76,59 @@ export default function LogList({
           ▶
         </button>
       </div>
+
+      {/* 音読記録（その日の総合記録） */}
+      {selectedRange === 'day' && (() => {
+        const rLog = readingLogs.find(r => r.date === date);
+        const attempts = rLog?.attempts || [];
+        if (attempts.length === 0) return null;
+        const isEn = lang === 'en';
+        const best = Math.max(...attempts.map(a => a.wpm));
+        const bestLevel = getWpmLevel(best);
+        return (
+          <div style={{ background: '#f5f3ff', border: '1px solid #ede9fe', borderRadius: '16px', padding: '14px 16px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <Mic size={16} color="#22d3ee"/>
+              <span style={{ fontSize: '13px', fontWeight: '900', color: '#1e293b' }}>
+                {isEn ? `Reading Records (${attempts.length})` : `音読記録（${attempts.length}回）`}
+              </span>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: bestLevel.textColor === 'white' ? 'white' : bestLevel.textColor, background: bestLevel.color, padding: '2px 8px', borderRadius: '8px' }}>
+                {isEn ? `Best ${best} WPM` : `最高 ${best} WPM`}
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {attempts.map((a, i) => {
+                const lv = getWpmLevel(a.wpm);
+                const prev = i > 0 ? attempts[i - 1] : null;
+                const delta = prev ? a.wpm - prev.wpm : null;
+                return (
+                  <div key={i} className="timer-text" style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'white', borderRadius: '8px', padding: '4px 9px', fontSize: '12px', fontWeight: '900', border: '1px solid #f1f5f9' }}>
+                    <span style={{ color: '#94a3b8' }}>{isEn ? `#${i + 1}` : `${i + 1}回`}</span>
+                    {a.material && (
+                      <span style={{ color: '#6366f1', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.material}>
+                        {a.material}
+                      </span>
+                    )}
+                    <span style={{ color: lv.color }}>{a.wpm} WPM</span>
+                    <span style={{ color: '#cbd5e1', fontWeight: 'normal' }}>·</span>
+                    <span style={{ color: '#64748b' }}>{a.wordCount}{isEn ? 'w' : '語'}</span>
+                    {delta !== null && (
+                      <span style={{ fontSize: '10px', color: delta > 0 ? '#16a34a' : delta < 0 ? '#ef4444' : '#94a3b8' }}>
+                        {delta > 0 ? `↑${delta}` : delta < 0 ? `↓${Math.abs(delta)}` : '→0'}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {rLog.transcript && (
+              <div style={{ marginTop: '10px', fontSize: '12px', color: '#475569', lineHeight: 1.6, background: 'white', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '8px 10px', whiteSpace: 'pre-wrap' }}>
+                {rLog.transcript}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ログ一覧 */}
       {filteredLogs.length === 0 ? (
