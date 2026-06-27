@@ -453,19 +453,19 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   );
 
   const controls = (large = false) => {
-    const pad  = large ? '18px 30px' : '15px 40px';
-    const icon = large ? 24 : 20;
-    const fs   = '18px';
+    const pad  = large ? '16px 26px' : (isMobile ? '10px 13px' : '15px 40px');
+    const icon = large ? 24 : (isMobile ? 15 : 20);
+    const fs   = isMobile && !large ? '12px' : '18px';
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-        <button className="action-btn" onClick={toggleTimer} style={{ padding: pad, borderRadius: '50px', border: 'none', background: isTimerRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '6px' : '20px', flexWrap: 'wrap' }}>
+        <button className="action-btn" onClick={toggleTimer} style={{ padding: pad, borderRadius: '50px', border: 'none', background: isTimerRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: isMobile ? '5px' : '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}>
           {isTimerRunning ? <><Pause size={icon}/> {isEn ? 'Pause' : '一時停止'}</> : <><Play size={icon}/> {isEn ? 'Start' : 'スタート'}</>}
         </button>
-        <button className="action-btn" onClick={resetTimer} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button className="action-btn" onClick={resetTimer} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: isMobile ? '5px' : '8px', whiteSpace: 'nowrap' }}>
           <RefreshCw size={icon}/> {isEn ? 'Reset' : 'リセット'}
         </button>
         {timerTimeLeft !== timerInputTime && (
-          <button className="action-btn" onClick={recordLap} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button className="action-btn" onClick={recordLap} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: isMobile ? '5px' : '8px', whiteSpace: 'nowrap' }}>
             <List size={icon}/> {isEn ? 'Lap' : 'ラップ記録'}
           </button>
         )}
