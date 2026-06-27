@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import {
   Activity, Sun, Calendar, CalendarDays,
-  TrendingUp, Clock, Flame, BookOpen,
+  TrendingUp, Clock, Flame, BookOpen, PieChart,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -93,7 +93,43 @@ export default function Dashboard({
     return { day, week, month, total };
   }, [logs]);
 
-  const card   = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', boxSizing: 'border-box', width: '100%' };
+  const startOfWeek = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); const day = x.getDay() || 7; if (day !== 1) x.setDate(x.getDate() - day + 1); return x; };
+
+  const weekComparison = useMemo(() => {
+    const thisStart = startOfWeek(new Date());
+    const lastStart = new Date(thisStart); lastStart.setDate(thisStart.getDate() - 7);
+    const lastEnd   = new Date(thisStart); lastEnd.setDate(thisStart.getDate() - 1);
+    let thisWeek = 0, lastWeek = 0;
+    logs.forEach(l => {
+      const d = new Date(l.date + 'T00:00:00');
+      const m = Number(l.minutes) || 0;
+      if (d >= thisStart) thisWeek += m;
+      else if (d >= lastStart && d <= lastEnd) lastWeek += m;
+    });
+    const delta = thisWeek - lastWeek;
+    const pct = lastWeek > 0 ? Math.round((delta / lastWeek) * 100) : (thisWeek > 0 ? 100 : null);
+    return { thisWeek, lastWeek, delta, pct };
+  }, [logs]);
+
+  const skillBalance = useMemo(() => {
+    const thisStart = startOfWeek(new Date());
+    const weekLogs  = logs.filter(l => new Date(l.date + 'T00:00:00') >= thisStart);
+    const totals = {};
+    CATEGORIES.forEach(c => { totals[c.id] = 0; });
+    let grandTotal = 0;
+    weekLogs.forEach(l => {
+      const cats = l.categories || [];
+      if (cats.length === 0) return;
+      const per = (Number(l.minutes) || 0) / cats.length;
+      cats.forEach(c => { totals[c] = (totals[c] || 0) + per; });
+      grandTotal += Number(l.minutes) || 0;
+    });
+    return CATEGORIES.map(c => ({ ...c, minutes: totals[c.id], pct: grandTotal > 0 ? (totals[c.id] / grandTotal) * 100 : 0 }))
+      .filter(c => c.minutes > 0)
+      .sort((a, b) => b.minutes - a.minutes);
+  }, [logs]);
+
+  const card   ={ background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', boxSizing: 'border-box', width: '100%' };
   const hStyle = { fontSize: '16px', fontWeight: '900', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' };
   const tabStyle = (r) => ({
     padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', border: 'none',
@@ -262,6 +298,46 @@ export default function Dashboard({
             </ResponsiveContainer>
           )}
         </div>
+      </section>
+
+      {/* 今週の学習バランス + 前週比 */}
+      <section style={card}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+          <h2 style={hStyle}><PieChart size={18} color="#4f46e5"/> {lang === 'en' ? "This Week's Balance" : '今週の学習バランス'}</h2>
+          {weekComparison.pct !== null && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: weekComparison.delta >= 0 ? '#ecfdf5' : '#fef2f2', padding: '6px 12px', borderRadius: '10px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{lang === 'en' ? 'vs last week' : '前週比'}</span>
+              <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: weekComparison.delta >= 0 ? '#16a34a' : '#ef4444' }}>
+                {weekComparison.delta >= 0 ? '↑' : '↓'}{Math.abs(weekComparison.pct)}%
+              </span>
+            </div>
+          )}
+        </div>
+
+        {skillBalance.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontWeight: 'bold', fontSize: '13px' }}>
+            {lang === 'en' ? 'No records yet this week' : '今週はまだ記録がありません'}
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', height: '14px', borderRadius: '8px', overflow: 'hidden', marginBottom: '14px' }}>
+              {skillBalance.map(c => (
+                <div key={c.id} style={{ width: `${c.pct}%`, background: c.color }} title={`${lang === 'en' ? c.label_en : c.label} ${Math.round(c.pct)}%`}/>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+              {skillBalance.map(c => (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '900' }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '3px', background: c.color, flexShrink: 0 }}/>
+                  <span style={{ color: '#1e293b' }}>{lang === 'en' ? c.label_en : c.label}</span>
+                  <span className="timer-text" style={{ color: '#94a3b8', fontWeight: 'bold' }}>
+                    {Math.round(c.pct)}% ({formatMinutes(c.minutes)}{getUnit(c.minutes)})
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </>
   );

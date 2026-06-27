@@ -164,6 +164,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     materialName, setMaterialName,
     transcript, setTranscript,
     recordVoice, setRecordVoice,
+    micError,
     toggleStopwatch,
     resetStopwatch,
     formatStopwatch,
@@ -302,6 +303,11 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           {isEn ? 'Record my voice & transcribe' : '自分の声を録音して文字起こしする'}
         </span>
       </label>
+      {recordVoice && micError && (
+        <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#ef4444', textAlign: 'center', maxWidth: '280px' }}>
+          ⚠️ {micError}
+        </div>
+      )}
       {!isSwRunning && wpm > 0 && (
         <>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', background: '#ecfdf5', padding: large ? '10px 22px' : '6px 14px', borderRadius: '14px' }}>

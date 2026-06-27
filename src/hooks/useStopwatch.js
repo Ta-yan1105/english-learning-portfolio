@@ -8,6 +8,7 @@ export const useStopwatch = () => {
   const [transcript, setTranscript] = useState('');
   const [readingRecords, setReadingRecords] = useState([]);
   const [recordVoice, setRecordVoice] = useState(false);
+  const [micError, setMicError] = useState('');
 
   const startTimeRef     = useRef(null);
   const baseElapsedRef    = useRef(0);
@@ -51,27 +52,41 @@ export const useStopwatch = () => {
     recognitionRef.current = null;
   };
 
+  const PREFERRED_MIME_TYPES = ['audio/mp4', 'audio/webm', 'audio/ogg', 'audio/wav'];
+  const getSupportedMimeType = () => {
+    if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return undefined;
+    return PREFERRED_MIME_TYPES.find(t => MediaRecorder.isTypeSupported(t));
+  };
+
   const startAudioRecording = async () => {
+    if (typeof MediaRecorder === 'undefined') {
+      setMicError('このブラウザは録音に対応していません');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
-      const mr = new MediaRecorder(stream);
+      const mimeType = getSupportedMimeType();
+      const mr = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.start();
       mediaRecorderRef.current = mr;
+      setMicError('');
     } catch {
       mediaRecorderRef.current = null;
+      setMicError('マイクを使用できませんでした（権限をご確認ください）');
     }
   };
 
   const stopAudioRecording = () => new Promise((resolve) => {
     const mr = mediaRecorderRef.current;
     if (!mr) { resolve(null); return; }
+    const mimeType = mr.mimeType || 'audio/webm';
     mr.onstop = () => {
       streamRef.current?.getTracks().forEach(t => t.stop());
       mediaRecorderRef.current = null;
-      resolve(chunksRef.current.length > 0 ? URL.createObjectURL(new Blob(chunksRef.current, { type: 'audio/webm' })) : null);
+      resolve(chunksRef.current.length > 0 ? URL.createObjectURL(new Blob(chunksRef.current, { type: mimeType })) : null);
     };
     mr.stop();
   });
@@ -147,6 +162,7 @@ export const useStopwatch = () => {
     materialName, setMaterialName,
     transcript, setTranscript,
     recordVoice, setRecordVoice,
+    micError,
     toggleStopwatch,
     resetStopwatch,
     formatStopwatch,
