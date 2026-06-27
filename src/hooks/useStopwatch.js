@@ -9,6 +9,7 @@ export const useStopwatch = () => {
   const [readingRecords, setReadingRecords] = useState([]);
   const [recordVoice, setRecordVoice] = useState(false);
   const [micError, setMicError] = useState('');
+  const speechSupported = typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   const startTimeRef     = useRef(null);
   const baseElapsedRef    = useRef(0);
@@ -163,6 +164,7 @@ export const useStopwatch = () => {
     transcript, setTranscript,
     recordVoice, setRecordVoice,
     micError,
+    speechSupported,
     toggleStopwatch,
     resetStopwatch,
     formatStopwatch,

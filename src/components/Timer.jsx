@@ -182,6 +182,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     transcript, setTranscript,
     recordVoice, setRecordVoice,
     micError,
+    speechSupported,
     toggleStopwatch,
     resetStopwatch,
     formatStopwatch,
@@ -321,13 +322,20 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
         </span>
       </label>
       {recordVoice && micError && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center', maxWidth: '300px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center', maxWidth: '90vw' }}>
           <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#ef4444', textAlign: 'center' }}>
             ⚠️ {micError}
           </div>
           <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textAlign: 'center', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px' }}>
             {getMicPermissionGuide(isEn)}
           </div>
+        </div>
+      )}
+      {recordVoice && !speechSupported && (
+        <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textAlign: 'center', maxWidth: '90vw', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px' }}>
+          {isEn
+            ? 'Note: This browser/device does not support auto-transcription (recording still works). This is common on iPhone (Safari).'
+            : '※ この端末・ブラウザは自動文字起こしに対応していません（録音は可能です）。iPhone（Safari）では仕様上対応していません。'}
         </div>
       )}
       {!isSwRunning && wpm > 0 && (
@@ -394,7 +402,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           <input
             type="text" value={materialName} onChange={e => setMaterialName(e.target.value)}
             placeholder={isEn ? 'Textbook / unit / page (optional)' : '教材名・単元・ページ（任意）'}
-            style={{ width: large ? '260px' : '220px', padding: '8px 14px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', border: '1.5px dashed #cbd5e1', borderRadius: '10px', background: '#f1f5f9', color: '#475569' }}
+            style={{ width: large ? '260px' : '220px', maxWidth: '90vw', boxSizing: 'border-box', padding: '8px 14px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', border: '1.5px dashed #cbd5e1', borderRadius: '10px', background: '#f1f5f9', color: '#475569' }}
           />
         )}
         {readingSaveStatus === 'saved' ? (
@@ -411,7 +419,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
             value={transcript} onChange={e => setTranscript(e.target.value)}
             placeholder={isEn ? 'Auto-transcribed from your spoken English (editable)' : '録音中に話した英語が自動で文字起こしされます（編集可）'}
             rows={4}
-            style={{ width: large ? '560px' : '440px', maxWidth: '90vw', padding: '14px 18px', fontSize: '16px', fontFamily: 'inherit', lineHeight: 1.7, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
+            style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', padding: '14px 18px', fontSize: '16px', fontFamily: 'inherit', lineHeight: 1.7, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
           />
         )}
       </div>
