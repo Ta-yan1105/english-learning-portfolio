@@ -213,7 +213,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const numColor = isComplete ? '#10b981' : '#4f46e5';
   const numBase  = { fontWeight: '900', color: numColor, lineHeight: '1', letterSpacing: '-0.02em', textShadow: '0 4px 15px rgba(79,70,229,0.15)', pointerEvents: 'none' };
   const numStyle   = { ...numBase, fontSize: isMobile ? '100px' : '160px' };
-  const numStyleFS = { ...numBase, fontSize: isMobile ? '200px' : '380px' };
+  const numStyleFS = { ...numBase, fontSize: isMobile ? 'min(19vw, 100px)' : '380px' };
 
   const face = (ns, pad) => (
     <div style={{
@@ -246,7 +246,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '56px',
-        padding: isMobile ? '80px 40px' : '110px 80px',
+        padding: isMobile ? '20px 12px' : '110px 80px',
         boxShadow: 'inset 0 3px 10px rgba(255,255,255,1)',
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
@@ -484,7 +484,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
       </section>
 
       {isFullscreen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#f4f7fa', zIndex: 10000, overflowY: 'auto', overflowX: 'hidden' }}>
           {soundBtn(true)}
           <button className="action-btn" onClick={handleExitFullscreen}
             style={{ position: 'fixed', top: '20px', right: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', zIndex: 10001 }}>
@@ -505,7 +505,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
               </div>
               {isStopwatch ? (
                 <>
-                  {swFace(numStyleFS, isMobile ? '80px 40px' : '110px 80px', isMobile ? '80px' : '140px')}
+                  {swFace(numStyleFS, isMobile ? '20px 12px' : '110px 80px', isMobile ? 'min(8vw, 40px)' : '140px')}
                   {wpmPanel(true)}
                   {swControls(true)}
                   {readingSaveButton(true)}
