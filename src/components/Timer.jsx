@@ -9,6 +9,23 @@ import { WPM_SCALE_MAX, getWpmLevel } from '../utils/wpmLevels';
 
 const toHalfWidthDigits = (str) => str.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
 
+const getMicPermissionGuide = (isEn) => {
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua)) {
+    return isEn
+      ? 'iPhone/iPad: Open the Settings app → Safari (or your browser) → Microphone → set to "Allow"'
+      : 'iPhone/iPad: 「設定」アプリ → Safari（使用中のブラウザ）→ マイク → 「許可」に切り替えてください';
+  }
+  if (/Android/.test(ua)) {
+    return isEn
+      ? 'Android: Tap the icon left of the address bar → Permissions → set Microphone to "Allow"'
+      : 'Android: アドレスバー左側のアイコンをタップ →「権限」→ マイクを「許可」に切り替えてください';
+  }
+  return isEn
+    ? 'Allow microphone access for this site in your browser settings'
+    : 'ブラウザの設定からこのサイトのマイク権限を「許可」に変更してください';
+};
+
 function LapList({ laps, lang = 'ja', maxHeight = '300px', large = false }) {
   if (laps.length === 0) return null;
   const isEn = lang === 'en';
@@ -304,8 +321,13 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
         </span>
       </label>
       {recordVoice && micError && (
-        <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#ef4444', textAlign: 'center', maxWidth: '280px' }}>
-          ⚠️ {micError}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center', maxWidth: '300px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#ef4444', textAlign: 'center' }}>
+            ⚠️ {micError}
+          </div>
+          <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textAlign: 'center', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px' }}>
+            {getMicPermissionGuide(isEn)}
+          </div>
         </div>
       )}
       {!isSwRunning && wpm > 0 && (
