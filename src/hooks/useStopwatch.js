@@ -19,8 +19,10 @@ export const useStopwatch = () => {
   const recognitionRef    = useRef(null);
   const recordVoiceRef    = useRef(recordVoice);
   const isSwRunningRef    = useRef(isSwRunning);
+  const swElapsedRef      = useRef(swElapsed);
   useEffect(() => { recordVoiceRef.current = recordVoice; }, [recordVoice]);
   useEffect(() => { isSwRunningRef.current = isSwRunning; }, [isSwRunning]);
+  useEffect(() => { swElapsedRef.current = swElapsed; }, [swElapsed]);
 
   const startSpeechRecognition = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -105,6 +107,7 @@ export const useStopwatch = () => {
     setIsSwRunning(prev => {
       const next = !prev;
       if (next) {
+        if (swElapsedRef.current === 0) setTranscript('');
         startTimeRef.current = Date.now();
         if (recordVoice) {
           if (mediaRecorderRef.current?.state === 'paused') mediaRecorderRef.current.resume();

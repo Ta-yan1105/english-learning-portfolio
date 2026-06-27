@@ -366,29 +366,46 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   );
 
   const swControls = (large = false) => {
-    const pad  = large ? '18px 30px' : '15px 40px';
-    const icon = large ? 24 : 20;
-    const fs   = '18px';
+    const pad  = large ? '16px 26px' : (isMobile ? '12px 18px' : '15px 40px');
+    const icon = large ? 22 : (isMobile ? 17 : 20);
+    const fs   = isMobile && !large ? '15px' : '18px';
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-          <button className="action-btn" onClick={toggleStopwatch} style={{ padding: pad, borderRadius: '50px', border: 'none', background: isSwRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-            {isSwRunning ? <><Pause size={icon}/> {isEn ? 'Pause' : '一時停止'}</> : <><Play size={icon}/> {isEn ? 'Start' : 'スタート'}</>}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '10px' : '20px', flexWrap: 'wrap' }}>
+        <button className="action-btn" onClick={toggleStopwatch} style={{ padding: pad, borderRadius: '50px', border: 'none', background: isSwRunning ? '#f59e0b' : '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+          {isSwRunning ? <><Pause size={icon}/> {isEn ? 'Pause' : '一時停止'}</> : <><Play size={icon}/> {isEn ? 'Start' : 'スタート'}</>}
+        </button>
+        <button className="action-btn" onClick={resetStopwatch} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <RefreshCw size={icon}/> {isEn ? 'Reset' : 'リセット'}
+        </button>
+        {!isSwRunning && swElapsed > 0 && Number(wordCount) > 0 && (
+          <button className="action-btn" onClick={recordReading} style={{ padding: pad, borderRadius: '50px', border: 'none', background: '#22c55e', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+            <List size={icon}/> {isEn ? 'Record' : '記録して次へ'}
           </button>
-          <button className="action-btn" onClick={resetStopwatch} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <RefreshCw size={icon}/> {isEn ? 'Reset' : 'リセット'}
-          </button>
-          {!isSwRunning && swElapsed > 0 && Number(wordCount) > 0 && (
-            <button className="action-btn" onClick={recordReading} style={{ padding: pad, borderRadius: '50px', border: 'none', background: '#22c55e', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-              <List size={icon}/> {isEn ? 'Record' : '記録して次へ'}
-            </button>
-          )}
-        </div>
-        {readingRecords.length > 0 && (
-          <div style={{ marginLeft: '24px' }}>
-            <ReadingBarChart records={readingRecords} lang={lang}/>
-          </div>
         )}
+      </div>
+    );
+  };
+
+  const transcriptBlock = (large = false) => {
+    if (readingRecords.length === 0 && readingSaveStatus !== 'saved') return null;
+    if (readingSaveStatus === 'saved') return null;
+    return (
+      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
+        <textarea
+          value={transcript} onChange={e => setTranscript(e.target.value)}
+          placeholder={isEn ? 'Auto-transcribed from your spoken English (editable)' : '録音中に話した英語が自動で文字起こしされます（編集可）'}
+          rows={4}
+          style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', padding: '14px 18px', fontSize: '16px', fontFamily: 'inherit', lineHeight: 1.7, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
+        />
+      </div>
+    );
+  };
+
+  const chartBlock = () => {
+    if (readingRecords.length === 0) return null;
+    return (
+      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
+        <ReadingBarChart records={readingRecords} lang={lang}/>
       </div>
     );
   };
@@ -413,14 +430,6 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           <button className="action-btn" onClick={handleSaveReadingRecords} style={{ padding: pad, borderRadius: '50px', border: 'none', background: '#4f46e5', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
             <Save size={18}/> {isEn ? `Save Today's Records (${readingRecords.length})` : `今日の記録として保存（${readingRecords.length}件）`}
           </button>
-        )}
-        {readingSaveStatus !== 'saved' && (
-          <textarea
-            value={transcript} onChange={e => setTranscript(e.target.value)}
-            placeholder={isEn ? 'Auto-transcribed from your spoken English (editable)' : '録音中に話した英語が自動で文字起こしされます（編集可）'}
-            rows={4}
-            style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', padding: '14px 18px', fontSize: '16px', fontFamily: 'inherit', lineHeight: 1.7, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
-          />
         )}
       </div>
     );
@@ -503,6 +512,8 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
             {swFace(numStyle, isMobile ? '50px 20px' : '80px 50px', isMobile ? '40px' : '60px')}
             {wpmPanel(false)}
             {swControls(false)}
+            {transcriptBlock(false)}
+            {chartBlock()}
             {readingSaveButton(false)}
           </>
         ) : (
@@ -544,6 +555,8 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
                   {swFace(numStyleFS, isMobile ? '20px 12px' : '110px 80px', isMobile ? 'min(8vw, 40px)' : '140px')}
                   {wpmPanel(true)}
                   {swControls(true)}
+                  {transcriptBlock(true)}
+                  {chartBlock()}
                   {readingSaveButton(true)}
                 </>
               ) : (
