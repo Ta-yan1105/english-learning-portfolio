@@ -3,7 +3,8 @@
     "allow": [
       "Bash(find / -maxdepth 6 -iname \"*chromium-cli*\")",
       "Bash(npm list *)",
-      "Read(//private/tmp/claude-501/bundled-skills/**)"
+      "Read(//private/tmp/claude-501/bundled-skills/**)",
+      "Bash(npm install *)"
     ]
   }
 }

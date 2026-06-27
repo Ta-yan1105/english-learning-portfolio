@@ -1,11 +1,14 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import {
   Timer as TimerIcon, Play, Pause, RefreshCw,
   List, Maximize, Minimize, Volume2, VolumeX, Watch, Mic, Save, Check, PlayCircle, StopCircle,
+  FileText, Image as ImageIcon, BookOpen,
 } from 'lucide-react';
 import { useTimer } from '../hooks/useTimer';
 import { useStopwatch } from '../hooks/useStopwatch';
 import { WPM_SCALE_MAX, getWpmLevel } from '../utils/wpmLevels';
+import { extractTextFromPdf, extractTextFromImage } from '../utils/extractText';
+import { scoreReadingAccuracy } from '../utils/readingAccuracy';
 
 const toHalfWidthDigits = (str) => str.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
 
@@ -158,6 +161,36 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const isEn = lang === 'en';
   const [mode, setMode] = useState('timer'); // 'timer' | 'stopwatch'
   const [readingSaveStatus, setReadingSaveStatus] = useState('idle'); // 'idle' | 'saved'
+  const [passageText, setPassageText] = useState('');
+  const [importStatus, setImportStatus] = useState(''); // '' | 'loading' | 'error'
+  const pdfInputRef   = useRef(null);
+  const imageInputRef = useRef(null);
+
+  const handlePdfImport = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    setImportStatus('loading');
+    try {
+      setPassageText(await extractTextFromPdf(file));
+      setImportStatus('');
+    } catch {
+      setImportStatus('error');
+    }
+  };
+
+  const handleImageImport = async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    setImportStatus('loading');
+    try {
+      setPassageText(await extractTextFromImage(file));
+      setImportStatus('');
+    } catch {
+      setImportStatus('error');
+    }
+  };
   const {
     timerInputTime, setTimerInputTime,
     timerTimeLeft,  setTimerTimeLeft,
@@ -191,6 +224,11 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     recordReading,
     clearReadingRecords,
   } = useStopwatch();
+
+  const accuracyResult = useMemo(() => {
+    if (!passageText.trim() || !transcript.trim()) return null;
+    return scoreReadingAccuracy(passageText, transcript);
+  }, [passageText, transcript]);
 
   const handleSaveReadingRecords = () => {
     if (readingRecords.length === 0 || !onSaveReadingRecords) return;
@@ -302,6 +340,62 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
   const wpmLevel  = wpm > 0 ? getWpmLevel(wpm) : null;
   const markerPct = Math.min(100, (wpm / WPM_SCALE_MAX) * 100);
+
+  const passagePanel = (large = false) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <BookOpen size={large ? 20 : 16} color="#22d3ee"/>
+        <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b' }}>
+          {isEn ? 'Passage to Read (optional)' : '音読する英文（任意）'}
+        </span>
+      </div>
+      <textarea
+        value={passageText} onChange={e => setPassageText(e.target.value)}
+        placeholder={isEn ? 'Type or paste the English passage you will read aloud' : 'これから音読する英文を入力・貼り付けしてください'}
+        rows={3}
+        style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', padding: '12px 16px', fontSize: '14px', fontFamily: 'inherit', lineHeight: 1.6, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
+      />
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button type="button" onClick={() => pdfInputRef.current?.click()} disabled={importStatus === 'loading'}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '11px', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
+          <FileText size={13}/> {isEn ? 'Import PDF' : 'PDFから読込'}
+        </button>
+        <button type="button" onClick={() => imageInputRef.current?.click()} disabled={importStatus === 'loading'}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '11px', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
+          <ImageIcon size={13}/> {isEn ? 'Import Image' : '画像から読込'}
+        </button>
+        <input ref={pdfInputRef} type="file" accept="application/pdf" onChange={handlePdfImport} style={{ display: 'none' }}/>
+        <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageImport} style={{ display: 'none' }}/>
+      </div>
+      {importStatus === 'loading' && (
+        <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>{isEn ? 'Reading file…' : '読み込み中…'}</span>
+      )}
+      {importStatus === 'error' && (
+        <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 'bold' }}>{isEn ? 'Failed to read the file' : '読み込みに失敗しました'}</span>
+      )}
+    </div>
+  );
+
+  const accuracyBlock = (large = false) => {
+    if (!accuracyResult) return null;
+    const acc = accuracyResult.accuracy;
+    const accColor = acc >= 80 ? '#16a34a' : acc >= 50 ? '#f59e0b' : '#ef4444';
+    return (
+      <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{isEn ? 'Reading Accuracy' : '音読精度'}</span>
+          <span className="timer-text" style={{ fontSize: '22px', fontWeight: '900', color: accColor }}>{acc}%</span>
+        </div>
+        <div style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', background: '#fafbfc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '14px 18px', fontSize: '15px', lineHeight: 1.9, textAlign: 'left' }}>
+          {accuracyResult.words.map((w, i) => (
+            <span key={i} style={{ color: w.matched ? '#16a34a' : '#ef4444', fontWeight: w.matched ? 'normal' : '900', textDecoration: w.matched ? 'none' : 'underline', textDecorationColor: '#ef4444' }}>
+              {w.text}{' '}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   const wpmPanel = (large = false) => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: large ? '30px' : '20px' }}>
@@ -511,8 +605,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           <>
             {swFace(numStyle, isMobile ? '50px 20px' : '80px 50px', isMobile ? '40px' : '60px')}
             {wpmPanel(false)}
+            {passagePanel(false)}
             {swControls(false)}
             {transcriptBlock(false)}
+            {accuracyBlock(false)}
             {chartBlock()}
             {readingSaveButton(false)}
           </>
@@ -554,8 +650,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
                 <>
                   {swFace(numStyleFS, isMobile ? '20px 12px' : '110px 80px', isMobile ? 'min(8vw, 40px)' : '140px')}
                   {wpmPanel(true)}
+                  {passagePanel(true)}
                   {swControls(true)}
                   {transcriptBlock(true)}
+                  {accuracyBlock(true)}
                   {chartBlock()}
                   {readingSaveButton(true)}
                 </>

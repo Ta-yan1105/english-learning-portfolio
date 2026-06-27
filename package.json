@@ -6,10 +6,12 @@
     "axios": "^1.13.6",
     "firebase": "^10.0.0",
     "lucide-react": "^0.263.1",
+    "pdfjs-dist": "^6.0.227",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "recharts": "^3.7.0",
+    "tesseract.js": "^7.0.0",
     "xlsx": "^0.18.5"
   },
   "scripts": {
