@@ -25,6 +25,7 @@ export const useStopwatch = () => {
   useEffect(() => { swElapsedRef.current = swElapsed; }, [swElapsed]);
 
   const startSpeechRecognition = () => {
+    if (recognitionRef.current) return; // 既に動いているセッションを再利用（再生成すると認識が取れなくなることがある）
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
     const recog = new SR();
@@ -127,7 +128,6 @@ export const useStopwatch = () => {
       } else {
         baseElapsedRef.current += Date.now() - startTimeRef.current;
         if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.pause();
-        stopSpeechRecognition();
       }
       return next;
     });
@@ -139,8 +139,13 @@ export const useStopwatch = () => {
     baseElapsedRef.current = 0;
     startTimeRef.current = null;
     discardAudioRecording();
-    stopSpeechRecognition();
   }, []);
+
+  // 録音チェックを外した時だけ音声認識を完全に停止する（ラウンドごとの再生成は誤動作の原因になるため避ける）
+  useEffect(() => {
+    if (!recordVoice) stopSpeechRecognition();
+    return () => stopSpeechRecognition();
+  }, [recordVoice]);
 
   useEffect(() => {
     if (!isSwRunning) return;
