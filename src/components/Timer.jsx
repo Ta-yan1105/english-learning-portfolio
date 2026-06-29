@@ -24,6 +24,11 @@ const getMicPermissionGuide = (isEn) => {
       ? 'Android: Tap the icon left of the address bar → Permissions → set Microphone to "Allow"'
       : 'Android: アドレスバー左側のアイコンをタップ →「権限」→ マイクを「許可」に切り替えてください';
   }
+  if (/CrOS/.test(ua)) {
+    return isEn
+      ? 'Chromebook: 1) Check the mic isn\'t muted (status tray mic icon) 2) Tap the icon left of the address bar → Permissions → set Microphone to "Allow" 3) Also check Settings → Privacy and security → Site settings → Microphone'
+      : 'Chromebook: ①ステータストレイのマイクアイコンでミュートになっていないか確認 ②アドレスバー左側のアイコン→「権限」→マイクを「許可」に切り替え ③設定→プライバシーとセキュリティ→サイトの設定→マイクも確認してください';
+  }
   return isEn
     ? 'Allow microphone access for this site in your browser settings'
     : 'ブラウザの設定からこのサイトのマイク権限を「許可」に変更してください';

@@ -66,6 +66,10 @@ export const useStopwatch = () => {
       setMicError('このブラウザは録音に対応していません');
       return;
     }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setMicError('このページは安全な接続（HTTPS）で開く必要があります');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -76,9 +80,15 @@ export const useStopwatch = () => {
       mr.start();
       mediaRecorderRef.current = mr;
       setMicError('');
-    } catch {
+    } catch (err) {
       mediaRecorderRef.current = null;
-      setMicError('マイクを使用できませんでした（権限をご確認ください）');
+      if (err?.name === 'NotFoundError') {
+        setMicError('マイクが見つかりませんでした（デバイスにマイクが接続されているかご確認ください）');
+      } else if (err?.name === 'NotReadableError' || err?.name === 'AbortError') {
+        setMicError('マイクを使用できませんでした（他のアプリで使用中、または端末側でミュートになっていないかご確認ください）');
+      } else {
+        setMicError('マイクを使用できませんでした（権限をご確認ください）');
+      }
     }
   };
 
