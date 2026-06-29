@@ -270,7 +270,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const numColor = isComplete ? '#10b981' : '#4f46e5';
   const numBase  = { fontWeight: '900', color: numColor, lineHeight: '1', letterSpacing: '-0.02em', textShadow: '0 4px 15px rgba(79,70,229,0.15)', pointerEvents: 'none' };
   const numStyle   = { ...numBase, fontSize: isMobile ? '100px' : '160px' };
-  const numStyleFS = { ...numBase, fontSize: isMobile ? 'min(19vw, 100px)' : '380px' };
+  const numStyleFS = { ...numBase, fontSize: isMobile ? 'min(19vw, 100px)' : 'min(26vh, 380px)' };
 
   const face = (ns, pad) => (
     <div style={{
@@ -303,7 +303,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '56px',
-        padding: isMobile ? '20px 12px' : '110px 80px',
+        padding: isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)',
         boxShadow: 'inset 0 3px 10px rgba(255,255,255,1)',
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
@@ -604,9 +604,9 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
         {isStopwatch ? (
           <>
             {swFace(numStyle, isMobile ? '50px 20px' : '80px 50px', isMobile ? '40px' : '60px')}
+            {swControls(false)}
             {wpmPanel(false)}
             {passagePanel(false)}
-            {swControls(false)}
             {transcriptBlock(false)}
             {accuracyBlock(false)}
             {chartBlock()}
@@ -648,10 +648,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
               </div>
               {isStopwatch ? (
                 <>
-                  {swFace(numStyleFS, isMobile ? '20px 12px' : '110px 80px', isMobile ? 'min(8vw, 40px)' : '140px')}
+                  {swFace(numStyleFS, isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)', isMobile ? 'min(8vw, 40px)' : 'min(9vh, 140px)')}
+                  {swControls(true)}
                   {wpmPanel(true)}
                   {passagePanel(true)}
-                  {swControls(true)}
                   {transcriptBlock(true)}
                   {accuracyBlock(true)}
                   {chartBlock()}
