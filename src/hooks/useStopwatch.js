@@ -163,9 +163,9 @@ export const useStopwatch = () => {
 
   const recordReading = useCallback(async () => {
     const audioUrl = recordVoice ? await stopAudioRecording() : null;
-    setReadingRecords(prev => [...prev, { wordCount: words, elapsedMs: swElapsed, wpm, audioUrl }]);
+    setReadingRecords(prev => [...prev, { wordCount: words, elapsedMs: swElapsed, wpm, audioUrl, transcript }]);
     resetStopwatch();
-  }, [words, swElapsed, wpm, recordVoice, resetStopwatch]);
+  }, [words, swElapsed, wpm, recordVoice, transcript, resetStopwatch]);
 
   const clearReadingRecords = useCallback(() => setReadingRecords([]), []);
 

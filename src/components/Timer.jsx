@@ -66,11 +66,12 @@ function LapList({ laps, lang = 'ja', maxHeight = '300px', large = false }) {
   );
 }
 
-function ReadingBarChart({ records, lang = 'ja' }) {
+function ReadingBarChart({ records, lang = 'ja', onPlay }) {
   const [playingIndex, setPlayingIndex] = useState(null);
   const audioRef = useRef(null);
 
-  const togglePlay = (i, url) => {
+  const togglePlay = (i, record) => {
+    onPlay?.(record);
     if (playingIndex === i) {
       audioRef.current?.pause();
       audioRef.current = null;
@@ -78,7 +79,7 @@ function ReadingBarChart({ records, lang = 'ja' }) {
       return;
     }
     audioRef.current?.pause();
-    const audio = new Audio(url);
+    const audio = new Audio(record.audioUrl);
     audio.onended = () => setPlayingIndex(null);
     audio.play();
     audioRef.current = audio;
@@ -87,7 +88,7 @@ function ReadingBarChart({ records, lang = 'ja' }) {
 
   if (records.length === 0) return null;
   const isEn = lang === 'en';
-  const chartH = 100;
+  const chartH = 180;
   const colW   = 22;
   const gutterW = 56;
   const LIMIT_LINE = 230; // 教養ある大人レベルの上限（その先はネイティブレベル）
@@ -149,7 +150,7 @@ function ReadingBarChart({ records, lang = 'ja' }) {
                 </span>
               )}
               {r.audioUrl && (
-                <button type="button" onClick={() => togglePlay(i, r.audioUrl)} title={playingIndex === i ? (isEn ? 'Stop' : '停止') : (isEn ? 'Play recording' : '録音を聞く')}
+                <button type="button" onClick={() => togglePlay(i, r)} title={playingIndex === i ? (isEn ? 'Stop' : '停止') : (isEn ? 'Play recording' : '録音を聞く')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 0', display: 'flex' }}>
                   {playingIndex === i ? <StopCircle size={13} color="#ef4444"/> : <PlayCircle size={13} color="#4f46e5"/>}
                 </button>
@@ -168,8 +169,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const [readingSaveStatus, setReadingSaveStatus] = useState('idle'); // 'idle' | 'saved'
   const [passageText, setPassageText] = useState('');
   const [importStatus, setImportStatus] = useState(''); // '' | 'loading' | 'error'
-  const pdfInputRef   = useRef(null);
-  const imageInputRef = useRef(null);
+  const [showMaterialPrompt, setShowMaterialPrompt] = useState(false);
+  const pdfInputRef     = useRef(null);
+  const imageInputRef   = useRef(null);
+  const materialInputRef = useRef(null);
 
   const handlePdfImport = async (e) => {
     const file = e.target.files[0];
@@ -237,6 +240,12 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
   const handleSaveReadingRecords = () => {
     if (readingRecords.length === 0 || !onSaveReadingRecords) return;
+    if (!materialName.trim() && !showMaterialPrompt) {
+      setShowMaterialPrompt(true);
+      materialInputRef.current?.focus();
+      return;
+    }
+    setShowMaterialPrompt(false);
     const tagged = readingRecords.map(r => ({ ...r, material: materialName.trim() }));
     onSaveReadingRecords(tagged, transcript);
     clearReadingRecords();
@@ -347,31 +356,33 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const markerPct = Math.min(100, (wpm / WPM_SCALE_MAX) * 100);
 
   const passagePanel = (large = false) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <BookOpen size={large ? 20 : 16} color="#22d3ee"/>
-        <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b' }}>
-          {isEn ? 'Passage to Read (optional)' : '音読する英文（任意）'}
-        </span>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', width: 'fit-content', maxWidth: '90vw', gap: '8px', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: isMobile ? 'wrap' : 'nowrap', justifyContent: isMobile ? 'center' : 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <BookOpen size={large ? 20 : 16} color="#22d3ee"/>
+          <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b', whiteSpace: 'nowrap' }}>
+            {isEn ? 'Passage to Read (optional)' : '音読する英文（任意）'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
+          <button type="button" onClick={() => pdfInputRef.current?.click()} disabled={importStatus === 'loading'}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '10px', whiteSpace: 'nowrap', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
+            <FileText size={12}/> {isEn ? 'PDF' : 'PDFから読込'}
+          </button>
+          <button type="button" onClick={() => imageInputRef.current?.click()} disabled={importStatus === 'loading'}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '10px', whiteSpace: 'nowrap', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
+            <ImageIcon size={12}/> {isEn ? 'Image' : '画像から読込'}
+          </button>
+          <input ref={pdfInputRef} type="file" accept="application/pdf" onChange={handlePdfImport} style={{ display: 'none' }}/>
+          <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageImport} style={{ display: 'none' }}/>
+        </div>
       </div>
       <textarea
         value={passageText} onChange={e => setPassageText(e.target.value)}
         placeholder={isEn ? 'Type or paste the English passage you will read aloud' : 'これから音読する英文を入力・貼り付けしてください'}
-        rows={3}
-        style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', padding: '12px 16px', fontSize: '14px', fontFamily: 'inherit', lineHeight: 1.6, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
+        rows={2}
+        style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', fontSize: '13px', fontFamily: 'inherit', lineHeight: 1.5, border: '1.5px dashed #cbd5e1', borderRadius: '10px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
       />
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <button type="button" onClick={() => pdfInputRef.current?.click()} disabled={importStatus === 'loading'}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '11px', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
-          <FileText size={13}/> {isEn ? 'Import PDF' : 'PDFから読込'}
-        </button>
-        <button type="button" onClick={() => imageInputRef.current?.click()} disabled={importStatus === 'loading'}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '11px', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
-          <ImageIcon size={13}/> {isEn ? 'Import Image' : '画像から読込'}
-        </button>
-        <input ref={pdfInputRef} type="file" accept="application/pdf" onChange={handlePdfImport} style={{ display: 'none' }}/>
-        <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageImport} style={{ display: 'none' }}/>
-      </div>
       {importStatus === 'loading' && (
         <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>{isEn ? 'Reading file…' : '読み込み中…'}</span>
       )}
@@ -404,22 +415,27 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
   const wpmPanel = (large = false) => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: large ? '30px' : '20px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <Mic size={large ? 20 : 16} color="#22d3ee"/>
-        <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b' }}>{isEn ? 'Passage Word Count' : '音読する英文の単語数'}</span>
-        <input
-          type="text" inputMode="numeric" value={wordCount}
-          onChange={e => setWordCount(toHalfWidthDigits(e.target.value).replace(/[^0-9]/g, ''))}
-          placeholder="0"
-          style={{ width: large ? '90px' : '70px', padding: large ? '8px 10px' : '6px 8px', fontSize: large ? '16px' : '14px', fontWeight: '900', textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: '10px', color: '#1e293b' }}
-        />
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Mic size={large ? 20 : 16} color="#22d3ee"/>
+          <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b' }}>{isEn ? 'Passage Word Count' : '音読する英文の単語数'}</span>
+          <input
+            type="text" inputMode="numeric" value={wordCount}
+            onChange={e => {
+              const digits = toHalfWidthDigits(e.target.value).replace(/[^0-9]/g, '');
+              setWordCount(digits === '' ? '' : String(Math.min(Number(digits), 1000)));
+            }}
+            placeholder="0"
+            style={{ width: large ? '130px' : '110px', padding: large ? '12px 14px' : '10px 12px', fontSize: large ? '22px' : '19px', fontWeight: '900', textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#1e293b' }}
+          />
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+          <input type="checkbox" checked={recordVoice} onChange={e => setRecordVoice(e.target.checked)} style={{ width: '14px', height: '14px', cursor: 'pointer' }}/>
+          <span style={{ fontSize: large ? '13px' : '12px', fontWeight: 'bold', color: '#64748b' }}>
+            {isEn ? 'Record my voice & transcribe' : '自分の声を録音して文字起こしする'}
+          </span>
+        </label>
       </div>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-        <input type="checkbox" checked={recordVoice} onChange={e => setRecordVoice(e.target.checked)} style={{ width: '14px', height: '14px', cursor: 'pointer' }}/>
-        <span style={{ fontSize: large ? '13px' : '12px', fontWeight: 'bold', color: '#64748b' }}>
-          {isEn ? 'Record my voice & transcribe' : '自分の声を録音して文字起こしする'}
-        </span>
-      </label>
       {recordVoice && micError && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center', maxWidth: '90vw' }}>
           <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#ef4444', textAlign: 'center' }}>
@@ -489,12 +505,18 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     if (readingRecords.length === 0 && readingSaveStatus !== 'saved') return null;
     if (readingSaveStatus === 'saved') return null;
     return (
-      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Mic size={large ? 20 : 16} color="#22d3ee"/>
+          <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b' }}>
+            {isEn ? 'Transcript' : '文字起こし'}
+          </span>
+        </div>
         <textarea
           value={transcript} onChange={e => setTranscript(e.target.value)}
           placeholder={isEn ? 'Auto-transcribed from your spoken English (editable)' : '録音中に話した英語が自動で文字起こしされます（編集可）'}
-          rows={4}
-          style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', padding: '14px 18px', fontSize: '16px', fontFamily: 'inherit', lineHeight: 1.7, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
+          rows={7}
+          style={{ width: '100%', minWidth: large ? '420px' : '340px', boxSizing: 'border-box', padding: '14px 18px', fontSize: '16px', fontFamily: 'inherit', lineHeight: 1.7, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
         />
       </div>
     );
@@ -502,11 +524,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
   const chartBlock = () => {
     if (readingRecords.length === 0) return null;
-    return (
-      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
-        <ReadingBarChart records={readingRecords} lang={lang}/>
-      </div>
-    );
+    return <ReadingBarChart records={readingRecords} lang={lang} onPlay={r => setTranscript(r.transcript || '')}/>;
   };
 
   const readingSaveButton = (large = false) => {
@@ -516,10 +534,17 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
       <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
         {readingSaveStatus !== 'saved' && (
           <input
-            type="text" value={materialName} onChange={e => setMaterialName(e.target.value)}
+            ref={materialInputRef}
+            type="text" value={materialName}
+            onChange={e => { setMaterialName(e.target.value); if (e.target.value.trim()) setShowMaterialPrompt(false); }}
             placeholder={isEn ? 'Textbook / unit / page (optional)' : '教材名・単元・ページ（任意）'}
-            style={{ width: large ? '260px' : '220px', maxWidth: '90vw', boxSizing: 'border-box', padding: '8px 14px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', border: '1.5px dashed #cbd5e1', borderRadius: '10px', background: '#f1f5f9', color: '#475569' }}
+            style={{ width: large ? '260px' : '220px', maxWidth: '90vw', boxSizing: 'border-box', padding: '8px 14px', fontSize: '13px', fontWeight: 'bold', textAlign: 'center', border: showMaterialPrompt ? '1.5px solid #f59e0b' : '1.5px dashed #cbd5e1', borderRadius: '10px', background: '#f1f5f9', color: '#475569' }}
           />
+        )}
+        {showMaterialPrompt && readingSaveStatus !== 'saved' && (
+          <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#f59e0b', textAlign: 'center', maxWidth: '90vw' }}>
+            {isEn ? 'Please enter the textbook / unit / page (or press Save again to skip)' : '教材名・単元・ページを入力してください（このまま保存する場合は再度保存ボタンを押してください）'}
+          </div>
         )}
         {readingSaveStatus === 'saved' ? (
           <div style={{ padding: pad, borderRadius: '50px', background: '#ecfdf5', color: '#10b981', fontWeight: '900', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -610,11 +635,15 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           <>
             {swFace(numStyle, isMobile ? '50px 20px' : '80px 50px', isMobile ? '40px' : '60px')}
             {swControls(false)}
-            {wpmPanel(false)}
-            {passagePanel(false)}
-            {transcriptBlock(false)}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: isMobile ? undefined : 'auto auto', alignItems: isMobile ? 'center' : 'flex-start', gap: isMobile ? '20px' : '16px 24px', width: 'fit-content', maxWidth: '90vw' }}>
+                {wpmPanel(false)}
+                {passagePanel(false)}
+                {transcriptBlock(false)}
+                {chartBlock()}
+              </div>
+            </div>
             {accuracyBlock(false)}
-            {chartBlock()}
             {readingSaveButton(false)}
           </>
         ) : (
@@ -655,11 +684,15 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
                 <>
                   {swFace(numStyleFS, isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)', isMobile ? 'min(8vw, 40px)' : 'min(9vh, 140px)')}
                   {swControls(true)}
-                  {wpmPanel(true)}
-                  {passagePanel(true)}
-                  {transcriptBlock(true)}
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: isMobile ? undefined : 'auto auto', alignItems: isMobile ? 'center' : 'flex-start', gap: isMobile ? '20px' : '16px 24px', width: 'fit-content', maxWidth: '90vw' }}>
+                      {wpmPanel(true)}
+                      {passagePanel(true)}
+                      {transcriptBlock(true)}
+                      {chartBlock()}
+                    </div>
+                  </div>
                   {accuracyBlock(true)}
-                  {chartBlock()}
                   {readingSaveButton(true)}
                 </>
               ) : (

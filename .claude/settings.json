@@ -4,7 +4,8 @@
       "Bash(find / -maxdepth 6 -iname \"*chromium-cli*\")",
       "Bash(npm list *)",
       "Read(//private/tmp/claude-501/bundled-skills/**)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

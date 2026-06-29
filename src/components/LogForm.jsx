@@ -40,7 +40,7 @@ export default function LogForm({
     } else if (dragTarget.current === 'log_quality') {
       setQuality(Math.max(0, Math.min(dragStartVal.current + Math.floor(diffY / 2), 100)));
     } else if (dragTarget.current === 'log_vocab') {
-      setVocabCount(Math.max(0, Math.min(dragStartVal.current + Math.floor(diffY / 2), 9999)));
+      setVocabCount(Math.max(0, Math.min(dragStartVal.current + Math.floor(diffY / 2), 150)));
     }
   };
   const handlePointerUp = () => { dragStartY.current = null; dragTarget.current = null; };
@@ -166,11 +166,11 @@ export default function LogForm({
           {[
             { label: T.fieldTime,  icon: <Clock    size={14} color="white"/>, value: minutes,    unit: T.unitMin,   target: 'log_min',     color: '#4f46e5', min: 1, max: 90 },
             { label: T.fieldFocus, icon: <Zap      size={14} color="white"/>, value: quality,    unit: T.unitPct,   target: 'log_quality', color: '#f59e0b', min: 0, max: 100 },
-            ...(showVocab ? [{ label: T.fieldVocab, icon: <BookOpen size={14} color="white"/>, value: vocabCount, unit: T.unitWords, target: 'log_vocab', color: '#c084fc', min: 0, max: 9999 }] : []),
+            ...(showVocab ? [{ label: T.fieldVocab, icon: <BookOpen size={14} color="white"/>, value: vocabCount, unit: T.unitWords, target: 'log_vocab', color: '#c084fc', min: 0, max: 150 }] : []),
           ].map(({ label, icon, value, unit, target, color, min, max }) => {
             const setter = target === 'log_min' ? v => setMinutes(Math.max(1, Math.min(v, 90)))
                          : target === 'log_quality' ? v => setQuality(Math.max(0, Math.min(v, 100)))
-                         : v => setVocabCount(Math.max(0, Math.min(v, 9999)));
+                         : v => setVocabCount(Math.max(0, Math.min(v, 150)));
             return (
               <div key={target} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'white', padding: isMobile ? '12px 4px' : '16px', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 2px 10px rgba(0,0,0,0.04)', boxSizing: 'border-box', flex: isMobile ? '1 1 0%' : '0 1 150px', minWidth: isMobile ? 0 : '130px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '8px', background: color, marginBottom: '6px' }}>
