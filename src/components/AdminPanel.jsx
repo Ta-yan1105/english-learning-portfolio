@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   collection, addDoc, onSnapshot, query, where, setDoc, doc, deleteDoc, getDocs, updateDoc,
 } from 'firebase/firestore';
@@ -447,6 +447,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
           ['overview', T.tabOverview],
           ['add', T.tabAdd],
           ['import', T.tabImport],
+          ['words', lang === 'en' ? 'Word Game' : '単語ゲーム管理'],
           ...(isSuperAdmin ? [['admins', lang === 'en' ? 'Admin Mgmt' : '管理者管理']] : []),
         ].map(([t, l]) => (
           <button key={t} onClick={() => setTab(t)} style={tabBtn(t)}>{l}</button>
@@ -1076,6 +1077,157 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
           </div>
         </div>
       )}
+
+      {/* ===== 単語ゲーム管理タブ ===== */}
+      {tab === 'words' && <WordsTab selectedGroup={selectedGroup} lang={lang} db={db}/>}
+    </div>
+  );
+}
+
+function WordsTab({ selectedGroup, lang, db }) {
+  const isEn = lang === 'en';
+  const [words, setWords] = useState([]);
+  const [newJa, setNewJa] = useState('');
+  const [newEn, setNewEn] = useState('');
+  const [saving, setSaving] = useState(false);
+  const fileRef = useRef(null);
+
+  const BANK_DOC = 'global';   // クラス関係なく全員共通の単語バンク
+
+  useEffect(() => {
+    return onSnapshot(doc(db, 'wordBanks', BANK_DOC), d => {
+      setWords(d.exists() ? (d.data().words || []) : []);
+    });
+  }, []);
+
+  const save = async (next) => {
+    setSaving(true);
+    await setDoc(doc(db, 'wordBanks', BANK_DOC), { words: next, updatedAt: Date.now() });
+    setSaving(false);
+  };
+
+  const addWord = () => {
+    if (!newJa.trim() || !newEn.trim()) return;
+    const next = [...words, { ja: newJa.trim(), en: newEn.trim() }];
+    setWords(next); save(next);
+    setNewJa(''); setNewEn('');
+  };
+
+  const deleteWord = (i) => {
+    const next = words.filter((_, idx) => idx !== i);
+    setWords(next); save(next);
+  };
+
+  const parseCsvText = (text) => {
+    // BOM除去
+    const clean = text.replace(/^﻿/, '');
+    const lines = clean.split(/\r?\n/).filter(Boolean);
+    return lines.flatMap(l => {
+      const [ja, en] = l.split(',').map(s => s.trim());
+      return ja && en ? [{ ja, en }] : [];
+    });
+  };
+
+  const handleCsv = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const buf = ev.target.result;
+      // UTF-8(strict)で失敗したらShift-JIS(Excel日本語)でデコード
+      let text = '';
+      try { text = new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+      catch { text = new TextDecoder('shift-jis').decode(buf); }
+      const parsed = parseCsvText(text);
+      if (!parsed.length) return;
+      const next = [...words, ...parsed];
+      setWords(next); save(next);
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
+  const makeBlob = (content) =>
+    new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' });
+
+  const downloadTemplate = () => {
+    const csv = isEn ? 'Japanese,English\n犬,dog\n猫,cat' : '日本語,英語\n犬,dog\n猫,cat';
+    const url = URL.createObjectURL(makeBlob(csv));
+    const a = document.createElement('a'); a.href = url; a.download = 'wordbank_template.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadWords = () => {
+    const csv = (isEn ? 'Japanese,English\n' : '日本語,英語\n') + words.map(w => `${w.ja},${w.en}`).join('\n');
+    const url = URL.createObjectURL(makeBlob(csv));
+    const a = document.createElement('a'); a.href = url; a.download = `wordbank_${selectedGroup?.name || 'group'}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearAll = () => {
+    if (!window.confirm(isEn ? `Delete all ${words.length} words?` : `${words.length}語すべて削除しますか？`)) return;
+    setWords([]); save([]);
+  };
+
+  const inputSt = { padding:'8px 12px', borderRadius:'10px', border:'1px solid #e2e8f0', fontSize:'14px', fontWeight:'bold', color:'#1e293b', outline:'none' };
+  const btnSt = (c) => ({ padding:'8px 18px', borderRadius:'10px', border:'none', background:c, color:'white', fontWeight:'900', fontSize:'12px', cursor:'pointer', display:'flex', alignItems:'center', gap:'6px' });
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+      <div style={{ background:'white', borderRadius:'16px', padding:'20px', boxShadow:'0 2px 8px rgba(0,0,0,0.04)' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px', flexWrap:'wrap', gap:'10px' }}>
+          <h3 style={{ margin:0, fontSize:'15px', fontWeight:'900', color:'#1e293b' }}>
+            🎯 {isEn ? `Global Word Bank (${words.length} words)` : `共通単語バンク（${words.length}語）— クラス関係なく全員が対象`}
+          </h3>
+          <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+            <button onClick={downloadTemplate} style={btnSt('#64748b')}>
+              <Download size={13}/> {isEn ? 'Template' : 'テンプレートDL'}
+            </button>
+            <button onClick={() => fileRef.current?.click()} style={btnSt('#f59e0b')}>
+              <Upload size={13}/> {isEn ? 'Import CSV' : 'CSV読込'}
+            </button>
+            {words.length > 0 && <button onClick={downloadWords} style={btnSt('#10b981')}>
+              <Download size={13}/> {isEn ? 'Export' : '書き出し'}
+            </button>}
+            {words.length > 0 && <button onClick={clearAll} style={btnSt('#ef4444')}>
+              <Trash2 size={13}/> {isEn ? 'Clear All' : '全削除'}
+            </button>}
+          </div>
+          <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleCsv} style={{ display:'none' }}/>
+        </div>
+
+        {/* Add form */}
+        <div style={{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'16px' }}>
+          <input value={newJa} onChange={e=>setNewJa(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addWord()}
+            placeholder={isEn ? 'Japanese (e.g. 犬)' : '日本語（例：犬）'} style={{ ...inputSt, flex:'1 1 140px' }}/>
+          <input value={newEn} onChange={e=>setNewEn(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addWord()}
+            placeholder={isEn ? 'English (e.g. dog)' : '英語（例：dog）'} style={{ ...inputSt, flex:'1 1 140px' }}/>
+          <button onClick={addWord} disabled={!newJa.trim()||!newEn.trim()||saving}
+            style={{ ...btnSt('#4f46e5'), opacity:(!newJa.trim()||!newEn.trim()||saving)?0.5:1 }}>
+            <Plus size={14}/> {isEn ? 'Add' : '追加'}
+          </button>
+        </div>
+
+        {/* Word list */}
+        {words.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'24px', color:'#94a3b8', fontWeight:'bold', fontSize:'13px' }}>
+            {isEn ? 'No words yet. Add some or import a CSV.' : '単語がありません。追加またはCSVで読み込んでください。'}
+          </div>
+        ) : (
+          <div style={{ maxHeight:'400px', overflowY:'auto', display:'flex', flexDirection:'column', gap:'6px' }}>
+            {words.map((w, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'8px 12px', background:'#f8fafc', borderRadius:'10px', border:'1px solid #f1f5f9' }}>
+                <span style={{ flex:1, fontWeight:'900', color:'#1e293b', fontSize:'14px' }}>{w.ja}</span>
+                <span style={{ color:'#94a3b8', fontSize:'12px' }}>→</span>
+                <span style={{ flex:1, fontWeight:'bold', color:'#4f46e5', fontSize:'14px' }}>{w.en}</span>
+                <button onClick={() => deleteWord(i)} style={{ background:'none', border:'none', cursor:'pointer', color:'#ef4444', padding:'4px', flexShrink:0 }}>
+                  <Trash2 size={14}/>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

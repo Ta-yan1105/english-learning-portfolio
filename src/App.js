@@ -4,7 +4,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, onSnapshot, updateDoc, arrayUnion } from 'firebase/firestore';
-import { Activity, BookOpen, User, LogOut, Star, CalendarDays, Globe, X, MessageSquare } from 'lucide-react';
+import { Activity, BookOpen, User, LogOut, Star, CalendarDays, Globe, X, MessageSquare, Gamepad2 } from 'lucide-react';
 
 import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
@@ -16,6 +16,7 @@ import LogForm    from './components/LogForm';
 import Dashboard  from './components/Dashboard';
 import LogList    from './components/LogList';
 import AdminPanel from './components/AdminPanel';
+import WordShooterGame from './components/WordShooterGame';
 import './App.css';
 
 const fetchNextEikenDate = async () => {
@@ -82,6 +83,16 @@ export default function App() {
   const dismissMessage = async (id) => {
     await updateDoc(doc(db, 'messages', id), { read: true });
   };
+
+  const [showGame, setShowGame]   = useState(false);
+  const [wordBank, setWordBank]   = useState([]);
+
+  useEffect(() => {
+    if (!user) return;
+    return onSnapshot(doc(db, 'wordBanks', 'global'), d => {
+      setWordBank(d.exists() ? (d.data().words || []) : []);
+    });
+  }, [user]);
 
   const [readingLogs, setReadingLogs] = useState([]);
 
@@ -426,6 +437,7 @@ export default function App() {
 
   return (
     <div style={{ maxWidth: '1024px', /* 狭めるなら 900px */ margin: '0 auto', width: '100%', padding: isMobile ? '16px 16px' : '24px 20px', minHeight: '100vh', fontFamily: 'sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
+      {showGame && <WordShooterGame words={wordBank} lang={lang} onClose={() => setShowGame(false)}/>}
 
       <style>{`
         @keyframes popIn {
@@ -493,6 +505,12 @@ export default function App() {
             <button className="action-btn" onClick={() => setShowAdminPanel(true)}
               style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'white', color: '#4f46e5', border: '1.5px solid #e0e7ff', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Activity size={14}/> {isMobile ? T.adminPanelShort : T.adminPanel}
+            </button>
+          )}
+          {user && (
+            <button className="action-btn" onClick={() => setShowGame(true)}
+              style={{ padding: isMobile ? '8px 10px' : '8px 14px', background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 4px 12px rgba(79,70,229,0.3)' }}>
+              <Gamepad2 size={14}/> {isMobile ? 'ゲーム' : 'ワードゲーム'}
             </button>
           )}
           <button className="action-btn" onClick={handleLogout}
