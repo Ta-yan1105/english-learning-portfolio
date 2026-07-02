@@ -131,24 +131,6 @@
 /* コンテンツ幅を超えた左右の余白にも背景色を広げる */
 body, #root { background-color: #f4f7fa; }
 
-/* ===== Word Shooter Game ===== */
-@keyframes wordApproach {
-  0%   { transform: translate(-50%, -50%) scale(0.04); opacity: 0; }
-  6%   { opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(4.5); opacity: 1; }
-}
-@keyframes wordHit {
-  0%   { transform: translate(-50%,-50%) scale(var(--hit-base,1.2)); opacity: 1; filter: brightness(1); }
-  30%  { transform: translate(-50%,-50%) scale(calc(var(--hit-base,1.2)*1.6)); filter: brightness(3) drop-shadow(0 0 16px #fbbf24); opacity: 1; }
-  100% { transform: translate(-50%,-50%) scale(calc(var(--hit-base,1.2)*0.1)); opacity: 0; }
-}
-@keyframes wordMiss {
-  0%   { opacity: 1; }
-  100% { transform: translate(-50%,-50%) scale(6); opacity: 0; }
-}
-.word-approach { animation: wordApproach linear forwards; }
-.word-hit      { animation: wordHit 0.4s ease-out forwards !important; }
-.word-miss     { animation: wordMiss 0.2s ease-in forwards !important; }
 
 /* LogForm の日付欄: ブラウザ標準のカレンダーアイコンを隠し、自前のアイコンのみ表示（クリックは欄全体で有効） */
 .logform-date-input::-webkit-calendar-picker-indicator {
