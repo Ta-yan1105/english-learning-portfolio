@@ -5,7 +5,15 @@
       "Bash(npm list *)",
       "Read(//private/tmp/claude-501/bundled-skills/**)",
       "Bash(npm install *)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(git log *)",
+      "Bash(npx eslint *)",
+      "Bash(lsof -ti:3000)",
+      "Bash(xargs kill -9)",
+      "Bash(BROWSER=none nohup npx react-scripts start)",
+      "Bash(echo \"started $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(git checkout *)"
     ]
   }
 }

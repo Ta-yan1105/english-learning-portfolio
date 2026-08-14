@@ -16,6 +16,7 @@ import LogForm    from './components/LogForm';
 import Dashboard  from './components/Dashboard';
 import LogList    from './components/LogList';
 import AdminPanel from './components/AdminPanel';
+import DailyQuote from './components/DailyQuote';
 import './App.css';
 
 const fetchNextEikenDate = async () => {
@@ -596,6 +597,8 @@ export default function App() {
       </div>
 
       {/* ===== コンポーネント群 ===== */}
+      <DailyQuote />
+
       <Timer isMobile={isMobile} lang={lang} onTimerComplete={handleTimerComplete} onSaveReadingRecords={handleSaveReadingRecords}/>
 
       <LogForm
