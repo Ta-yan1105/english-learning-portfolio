@@ -150,6 +150,15 @@
 .hud-step:hover, .hud-preset:hover { filter: brightness(1.35) !important; transform: translateY(-2px) !important; }
 .hud-step:active, .hud-preset:active { transform: translateY(1px) scale(0.93) !important; }
 
+/* 学習カレンダーのマス：触れる手応えを出す */
+.cal-cell { transition: transform 0.13s ease, box-shadow 0.13s ease !important; }
+.cal-cell:hover { transform: translateY(-2px) scale(1.06) !important; box-shadow: 0 5px 12px rgba(30,27,75,0.18) !important; z-index: 1; }
+.cal-cell:active { transform: scale(0.94) !important; }
+
+/* 予定の削除ボタン：普段は控えめ、触れるとはっきり */
+.slot-clear { opacity: 0.55; transition: opacity 0.15s ease, background 0.15s ease !important; }
+.slot-clear:hover { opacity: 1; background: rgba(30,27,75,0.08) !important; }
+
 .modern-input { transition: all 0.3s ease !important; border-color: #c7d2fe !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important; }
 .modern-input:focus { background: #ffffff !important; border-color: #4f46e5 !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18) !important; }
 .timer-text { font-variant-numeric: tabular-nums; font-family: 'Helvetica Neue', Arial, sans-serif; }

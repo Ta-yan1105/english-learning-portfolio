@@ -9,6 +9,7 @@ import { Activity, BookOpen, User, LogOut, Star, CalendarDays, Globe, X, Message
 import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
 import { useLogs } from './hooks/useLogs';
+import { usePlans } from './hooks/usePlans';
 import i18n from './i18n';
 
 import Timer      from './components/Timer';
@@ -17,6 +18,7 @@ import Dashboard  from './components/Dashboard';
 import LogList    from './components/LogList';
 import AdminPanel from './components/AdminPanel';
 import DailyQuote from './components/DailyQuote';
+import StudyCalendar from './components/StudyCalendar';
 import './App.css';
 
 const fetchNextEikenDate = async () => {
@@ -107,6 +109,7 @@ export default function App() {
   const formRef = useRef(null);
 
   const { logs, getFilteredLogs, getTimeStats, streak, saveLog, deleteLog, exportLogs } = useLogs(user);
+  const { plans, savePlan } = usePlans(user);
   const filteredLogs = useMemo(() => getFilteredLogs(date, selectedRange), [getFilteredLogs, date, selectedRange]);
   const timeStats    = useMemo(() => getTimeStats(date), [getTimeStats, date]);
 
@@ -314,10 +317,6 @@ export default function App() {
   const today = new Date();
   const todayStr = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
 
-  const daysLeft = profile.otherDate
-    ? Math.round((new Date(profile.otherDate + 'T00:00:00').getTime() - new Date().setHours(0,0,0,0)) / 86400000)
-    : null;
-
   if (isAuthChecking || !isRoleChecked) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f4f7fa' }}>
       <div style={{ color: '#4f46e5', fontWeight: 'bold', fontSize: '20px' }}>Loading...</div>
@@ -522,81 +521,22 @@ export default function App() {
         </div>
       )}
 
-      {/* ===== プロフィールバー ===== */}
-      <div style={{
-        background: 'white', borderRadius: '16px',
-        padding: isMobile ? '12px 16px' : '14px 20px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-        display: 'flex', alignItems: 'center',
-        gap: isMobile ? '10px' : '0',
-        flexWrap: 'wrap',
-        border: '1px solid #f1f5f9',
-      }}>
-        {/* 日付 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>
-          <CalendarDays size={15} color="#94a3b8"/>
-          <span>{todayStr}</span>
-        </div>
-
-        <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 14px', flexShrink: 0, display: isMobile ? 'none' : 'block' }}/>
-
-        {/* 氏名 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          <User size={15} color="#94a3b8"/>
-          <input
-            value={profile.name || ''}
-            onChange={e => handleProfileUpdate('name', e.target.value)}
-            placeholder={lang === 'en' ? 'Name' : '氏名'}
-            style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: '700', color: '#1e293b', background: 'transparent', width: '80px' }}
-          />
-        </div>
-
-        <div style={{ width: '1px', height: '18px', background: '#e2e8f0', margin: '0 14px', flexShrink: 0, display: isMobile ? 'none' : 'block' }}/>
-
-        {/* 試験情報 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, flexWrap: 'wrap' }}>
-          <Star size={15} color="#f59e0b" style={{ flexShrink: 0 }}/>
-          <input
-            value={profile.otherName || ''}
-            onChange={e => handleProfileUpdate('otherName', e.target.value)}
-            placeholder={lang === 'en' ? 'Exam name' : '試験名'}
-            style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: '700', color: '#1e293b', background: 'transparent', minWidth: '80px', flex: 1 }}
-          />
-          <input
-            type="date"
-            value={profile.otherDate || ''}
-            onChange={e => handleProfileUpdate('otherDate', e.target.value)}
-            style={{ border: '1px solid #e2e8f0', outline: 'none', fontSize: '12px', fontWeight: '600', color: '#64748b', background: '#f8fafc', borderRadius: '8px', padding: '4px 8px', flexShrink: 0 }}
-          />
-          {daysLeft !== null && (
-            <div style={{
-              background: daysLeft <= 7
-                ? 'linear-gradient(135deg,#ef4444,#f97316)'
-                : daysLeft <= 30
-                ? 'linear-gradient(135deg,#f59e0b,#fbbf24)'
-                : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-              color: 'white', borderRadius: '12px', padding: '6px 16px',
-              flexShrink: 0,
-              boxShadow: daysLeft <= 7
-                ? '0 4px 14px rgba(239,68,68,0.45)'
-                : daysLeft <= 30
-                ? '0 4px 14px rgba(245,158,11,0.45)'
-                : '0 4px 14px rgba(79,70,229,0.45)',
-              display: 'flex', alignItems: 'center', gap: '4px',
-              border: '2px solid rgba(255,255,255,0.25)',
-              animation: 'badgePulse 2.5s ease-in-out infinite',
-            }}>
-              {lang === 'ja' && <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>あと</span>}
-              <span className="timer-text" style={{ fontSize: '24px', fontWeight: '900', lineHeight: 1 }}>{daysLeft}</span>
-              <span style={{ fontSize: '11px', opacity: 0.9, fontWeight: '700' }}>{lang === 'en' ? 'days' : '日'}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* ===== コンポーネント群 ===== */}
       <DailyQuote />
+
+      <StudyCalendar
+        isMobile={isMobile}
+        lang={lang}
+        logs={logs}
+        date={date}
+        setDate={setDate}
+        onSelectDate={() => setSelectedRange('day')}
+        streak={streak}
+        profile={profile}
+        onProfileUpdate={handleProfileUpdate}
+        plans={plans}
+        onSavePlan={savePlan}
+      />
 
       <Timer isMobile={isMobile} lang={lang} onTimerComplete={handleTimerComplete} onSaveReadingRecords={handleSaveReadingRecords}/>
 
