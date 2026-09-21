@@ -290,12 +290,12 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     <div style={{
       background: isComplete ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
       borderRadius: '34px', padding: '4px', margin: '20px auto 30px',
-      width: 'fit-content', boxShadow: '0 15px 35px rgba(79,70,229,0.1)',
+      width: 'fit-content', boxShadow: '0 18px 38px rgba(79,70,229,0.28), 0 6px 12px rgba(79,70,229,0.16)',
     }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '30px',
-        padding: pad, boxShadow: 'inset 0 2px 5px rgba(255,255,255,1)',
+        padding: pad, boxShadow: 'inset 0 2px 5px rgba(255,255,255,1), inset 0 -4px 10px rgba(79,70,229,0.07)',
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 5px' }}>
           <div className="timer-text" style={ns}>{timeDisplay.m}</div>
@@ -312,13 +312,13 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     <div style={{
       background: isComplete ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
       borderRadius: '64px', padding: '8px', margin: '20px auto 30px',
-      width: 'fit-content', boxShadow: '0 24px 60px rgba(79,70,229,0.14)',
+      width: 'fit-content', boxShadow: '0 28px 64px rgba(79,70,229,0.32), 0 10px 20px rgba(79,70,229,0.18)',
     }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '56px',
         padding: isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)',
-        boxShadow: 'inset 0 3px 10px rgba(255,255,255,1)',
+        boxShadow: 'inset 0 3px 10px rgba(255,255,255,1), inset 0 -6px 16px rgba(79,70,229,0.07)',
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
           <div className="timer-text" style={ns}>{timeDisplay.m}</div>
@@ -337,12 +337,12 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     <div style={{
       background: isSwRunning ? '#4f46e5' : '#e2e8f0',
       borderRadius: '34px', padding: '4px', margin: '20px auto 30px',
-      width: 'fit-content', boxShadow: '0 15px 35px rgba(79,70,229,0.1)',
+      width: 'fit-content', boxShadow: '0 18px 38px rgba(79,70,229,0.28), 0 6px 12px rgba(79,70,229,0.16)',
     }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'baseline',
         background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '30px',
-        padding: pad, boxShadow: 'inset 0 2px 5px rgba(255,255,255,1)',
+        padding: pad, boxShadow: 'inset 0 2px 5px rgba(255,255,255,1), inset 0 -4px 10px rgba(79,70,229,0.07)',
       }}>
         <div className="timer-text" style={ns}>{swDisplay.m}</div>
         <div className="timer-text" style={ns}>:</div>
@@ -605,7 +605,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     </button>
   );
 
-  const card = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', boxSizing: 'border-box', width: '100%', textAlign: 'center' };
+  const card = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 22px 50px rgba(30, 27, 75, 0.20), 0 8px 16px rgba(30, 27, 75, 0.10), 0 0 0 1px rgba(79, 70, 229, 0.07)', boxSizing: 'border-box', width: '100%', textAlign: 'center' };
   const isStopwatch = mode === 'stopwatch';
   const title = isStopwatch ? (isEn ? 'Stopwatch' : 'ストップウォッチ') : (isEn ? 'Study Timer' : '学習タイマー');
   const HeaderIcon = isStopwatch ? Watch : TimerIcon;

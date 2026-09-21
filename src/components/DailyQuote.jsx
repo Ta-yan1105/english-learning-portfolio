@@ -28,27 +28,6 @@ export default function DailyQuote() {
     setShowExplanation(false); // 次の名言に切り替わったら解説を閉じる
   };
 
-  // 現在の月から季節を判定し、舞う花びら/葉のテーマを決める
-  const getSeasonTheme = () => {
-    const month = new Date().getMonth() + 1;
-    if (month >= 3 && month <= 5) {
-      // 春：桜の花びら
-      return { colors: ['rgba(253, 164, 175, 0.8)', 'rgba(251, 182, 206, 0.8)'], shape: '100% 0% 100% 0%' };
-    }
-    if (month >= 6 && month <= 8) {
-      // 夏：新緑の葉
-      return { colors: ['rgba(74, 222, 128, 0.8)', 'rgba(134, 239, 172, 0.8)'], shape: '0% 100% 0% 100%' };
-    }
-    if (month >= 9 && month <= 11) {
-      // 秋：紅葉
-      return { colors: ['rgba(251, 146, 60, 0.8)', 'rgba(217, 119, 6, 0.8)', 'rgba(220, 38, 38, 0.8)'], shape: '0% 60% 0% 60%' };
-    }
-    // 冬：雪
-    return { colors: ['rgba(255, 255, 255, 0.9)', 'rgba(224, 242, 254, 0.9)'], shape: '50%' };
-  };
-
-  const seasonTheme = getSeasonTheme();
-
   const playAudio = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -109,25 +88,11 @@ export default function DailyQuote() {
   return (
     <div style={{ width: '100%', marginBottom: '25px', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
 
-      {/* 舞う花びら/葉のアニメーション用のスタイル定義 */}
-      <style>{`
-        @keyframes petalFall {
-          0% { top: -10%; transform: rotate(0deg); opacity: 0; }
-          10% { opacity: 0.8; }
-          90% { opacity: 0.8; }
-          100% { top: 110%; transform: rotate(720deg); opacity: 0; }
-        }
-        @keyframes petalSway {
-          0% { margin-left: -20px; }
-          100% { margin-left: 20px; }
-        }
-      `}</style>
-
       <div style={{
         width: '100%',
         backgroundColor: '#ffffff',
         borderRadius: 'clamp(16px, 4vw, 24px)',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.06)',
+        boxShadow: '0 22px 50px rgba(30, 27, 75, 0.20), 0 8px 16px rgba(30, 27, 75, 0.10), 0 0 0 1px rgba(79, 70, 229, 0.07)',
         overflow: 'hidden'
       }}>
         {/* 上部：ヒーローセクション（英文） */}
@@ -138,35 +103,10 @@ export default function DailyQuote() {
           flexDirection: 'row',
           flexWrap: 'wrap',
           background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 55%, #3730a3 100%)',
-          color: 'white'
+          color: 'white',
+          zIndex: 1,
+          boxShadow: '0 10px 24px rgba(30, 27, 75, 0.28)'
         }}>
-
-          {/* 季節に応じた花びら/葉のパーティクル（pointer-events: noneで干渉しない） */}
-          {[...Array(25)].map((_, i) => {
-            const size = 6 + Math.random() * 8; // 6px ~ 14px
-            const left = Math.random() * 100; // 0% ~ 100%
-            const fallDuration = 6 + Math.random() * 6; // 6s ~ 12s
-            const swayDuration = 2 + Math.random() * 3; // 2s ~ 5s
-            const delay = Math.random() * -15; // 初期状態から降らせるためのマイナス遅延
-            const color = seasonTheme.colors[Math.floor(Math.random() * seasonTheme.colors.length)];
-
-            return (
-              <div
-                key={i}
-                style={{
-                  position: 'absolute',
-                  left: `${left}%`,
-                  width: `${size}px`,
-                  height: `${size}px`,
-                  backgroundColor: color,
-                  borderRadius: seasonTheme.shape,
-                  pointerEvents: 'none',
-                  animation: `petalFall ${fallDuration}s linear ${delay}s infinite, petalSway ${swayDuration}s ease-in-out ${delay}s infinite alternate`,
-                  zIndex: 0
-                }}
-              />
-            );
-          })}
 
           {showImage && (
             <div style={{
@@ -217,7 +157,7 @@ export default function DailyQuote() {
               margin: '0 0 12px 0',
               lineHeight: '1.3',
               fontWeight: '900',
-              textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+              textShadow: '0 2px 4px rgba(0,0,0,0.55), 0 8px 20px rgba(0,0,0,0.45)',
               wordBreak: 'break-word',
               overflowWrap: 'break-word'
             }}>

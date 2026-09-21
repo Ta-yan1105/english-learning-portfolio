@@ -18,6 +18,12 @@
   100% { transform: translateY(0) rotate(0deg); } 
 }
 
+/* HUD パネルのステータスランプ */
+@keyframes hudPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.8); }
+}
+
 /* ⭐️ エラー原因を修復したアニメーション！ */
 @keyframes sparkleBar { 
   0% { filter: brightness(1); opacity: 0.9; } 
@@ -109,8 +115,35 @@
 .action-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; }
 .action-btn:hover:not(:disabled) { transform: translateY(-2px) !important; filter: brightness(1.05) !important; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important; }
 .action-btn:active:not(:disabled) { transform: translateY(0) !important; }
-.category-btn { transition: all 0.2s ease !important; }
-.category-btn:hover { transform: scale(1.05) !important; }
+/* 技能タイル／サブ選択ボタン：底面の「厚み」を持つ押せるボタン。
+   --edge(底の色) --edge-h(厚み) --glow(影) --sheen(上面の艶) は各ボタンが指定する。 */
+.skill-tile {
+  transition: transform 0.14s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.14s ease, background 0.2s ease, border-color 0.2s ease !important;
+  box-shadow:
+    0 var(--edge-h) 0 var(--edge),
+    0 calc(var(--edge-h) + 8px) 20px var(--glow),
+    inset 0 1px 0 var(--sheen) !important;
+}
+.skill-tile:hover {
+  transform: translateY(-3px) !important;
+  box-shadow:
+    0 calc(var(--edge-h) + 3px) 0 var(--edge),
+    0 calc(var(--edge-h) + 15px) 28px var(--glow),
+    inset 0 1px 0 var(--sheen) !important;
+}
+/* 押した瞬間は厚みの分だけ沈んで、底面が消える */
+.skill-tile:active {
+  transform: translateY(var(--edge-h)) !important;
+  box-shadow:
+    0 0 0 var(--edge),
+    0 3px 8px var(--glow),
+    inset 0 1px 0 var(--sheen) !important;
+}
+/* HUD の +/- ステッパーとプリセット：光って反応する */
+.hud-step, .hud-preset { transition: all 0.15s ease !important; }
+.hud-step:hover, .hud-preset:hover { filter: brightness(1.35) !important; transform: translateY(-2px) !important; }
+.hud-step:active, .hud-preset:active { transform: translateY(1px) scale(0.93) !important; }
+
 .modern-input { transition: all 0.3s ease !important; border-color: #c7d2fe !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important; }
 .modern-input:focus { background: #ffffff !important; border-color: #4f46e5 !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18) !important; }
 .timer-text { font-variant-numeric: tabular-nums; font-family: 'Helvetica Neue', Arial, sans-serif; }
