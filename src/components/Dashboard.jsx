@@ -6,9 +6,24 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, Cell, LabelList,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts';
 import { CATEGORIES, formatMinutes, getUnit, getLocalDateString } from '../constants';
+import { hudPanelStyle, HudHeading, hud } from './hud';
 import i18n from '../i18n';
+
+const GRID     = '#e7eaf6'; // 目盛り線（面から一段だけ濃い）
+const GAP      = '#f7f8fd'; // 積み上げの隙間＝パネル面の色
+const AXIS_INK = '#9aa2c4'; // 軸ラベル
+
+/* レーダーの頂点：技能色の点に面色の2pxリングを付けて重なりでも読めるようにする */
+const renderRadarDot = ({ cx, cy, payload, index }) => {
+  const datum = payload?.payload ?? payload; // recharts は点オブジェクトを渡すので元データを取り出す
+  if (cx == null || cy == null || !datum?.today) return null; // 0分の技能は点を打たない
+  return (
+    <circle key={index} cx={cx} cy={cy} r={4.5} fill={datum.color} stroke={GAP} strokeWidth={2}/>
+  );
+};
 
 const xAxisFormatter = (v) => {
   if (v <= 0) return '0';
@@ -76,6 +91,36 @@ export default function Dashboard({
     }
     return [];
   }, [selectedRange, logs, date]);
+
+  /* 日別レーダー：今日の各技能と、比較用の今週平均 */
+  const radarData = useMemo(() => {
+    if (selectedRange !== 'day') return [];
+    const base  = new Date(date + 'T00:00:00');
+    const idx   = base.getDay() || 7;
+    const start = new Date(base);
+    if (idx !== 1) start.setDate(base.getDate() - idx + 1);
+    const weekDates = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      return getLocalDateString(d);
+    });
+
+    const sumBySkill = (rows) => {
+      const m = {};
+      rows.forEach(l => (l.categories || []).forEach(c => {
+        m[c] = (m[c] || 0) + (Number(l.minutes) || 0);
+      }));
+      return m;
+    };
+    const todayMap = sumBySkill(logs.filter(l => l.date === date));
+    const weekMap  = sumBySkill(logs.filter(l => weekDates.includes(l.date)));
+
+    return CATEGORIES.map(cat => ({
+      skill: lang === 'en' ? cat.label_en : cat.label,
+      color: cat.color,
+      today: todayMap[cat.id] || 0,
+      weekAvg: Math.round(((weekMap[cat.id] || 0) / 7) * 10) / 10,
+    }));
+  }, [logs, date, selectedRange, lang]);
 
   const vocabStats = useMemo(() => {
     const todayStr = getLocalDateString(new Date());
@@ -145,16 +190,46 @@ export default function Dashboard({
     const total = payload[0].payload.value;
     if (selectedRange === 'day') {
       const d = payload[0].payload;
+      if (d && d.skill !== undefined) {
+        return (
+          <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '12px', border: `1px solid ${hud.line}`, boxShadow: '0 8px 20px rgba(30,27,75,0.10)', fontSize: '11px', fontWeight: 'bold' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#334155', marginBottom: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: d.color, flexShrink: 0 }}/>
+              {d.skill}
+            </div>
+            {[
+              { label: lang === 'en' ? 'Today' : '今日', v: d.today, c: '#4f46e5' },
+              { label: lang === 'en' ? 'Week avg' : '今週平均', v: d.weekAvg, c: '#c3cade' },
+            ].map(r => (
+              <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', color: '#334155', marginTop: '3px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '12px', height: '3px', borderRadius: '2px', background: r.c, flexShrink: 0 }}/>
+                  {r.label}
+                </span>
+                <span className="timer-text">{formatMinutes(r.v)}{getUnit(r.v)}</span>
+              </div>
+            ))}
+          </div>
+        );
+      }
       const dayVocab = logs.filter(l => l.date === date && (l.categories || []).includes('Vocabulary'))
         .reduce((a, l) => a + (Number(l.vocabCount) || 0), 0);
       return (
-        <div style={{ background: 'white', padding: '10px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 'bold' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: d.color }}>
-            <span>{d.name}</span><span>{formatMinutes(d.value)}{getUnit(d.value)}</span>
+        <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '12px', border: `1px solid ${hud.line}`, boxShadow: '0 8px 20px rgba(30,27,75,0.10)', fontSize: '11px', fontWeight: 'bold' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', color: '#334155' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: d.color, flexShrink: 0 }}/>
+              {d.name}
+            </span>
+            <span className="timer-text">{formatMinutes(d.value)}{getUnit(d.value)}</span>
           </div>
           {dayVocab > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: '#c084fc', marginTop: '4px' }}>
-              <span>{lang === 'en' ? 'Vocab' : '単語'}</span><span>{dayVocab}{lang === 'en' ? ' words' : '語'}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', color: '#334155', marginTop: '4px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#4a3aa7', flexShrink: 0 }}/>
+                {lang === 'en' ? 'Vocab' : '単語'}
+              </span>
+              <span className="timer-text">{dayVocab}{lang === 'en' ? ' words' : '語'}</span>
             </div>
           )}
         </div>
@@ -181,14 +256,18 @@ export default function Dashboard({
       return 0;
     })();
     return (
-      <div style={{ background: 'white', padding: '10px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 'bold' }}>
+      <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '12px', border: `1px solid ${hud.line}`, boxShadow: '0 8px 20px rgba(30,27,75,0.10)', fontSize: '11px', fontWeight: 'bold' }}>
         <div style={{ color: '#94a3b8', marginBottom: '6px' }}>{label}</div>
         {payload.map(entry => {
           const cat = CATEGORIES.find(c => c.id === entry.dataKey);
           if (!cat || entry.value === 0) return null;
           return (
-            <div key={entry.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: cat.color, marginBottom: '4px' }}>
-              <span>{lang === 'en' ? cat.label_en : cat.label}</span><span>{formatMinutes(entry.value)}{getUnit(entry.value)}</span>
+            <div key={entry.dataKey} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', color: '#334155', marginBottom: '4px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: cat.color, flexShrink: 0 }}/>
+                {lang === 'en' ? cat.label_en : cat.label}
+              </span>
+              <span className="timer-text">{formatMinutes(entry.value)}{getUnit(entry.value)}</span>
             </div>
           );
         })}
@@ -196,7 +275,7 @@ export default function Dashboard({
           <span>{T.tooltipTotal}</span><span>{formatMinutes(total)}{getUnit(total)}</span>
         </div>
         {periodVocab > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: '#c084fc', marginTop: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: '#4a3aa7', marginTop: '4px' }}>
             <span>{lang === 'en' ? 'Vocab' : '単語'}</span><span>{periodVocab}{lang === 'en' ? ' words' : '語'}</span>
           </div>
         )}
@@ -233,7 +312,7 @@ export default function Dashboard({
             </div>
             {vocabStats.total > 0 && (
               <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f5f3ff', padding: '4px', borderRadius: '10px' }}>
-                <BookOpen size={12} color="#c084fc" style={{ margin: '6px 4px 0 6px', flexShrink: 0 }}/>
+                <BookOpen size={12} color="#4a3aa7" style={{ margin: '6px 4px 0 6px', flexShrink: 0 }}/>
                 {[
                   { label: T.statDay,   value: vocabStats.day },
                   { label: T.statWeek,  value: vocabStats.week },
@@ -242,7 +321,7 @@ export default function Dashboard({
                 ].map(({ label, value }) => (
                   <div key={label} style={{ background: 'white', borderRadius: '7px', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                     <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{label}</span>
-                    <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#c084fc' }}>{value}<span style={{ fontSize: '10px' }}>{lang === 'en' ? 'w' : '語'}</span></span>
+                    <span className="timer-text" style={{ fontSize: '13px', fontWeight: '900', color: '#4a3aa7' }}>{value}<span style={{ fontSize: '10px' }}>{lang === 'en' ? 'w' : '語'}</span></span>
                   </div>
                 ))}
               </div>
@@ -263,39 +342,88 @@ export default function Dashboard({
           </div>
         </div>
 
-        <div style={{ height: '280px', width: '100%', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '-5px', left: '10px', fontSize: '11px', fontWeight: '900', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', zIndex: 10 }}>
-            <Clock size={12} color="#94a3b8"/>
-            {{ day: T.chartLabelDay, week: T.chartLabelWeek, month: T.chartLabelMonth, year: T.chartLabelYear }[selectedRange]}{T.chartStudyTime}
+        <div style={{
+          ...hudPanelStyle(isMobile),
+          padding: isMobile ? '14px 10px 12px' : '16px 18px 14px',
+          /* チャート自身が目盛りを持つので、パネルの方眼は敷かず無地の面にする */
+          backgroundImage: 'none',
+          background: 'linear-gradient(160deg, #fdfdff 0%, #f7f9fe 100%)',
+        }}>
+          <HudHeading
+            text={`${{ day: T.chartLabelDay, week: T.chartLabelWeek, month: T.chartLabelMonth, year: T.chartLabelYear }[selectedRange]}${T.chartStudyTime}`}
+            isMobile={isMobile}
+          />
+
+          <div style={{ height: isMobile ? '240px' : '260px', width: '100%' }}>
+            {selectedRange === 'day' ? (
+              /* 技能ごとの偏りを見る日は、7技能を軸にしたレーダーで「今日」と「今週平均」を重ねる */
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={radarData} outerRadius={isMobile ? '68%' : '72%'} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                  <defs>
+                    {/* 外周がわずかに沈む＝ドーム状の奥行き */}
+                    <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%"   stopColor="#ffffff" stopOpacity="1"/>
+                      <stop offset="72%"  stopColor="#fbfcff" stopOpacity="1"/>
+                      <stop offset="100%" stopColor="#eceffb" stopOpacity="1"/>
+                    </radialGradient>
+                  </defs>
+                  <PolarGrid gridType="polygon" stroke={GRID} strokeWidth={1} fill="url(#radarGlow)" fillOpacity={1}/>
+                  <PolarAngleAxis dataKey="skill" tick={{ fontSize: 11, fontWeight: 900, fill: '#334155' }}/>
+                  {/* 目盛りは軸と軸の間に逃がして、技能名と重ならないようにする */}
+                  <PolarRadiusAxis angle={64} axisLine={false} tickCount={3}
+                    tick={{ fontSize: 9, fontWeight: 700, fill: AXIS_INK }}
+                    tickFormatter={(v) => v > 0 ? xAxisFormatter(v) : ''}/>
+                  <Tooltip content={customTooltip}/>
+                  {/* 下敷き：今週平均（輪郭だけ） */}
+                  <Radar name={lang === 'en' ? 'Week avg' : '今週平均'} dataKey="weekAvg"
+                    stroke="#a8b1d1" strokeWidth={1.5} fill="#a8b1d1" fillOpacity={0.12} dot={false} isAnimationActive={false}/>
+                  {/* 手前：今日 */}
+                  <Radar name={lang === 'en' ? 'Today' : '今日'} dataKey="today"
+                    stroke="#4f46e5" strokeWidth={2.5} fill="#4f46e5" fillOpacity={0.14}
+                    dot={renderRadarDot}/>
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 4, right: 6, left: -22, bottom: 0 }}>
+                  <CartesianGrid vertical={false} stroke={GRID} strokeWidth={1}/>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: AXIS_INK }}/>
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: AXIS_INK }}/>
+                  <Tooltip cursor={{ fill: 'rgba(99,102,241,0.06)' }} content={customTooltip}/>
+                  {CATEGORIES.map((cat, i) => (
+                    <Bar key={cat.id} dataKey={cat.id} stackId="a" fill={cat.color}
+                      /* 積み重ねの境目は面の色で2px空けて、線ではなく余白で分ける */
+                      stroke={GAP} strokeWidth={2}
+                      radius={i === CATEGORIES.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                      barSize={isMobile ? 14 : 18}/>
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
+          {/* 凡例：色だけに頼らせない */}
           {selectedRange === 'day' ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} layout="vertical" margin={{ top: 25, right: 30, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#cbd5e1" opacity={0.6}/>
-                <XAxis type="number" orientation="top" axisLine={{ stroke: '#e2e8f0' }} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} tickFormatter={xAxisFormatter}/>
-                <YAxis dataKey="name" type="category" axisLine={{ stroke: '#e2e8f0' }} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#1e293b' }} width={60}/>
-                <Tooltip cursor={{ fill: '#f8fafc' }} content={customTooltip}/>
-                <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={isMobile ? 20 : 30}>
-                  {chartData.map((entry, i) => <Cell key={i} fill={entry.color}/>)}
-                  <LabelList dataKey="value" position="insideRight" formatter={(v) => v > 0 ? `${formatMinutes(v)}${getUnit(v)}` : ''} fill="#1e293b" fontSize={10} fontWeight={900} offset={10}/>
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', marginTop: '6px', paddingTop: '10px', borderTop: `1px solid ${hud.line}` }}>
+              {[
+                { label: lang === 'en' ? 'Today' : '今日', color: '#4f46e5' },
+                { label: lang === 'en' ? 'Week avg' : '今週平均', color: '#c3cade' },
+              ].map(l => (
+                <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', fontWeight: '900', color: '#64748b' }}>
+                  <span style={{ width: '14px', height: '3px', borderRadius: '2px', background: l.color, flexShrink: 0 }}/>
+                  {l.label}
+                </span>
+              ))}
+            </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 25, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }}/>
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }}/>
-                <Tooltip cursor={{ fill: '#f8fafc' }} content={customTooltip}/>
-                {CATEGORIES.map((cat, i) => (
-                  <Bar key={cat.id} dataKey={cat.id} stackId="a" fill={cat.color}
-                    radius={i === CATEGORIES.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
-                    barSize={isMobile ? 20 : 30}/>
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: '10px', paddingTop: '10px', borderTop: `1px solid ${hud.line}` }}>
+              {CATEGORIES.map(cat => (
+                <span key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: '900', color: '#64748b' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: cat.color, flexShrink: 0 }}/>
+                  {lang === 'en' ? cat.label_en : cat.label}
+                </span>
+              ))}
+            </div>
           )}
         </div>
       </section>
@@ -320,9 +448,14 @@ export default function Dashboard({
           </div>
         ) : (
           <>
-            <div style={{ display: 'flex', height: '14px', borderRadius: '8px', overflow: 'hidden', marginBottom: '14px' }}>
-              {skillBalance.map(c => (
-                <div key={c.id} style={{ width: `${c.pct}%`, background: c.color }} title={`${lang === 'en' ? c.label_en : c.label} ${Math.round(c.pct)}%`}/>
+            <div style={{ display: 'flex', gap: '2px', height: '14px', marginBottom: '14px' }}>
+              {skillBalance.map((c, i) => (
+                <div key={c.id} style={{
+                  width: `${c.pct}%`, background: c.color,
+                  borderRadius: skillBalance.length === 1 ? '7px'
+                    : i === 0 ? '7px 2px 2px 7px'
+                    : i === skillBalance.length - 1 ? '2px 7px 7px 2px' : '2px',
+                }} title={`${lang === 'en' ? c.label_en : c.label} ${Math.round(c.pct)}%`}/>
               ))}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>

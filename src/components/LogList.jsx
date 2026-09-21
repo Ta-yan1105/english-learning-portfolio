@@ -88,7 +88,7 @@ export default function LogList({
         return (
           <div style={{ background: '#f5f3ff', border: '1px solid #ede9fe', borderRadius: '16px', padding: '14px 16px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <Mic size={16} color="#22d3ee"/>
+              <Mic size={16} color="#0e9aa7"/>
               <span style={{ fontSize: '13px', fontWeight: '900', color: '#1e293b' }}>
                 {isEn ? `Reading Records (${attempts.length})` : `音読記録（${attempts.length}回）`}
               </span>
@@ -181,8 +181,8 @@ export default function LogList({
                   </div>
                   {log.vocabCount != null && (log.categories || []).includes('Vocabulary') && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <BookOpen size={14} color="#c084fc"/>
-                      <span className="timer-text" style={{ fontSize: '14px', fontWeight: '900', color: '#c084fc' }}>
+                      <BookOpen size={14} color="#4a3aa7"/>
+                      <span className="timer-text" style={{ fontSize: '14px', fontWeight: '900', color: '#4a3aa7' }}>
                         {log.vocabCount}<span style={{ fontSize: '10px' }}>語</span>
                       </span>
                     </div>

@@ -549,7 +549,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                           {formatMinutes(value)}<span style={{ fontSize: '11px' }}>{getUnit(value)}</span>
                         </div>
                         {vocab > 0 && (
-                          <div style={{ fontSize: '10px', fontWeight: '700', color: '#c084fc', marginTop: '2px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: '700', color: '#4a3aa7', marginTop: '2px' }}>
                             {vocab}語
                           </div>
                         )}
@@ -635,7 +635,7 @@ export default function AdminPanel({ user, onLogout, onGoToApp, isMobile, lang =
                                   {formatMinutes(v)}<span style={{ fontSize: '9px' }}>{getUnit(v)}</span>
                                 </div>
                               ))}
-                              <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '900', color: st.vocabTotal > 0 ? '#c084fc' : '#cbd5e1' }}>
+                              <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '900', color: st.vocabTotal > 0 ? '#4a3aa7' : '#cbd5e1' }}>
                                 {st.vocabTotal > 0 ? `${st.vocabTotal}語` : '-'}
                               </div>
                               <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '900', color: '#64748b' }}>{st.count}</div>
