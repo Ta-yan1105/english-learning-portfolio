@@ -92,7 +92,7 @@ export default function App() {
     return onSnapshot(q, snap => setReadingLogs(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [user]);
 
-  const handleSaveReadingRecords = async (records, transcript = '') => {
+  const handleSaveReadingRecords = async (records) => {
     if (!user || records.length === 0) return;
     const today = getLocalDateString(new Date());
     const ref = doc(db, 'readingLogs', `${user.uid}_${today}`);
@@ -100,7 +100,6 @@ export default function App() {
       uid: user.uid,
       date: today,
       attempts: arrayUnion(...records.map(r => ({ ...r, recordedAt: Date.now() }))),
-      ...(transcript.trim() && { transcript: transcript.trim() }),
       updatedAt: Date.now(),
     }, { merge: true });
   };

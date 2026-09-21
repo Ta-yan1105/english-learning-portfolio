@@ -1,38 +1,14 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Timer as TimerIcon, Play, Pause, RefreshCw,
-  List, Maximize, Minimize, Volume2, VolumeX, Watch, Mic, Save, Check, PlayCircle, StopCircle,
-  FileText, Image as ImageIcon, BookOpen,
+  List, Maximize, Minimize, Volume2, VolumeX, Watch, Save, Check, BookOpen, Plus, Minus, Gauge,
 } from 'lucide-react';
 import { useTimer } from '../hooks/useTimer';
 import { useStopwatch } from '../hooks/useStopwatch';
 import { WPM_SCALE_MAX, getWpmLevel } from '../utils/wpmLevels';
-import { extractTextFromPdf, extractTextFromImage } from '../utils/extractText';
-import { scoreReadingAccuracy } from '../utils/readingAccuracy';
+import { hudPanelStyle, HudHeading, HudDivider, hud } from './hud';
 
 const toHalfWidthDigits = (str) => str.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
-
-const getMicPermissionGuide = (isEn) => {
-  const ua = navigator.userAgent || '';
-  if (/iPad|iPhone|iPod/.test(ua)) {
-    return isEn
-      ? 'iPhone/iPad: Open the Settings app → Safari (or your browser) → Microphone → set to "Allow"'
-      : 'iPhone/iPad: 「設定」アプリ → Safari（使用中のブラウザ）→ マイク → 「許可」に切り替えてください';
-  }
-  if (/Android/.test(ua)) {
-    return isEn
-      ? 'Android: Tap the icon left of the address bar → Permissions → set Microphone to "Allow"'
-      : 'Android: アドレスバー左側のアイコンをタップ →「権限」→ マイクを「許可」に切り替えてください';
-  }
-  if (/CrOS/.test(ua)) {
-    return isEn
-      ? 'Chromebook: 1) Check the mic isn\'t muted (status tray mic icon) 2) Tap the icon left of the address bar → Permissions → set Microphone to "Allow" 3) Also check Settings → Privacy and security → Site settings → Microphone'
-      : 'Chromebook: ①ステータストレイのマイクアイコンでミュートになっていないか確認 ②アドレスバー左側のアイコン→「権限」→マイクを「許可」に切り替え ③設定→プライバシーとセキュリティ→サイトの設定→マイクも確認してください';
-  }
-  return isEn
-    ? 'Allow microphone access for this site in your browser settings'
-    : 'ブラウザの設定からこのサイトのマイク権限を「許可」に変更してください';
-};
 
 function LapList({ laps, lang = 'ja', maxHeight = '300px', large = false }) {
   if (laps.length === 0) return null;
@@ -66,26 +42,7 @@ function LapList({ laps, lang = 'ja', maxHeight = '300px', large = false }) {
   );
 }
 
-function ReadingBarChart({ records, lang = 'ja', onPlay }) {
-  const [playingIndex, setPlayingIndex] = useState(null);
-  const audioRef = useRef(null);
-
-  const togglePlay = (i, record) => {
-    onPlay?.(record);
-    if (playingIndex === i) {
-      audioRef.current?.pause();
-      audioRef.current = null;
-      setPlayingIndex(null);
-      return;
-    }
-    audioRef.current?.pause();
-    const audio = new Audio(record.audioUrl);
-    audio.onended = () => setPlayingIndex(null);
-    audio.play();
-    audioRef.current = audio;
-    setPlayingIndex(i);
-  };
-
+function ReadingBarChart({ records, lang = 'ja' }) {
   if (records.length === 0) return null;
   const isEn = lang === 'en';
   const chartH = 180;
@@ -149,12 +106,6 @@ function ReadingBarChart({ records, lang = 'ja', onPlay }) {
                   {delta > 0 ? `↑${delta}` : delta < 0 ? `↓${Math.abs(delta)}` : '→0'}
                 </span>
               )}
-              {r.audioUrl && (
-                <button type="button" onClick={() => togglePlay(i, r)} title={playingIndex === i ? (isEn ? 'Stop' : '停止') : (isEn ? 'Play recording' : '録音を聞く')}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0 0', display: 'flex' }}>
-                  {playingIndex === i ? <StopCircle size={13} color="#ef4444"/> : <PlayCircle size={13} color="#4f46e5"/>}
-                </button>
-              )}
             </div>
           );
         })}
@@ -167,38 +118,9 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const isEn = lang === 'en';
   const [mode, setMode] = useState('timer'); // 'timer' | 'stopwatch'
   const [readingSaveStatus, setReadingSaveStatus] = useState('idle'); // 'idle' | 'saved'
-  const [passageText, setPassageText] = useState('');
-  const [importStatus, setImportStatus] = useState(''); // '' | 'loading' | 'error'
   const [showMaterialPrompt, setShowMaterialPrompt] = useState(false);
-  const pdfInputRef     = useRef(null);
-  const imageInputRef   = useRef(null);
   const materialInputRef = useRef(null);
 
-  const handlePdfImport = async (e) => {
-    const file = e.target.files[0];
-    e.target.value = '';
-    if (!file) return;
-    setImportStatus('loading');
-    try {
-      setPassageText(await extractTextFromPdf(file));
-      setImportStatus('');
-    } catch {
-      setImportStatus('error');
-    }
-  };
-
-  const handleImageImport = async (e) => {
-    const file = e.target.files[0];
-    e.target.value = '';
-    if (!file) return;
-    setImportStatus('loading');
-    try {
-      setPassageText(await extractTextFromImage(file));
-      setImportStatus('');
-    } catch {
-      setImportStatus('error');
-    }
-  };
   const {
     timerInputTime, setTimerInputTime,
     timerTimeLeft,  setTimerTimeLeft,
@@ -220,10 +142,6 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     isSwRunning,
     wordCount, setWordCount,
     materialName, setMaterialName,
-    transcript, setTranscript,
-    recordVoice, setRecordVoice,
-    micError,
-    speechSupported,
     toggleStopwatch,
     resetStopwatch,
     formatStopwatch,
@@ -232,11 +150,6 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     recordReading,
     clearReadingRecords,
   } = useStopwatch();
-
-  const accuracyResult = useMemo(() => {
-    if (!passageText.trim() || !transcript.trim()) return null;
-    return scoreReadingAccuracy(passageText, transcript);
-  }, [passageText, transcript]);
 
   const handleSaveReadingRecords = () => {
     if (readingRecords.length === 0 || !onSaveReadingRecords) return;
@@ -247,9 +160,8 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     }
     setShowMaterialPrompt(false);
     const tagged = readingRecords.map(r => ({ ...r, material: materialName.trim() }));
-    onSaveReadingRecords(tagged, transcript);
+    onSaveReadingRecords(tagged);
     clearReadingRecords();
-    setTranscript('');
     setReadingSaveStatus('saved');
     setTimeout(() => setReadingSaveStatus('idle'), 2500);
   };
@@ -355,130 +267,149 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const wpmLevel  = wpm > 0 ? getWpmLevel(wpm) : null;
   const markerPct = Math.min(100, (wpm / WPM_SCALE_MAX) * 100);
 
-  const passagePanel = (large = false) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', width: 'fit-content', maxWidth: '90vw', gap: '8px', marginBottom: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: isMobile ? 'wrap' : 'nowrap', justifyContent: isMobile ? 'center' : 'flex-start' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <BookOpen size={large ? 20 : 16} color="#22d3ee"/>
-          <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b', whiteSpace: 'nowrap' }}>
-            {isEn ? 'Passage to Read (optional)' : '音読する英文（任意）'}
-          </span>
-        </div>
-        <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
-          <button type="button" onClick={() => pdfInputRef.current?.click()} disabled={importStatus === 'loading'}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '10px', whiteSpace: 'nowrap', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
-            <FileText size={12}/> {isEn ? 'PDF' : 'PDFから読込'}
-          </button>
-          <button type="button" onClick={() => imageInputRef.current?.click()} disabled={importStatus === 'loading'}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', fontSize: '10px', whiteSpace: 'nowrap', cursor: importStatus === 'loading' ? 'default' : 'pointer', opacity: importStatus === 'loading' ? 0.6 : 1 }}>
-            <ImageIcon size={12}/> {isEn ? 'Image' : '画像から読込'}
-          </button>
-          <input ref={pdfInputRef} type="file" accept="application/pdf" onChange={handlePdfImport} style={{ display: 'none' }}/>
-          <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageImport} style={{ display: 'none' }}/>
-        </div>
-      </div>
-      <textarea
-        value={passageText} onChange={e => setPassageText(e.target.value)}
-        placeholder={isEn ? 'Type or paste the English passage you will read aloud' : 'これから音読する英文を入力・貼り付けしてください'}
-        rows={2}
-        style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', fontSize: '13px', fontFamily: 'inherit', lineHeight: 1.5, border: '1.5px dashed #cbd5e1', borderRadius: '10px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
-      />
-      {importStatus === 'loading' && (
-        <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold' }}>{isEn ? 'Reading file…' : '読み込み中…'}</span>
-      )}
-      {importStatus === 'error' && (
-        <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: 'bold' }}>{isEn ? 'Failed to read the file' : '読み込みに失敗しました'}</span>
-      )}
-    </div>
-  );
-
-  const accuracyBlock = (large = false) => {
-    if (!accuracyResult) return null;
-    const acc = accuracyResult.accuracy;
-    const accColor = acc >= 80 ? '#16a34a' : acc >= 50 ? '#f59e0b' : '#ef4444';
+  /* ── 音読スピードの入力パネル（単語数 + WPM 表示） ── */
+  const readingPanel = (large = false) => {
+    const words = Number(wordCount) || 0;
+    const setWords = (v) => setWordCount(String(Math.max(0, Math.min(v, 1000))));
+    const presets = [50, 100, 150, 200];
+    const accent = '#0891b2';
+    const stepBtn = {
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      width: '36px', height: '36px', flexShrink: 0,
+      borderRadius: '50%', cursor: 'pointer',
+      border: '1.5px solid rgba(8,145,178,0.3)',
+      background: '#ffffff',
+      color: accent,
+      boxShadow: '0 2px 6px rgba(30,27,75,0.06)',
+      WebkitTapHighlightColor: 'transparent',
+    };
     return (
-      <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-          <span style={{ fontSize: '11px', fontWeight: '900', color: '#94a3b8' }}>{isEn ? 'Reading Accuracy' : '音読精度'}</span>
-          <span className="timer-text" style={{ fontSize: '22px', fontWeight: '900', color: accColor }}>{acc}%</span>
+      <div style={{ ...hudPanelStyle(isMobile), width: large ? '560px' : '100%', maxWidth: '100%', margin: '0 auto 20px' }}>
+        <HudHeading text={isEn ? 'READING SPEED' : '音読スピード'} isMobile={isMobile}/>
+
+        {/* 単語数 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '9px', background: 'rgba(8,145,178,0.1)', border: '1px solid rgba(8,145,178,0.22)', color: accent, flexShrink: 0 }}>
+            <BookOpen size={14}/>
+          </span>
+          <span style={{ fontSize: '12px', fontWeight: '900', color: hud.ink }}>
+            {isEn ? 'Word Count' : '音読する単語数'}
+          </span>
+          <span style={{ fontSize: '9px', fontWeight: '900', letterSpacing: '0.16em', color: hud.label }}>WORDS</span>
         </div>
-        <div style={{ width: large ? '560px' : '440px', maxWidth: '90vw', boxSizing: 'border-box', background: '#fafbfc', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '14px 18px', fontSize: '15px', lineHeight: 1.9, textAlign: 'left' }}>
-          {accuracyResult.words.map((w, i) => (
-            <span key={i} style={{ color: w.matched ? '#16a34a' : '#ef4444', fontWeight: w.matched ? 'normal' : '900', textDecoration: w.matched ? 'none' : 'underline', textDecorationColor: '#ef4444' }}>
-              {w.text}{' '}
-            </span>
-          ))}
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '12px' }}>
+          <button type="button" className="hud-step" onClick={() => setWords(words - 10)} style={stepBtn}>
+            <Minus size={17} strokeWidth={3}/>
+          </button>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+            <input
+              type="text" inputMode="numeric" value={wordCount}
+              onChange={e => {
+                const digits = toHalfWidthDigits(e.target.value).replace(/[^0-9]/g, '');
+                setWordCount(digits === '' ? '' : String(Math.min(Number(digits), 1000)));
+              }}
+              placeholder="0"
+              className="timer-text"
+              style={{
+                width: large ? '150px' : '128px', padding: '4px 0', background: 'transparent',
+                border: 'none', borderBottom: '2px solid rgba(8,145,178,0.3)', outline: 'none',
+                fontSize: large ? '52px' : '46px', fontWeight: '900', textAlign: 'center',
+                color: accent, letterSpacing: '-0.03em',
+                textShadow: '0 3px 10px rgba(8,145,178,0.25)',
+              }}
+            />
+            <span style={{ fontSize: '14px', fontWeight: '900', color: 'rgba(8,145,178,0.7)' }}>{isEn ? 'words' : '語'}</span>
+          </div>
+          <button type="button" className="hud-step" onClick={() => setWords(words + 10)} style={stepBtn}>
+            <Plus size={17} strokeWidth={3}/>
+          </button>
         </div>
+
+        {/* ワンタップ・プリセット */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {presets.map(pv => {
+            const on = words === pv;
+            return (
+              <button key={pv} type="button" className="hud-preset" onClick={() => setWords(pv)}
+                style={{
+                  padding: '5px 12px', borderRadius: '9px', cursor: 'pointer',
+                  border: `1px solid ${on ? accent : hud.chipIn}`,
+                  background: on ? accent : '#ffffff',
+                  color: on ? '#ffffff' : '#7c86a8',
+                  fontSize: '11px', fontWeight: '900',
+                  boxShadow: on ? '0 4px 10px rgba(8,145,178,0.3)' : '0 1px 3px rgba(30,27,75,0.05)',
+                  WebkitTapHighlightColor: 'transparent',
+                }}>
+                {pv}{isEn ? 'w' : '語'}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 計測結果（WPM） */}
+        {!isSwRunning && wpm > 0 && wpmLevel && (
+          <>
+            <HudDivider margin={isMobile ? '16px 0 14px' : '18px 0 15px'}/>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '9px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.22)', color: '#10b981', flexShrink: 0 }}>
+                <Gauge size={14}/>
+              </span>
+              <span style={{ fontSize: '12px', fontWeight: '900', color: hud.ink }}>
+                {isEn ? 'Your Speed' : '今回のスピード'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
+              <span className="timer-text" style={{
+                fontSize: large ? '60px' : '52px', fontWeight: '900', color: '#10b981', lineHeight: 1,
+                letterSpacing: '-0.03em', textShadow: '0 3px 12px rgba(16,185,129,0.28)',
+              }}>{wpm}</span>
+              <span style={{ fontSize: '15px', fontWeight: '900', color: 'rgba(16,185,129,0.72)', letterSpacing: '0.08em' }}>WPM</span>
+            </div>
+
+            {/* レベルゲージ（標準・上限の目印つき） */}
+            <div style={{ position: 'relative', height: '12px', borderRadius: '7px', background: hud.track, overflow: 'hidden', marginBottom: '8px' }}>
+              <div style={{
+                position: 'absolute', top: 0, left: 0, height: '100%', width: `${markerPct}%`,
+                borderRadius: '7px', background: `linear-gradient(90deg, rgba(16,185,129,0.55), ${wpmLevel.color})`,
+                transition: 'width 0.4s ease',
+              }}/>
+              {[[130, isEn ? 'Average' : '標準'], [230, isEn ? 'Limit' : '上限']].map(([v]) => (
+                <div key={v} style={{ position: 'absolute', top: 0, bottom: 0, left: `${Math.min(100, (v / WPM_SCALE_MAX) * 100)}%`, width: '1.5px', background: 'rgba(255,255,255,0.9)' }}/>
+              ))}
+            </div>
+            <div style={{ position: 'relative', height: '14px', marginBottom: '12px' }}>
+              {[[130, isEn ? 'Average' : '標準'], [230, isEn ? 'Limit' : '上限']].map(([v, label]) => (
+                <span key={v} style={{ position: 'absolute', left: `${Math.min(100, (v / WPM_SCALE_MAX) * 100)}%`, transform: 'translateX(-50%)', fontSize: '9px', fontWeight: '900', color: hud.label, whiteSpace: 'nowrap' }}>
+                  {label} {v}
+                </span>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '900', color: wpmLevel.textColor, background: wpmLevel.color, padding: '3px 10px', borderRadius: '8px' }}>
+                Lv.{wpmLevel.lv}
+              </span>
+              <span style={{ fontSize: '14px', fontWeight: '900', color: wpmLevel.color }}>
+                {isEn ? wpmLevel.en : wpmLevel.ja}
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* 使い方のヒント */}
+        {wpm === 0 && (
+          <div style={{ marginTop: '14px', fontSize: '11px', fontWeight: 'bold', color: hud.label, textAlign: 'center', lineHeight: 1.6 }}>
+            {isEn
+              ? 'Enter the word count, then start the stopwatch and read aloud.'
+              : '単語数を入れて、スタートを押したら音読を始めましょう。'}
+          </div>
+        )}
       </div>
     );
   };
 
-  const wpmPanel = (large = false) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: large ? '30px' : '20px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Mic size={large ? 20 : 16} color="#22d3ee"/>
-          <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b' }}>{isEn ? 'Passage Word Count' : '音読する英文の単語数'}</span>
-          <input
-            type="text" inputMode="numeric" value={wordCount}
-            onChange={e => {
-              const digits = toHalfWidthDigits(e.target.value).replace(/[^0-9]/g, '');
-              setWordCount(digits === '' ? '' : String(Math.min(Number(digits), 1000)));
-            }}
-            placeholder="0"
-            style={{ width: large ? '130px' : '110px', padding: large ? '12px 14px' : '10px 12px', fontSize: large ? '22px' : '19px', fontWeight: '900', textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#1e293b' }}
-          />
-        </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-          <input type="checkbox" checked={recordVoice} onChange={e => setRecordVoice(e.target.checked)} style={{ width: '14px', height: '14px', cursor: 'pointer' }}/>
-          <span style={{ fontSize: large ? '13px' : '12px', fontWeight: 'bold', color: '#64748b' }}>
-            {isEn ? 'Record my voice & transcribe' : '自分の声を録音して文字起こしする'}
-          </span>
-        </label>
-      </div>
-      {recordVoice && micError && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center', maxWidth: '90vw' }}>
-          <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#ef4444', textAlign: 'center' }}>
-            ⚠️ {micError}
-          </div>
-          <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textAlign: 'center', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px' }}>
-            {getMicPermissionGuide(isEn)}
-          </div>
-        </div>
-      )}
-      {recordVoice && !speechSupported && (
-        <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#94a3b8', textAlign: 'center', maxWidth: '90vw', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px' }}>
-          {isEn
-            ? 'Note: This browser/device does not support auto-transcription (recording still works). This is common on iPhone (Safari).'
-            : '※ この端末・ブラウザは自動文字起こしに対応していません（録音は可能です）。iPhone（Safari）では仕様上対応していません。'}
-        </div>
-      )}
-      {!isSwRunning && wpm > 0 && (
-        <>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', background: '#ecfdf5', padding: large ? '10px 22px' : '6px 14px', borderRadius: '14px' }}>
-            <span className="timer-text" style={{ fontSize: large ? '32px' : '22px', fontWeight: '900', color: '#10b981' }}>{wpm}</span>
-            <span style={{ fontSize: large ? '14px' : '11px', fontWeight: '900', color: '#10b981' }}>WPM</span>
-          </div>
-          <div style={{ width: large ? '260px' : '200px' }}>
-            <div style={{ position: 'relative', height: '10px', borderRadius: '6px', background: '#e2e8f0', overflow: 'hidden' }}>
-              <div style={{
-                position: 'absolute', top: 0, left: 0, height: '100%', width: `${markerPct}%`,
-                borderRadius: '6px', background: 'linear-gradient(90deg,#e0e7ff,#3730a3)', transition: 'width 0.3s ease',
-              }}/>
-            </div>
-            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span style={{ fontSize: large ? '12px' : '11px', fontWeight: '900', color: wpmLevel.textColor, background: wpmLevel.color, padding: '2px 8px', borderRadius: '8px' }}>
-                Lv.{wpmLevel.lv}
-              </span>
-              <span style={{ fontSize: large ? '15px' : '13px', fontWeight: '900', color: wpmLevel.color }}>
-                {isEn ? wpmLevel.en : wpmLevel.ja}
-              </span>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
 
   const swControls = (large = false) => {
     const pad  = large ? '16px 26px' : (isMobile ? '12px 18px' : '15px 40px');
@@ -501,30 +432,9 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     );
   };
 
-  const transcriptBlock = (large = false) => {
-    if (readingRecords.length === 0 && readingSaveStatus !== 'saved') return null;
-    if (readingSaveStatus === 'saved') return null;
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Mic size={large ? 20 : 16} color="#22d3ee"/>
-          <span style={{ fontSize: large ? '16px' : '13px', fontWeight: '900', color: '#64748b' }}>
-            {isEn ? 'Transcript' : '文字起こし'}
-          </span>
-        </div>
-        <textarea
-          value={transcript} onChange={e => setTranscript(e.target.value)}
-          placeholder={isEn ? 'Auto-transcribed from your spoken English (editable)' : '録音中に話した英語が自動で文字起こしされます（編集可）'}
-          rows={7}
-          style={{ width: '100%', minWidth: large ? '420px' : '340px', boxSizing: 'border-box', padding: '14px 18px', fontSize: '16px', fontFamily: 'inherit', lineHeight: 1.7, border: '1.5px dashed #cbd5e1', borderRadius: '12px', background: '#f1f5f9', color: '#334155', resize: 'vertical' }}
-        />
-      </div>
-    );
-  };
-
   const chartBlock = () => {
     if (readingRecords.length === 0) return null;
-    return <ReadingBarChart records={readingRecords} lang={lang} onPlay={r => setTranscript(r.transcript || '')}/>;
+    return <ReadingBarChart records={readingRecords} lang={lang}/>;
   };
 
   const readingSaveButton = (large = false) => {
@@ -633,17 +543,12 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
         {isStopwatch ? (
           <>
+            {readingPanel(false)}
             {swFace(numStyle, isMobile ? '50px 20px' : '80px 50px', isMobile ? '40px' : '60px')}
             {swControls(false)}
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: isMobile ? undefined : 'auto auto', alignItems: isMobile ? 'center' : 'flex-start', gap: isMobile ? '20px' : '16px 24px', width: 'fit-content', maxWidth: '90vw' }}>
-                {wpmPanel(false)}
-                {passagePanel(false)}
-                {transcriptBlock(false)}
-                {chartBlock()}
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+              {chartBlock()}
             </div>
-            {accuracyBlock(false)}
             {readingSaveButton(false)}
           </>
         ) : (
@@ -684,15 +589,12 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
                 <>
                   {swFace(numStyleFS, isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)', isMobile ? 'min(8vw, 40px)' : 'min(9vh, 140px)')}
                   {swControls(true)}
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: isMobile ? undefined : 'auto auto', alignItems: isMobile ? 'center' : 'flex-start', gap: isMobile ? '20px' : '16px 24px', width: 'fit-content', maxWidth: '90vw' }}>
-                      {wpmPanel(true)}
-                      {passagePanel(true)}
-                      {transcriptBlock(true)}
-                      {chartBlock()}
-                    </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+                    {readingPanel(true)}
                   </div>
-                  {accuracyBlock(true)}
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    {chartBlock()}
+                  </div>
                   {readingSaveButton(true)}
                 </>
               ) : (

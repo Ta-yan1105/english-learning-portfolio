@@ -1,6 +1,7 @@
 import { useRef, cloneElement } from 'react';
 import { Clipboard, RefreshCw, Send, Clock, Zap, BookOpen, CalendarDays, PenLine, Check, MessageCircle, Presentation, MessagesSquare, Plus, Minus } from 'lucide-react';
 import { CATEGORIES } from '../constants';
+import { hudPanelStyle, HudHeading, HudDivider, hud } from './hud';
 import i18n from '../i18n';
 
 export default function LogForm({
@@ -84,30 +85,7 @@ export default function LogForm({
     margin: 0,
   };
 
-  /* ── HUDパネル共通の外装（技能選択・数値入力で共有） ── */
-  const hudPanel = {
-    position: 'relative',
-    padding: isMobile ? '14px 12px' : '18px 22px',
-    borderRadius: '22px',
-    border: '1.5px solid rgba(129,140,248,0.35)',
-    backgroundImage: `
-      linear-gradient(rgba(129,140,248,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(129,140,248,0.06) 1px, transparent 1px),
-      radial-gradient(ellipse at 15% -10%, rgba(99,102,241,0.45) 0%, transparent 60%),
-      linear-gradient(160deg, #1e1b4b 0%, #312e81 55%, #1e1b4b 100%)
-    `,
-    backgroundSize: '24px 24px, 24px 24px, 100% 100%, 100% 100%',
-    boxShadow: '0 20px 42px rgba(30,27,75,0.38), inset 0 1px 0 rgba(255,255,255,0.13)',
-    overflow: 'hidden',
-  };
-
-  /* ── パネル見出し（点滅ランプ + 英字ラベル） ── */
-  const hudHeading = (text, dot = '#22d3ee') => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: isMobile ? '14px' : '16px' }}>
-      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: dot, boxShadow: `0 0 9px ${dot}`, animation: 'hudPulse 1.8s ease-in-out infinite' }}/>
-      <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.22em', color: '#a5b4fc' }}>{text}</span>
-    </div>
-  );
+  const hudPanel = hudPanelStyle(isMobile);
 
   const speakingTypes = [
     { key: T.speakingType1, value: T.speakingType1 },
@@ -151,16 +129,16 @@ export default function LogForm({
           gap: compact ? '5px' : '7px',
           padding: compact ? (isMobile ? '11px 6px' : '13px 10px') : (isMobile ? '14px 6px' : '17px 10px'),
           borderRadius: compact ? '15px' : '17px',
-          border: on ? `1.5px solid ${shade(cat.color, 45)}` : '1.5px solid rgba(199,210,254,0.2)',
+          border: on ? `1.5px solid ${shade(cat.color, -10)}` : `1.5px solid ${hud.line}`,
           background: on
-            ? `linear-gradient(150deg, ${shade(cat.color, 26)} 0%, ${cat.color} 45%, ${shade(cat.color, -26)} 100%)`
-            : 'rgba(199,210,254,0.07)',
+            ? `linear-gradient(150deg, ${shade(cat.color, 18)} 0%, ${cat.color} 55%, ${shade(cat.color, -14)} 100%)`
+            : '#ffffff',
           cursor: 'pointer',
           WebkitTapHighlightColor: 'transparent',
-          '--edge':   on ? shade(cat.color, -58) : 'rgba(12,10,45,0.75)',
-          '--edge-h': on ? '6px' : '4px',
-          '--glow':   on ? alpha(cat.color, 0.5) : 'rgba(10,8,40,0.4)',
-          '--sheen':  on ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.07)',
+          '--edge':   on ? shade(cat.color, -40) : '#e2e6f3',
+          '--edge-h': on ? '5px' : '4px',
+          '--glow':   on ? alpha(cat.color, 0.28) : 'rgba(30,27,75,0.06)',
+          '--sheen':  on ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0)',
         }}>
         {/* 選択チェック */}
         {on && (
@@ -181,10 +159,10 @@ export default function LogForm({
           width: compact ? (isMobile ? '32px' : '36px') : (isMobile ? '36px' : '42px'),
           height: compact ? (isMobile ? '32px' : '36px') : (isMobile ? '36px' : '42px'),
           borderRadius: '50%',
-          background: on ? 'rgba(255,255,255,0.25)' : alpha(cat.color, 0.15),
-          border: on ? '1px solid rgba(255,255,255,0.3)' : `1px solid ${alpha(cat.color, 0.35)}`,
+          background: on ? 'rgba(255,255,255,0.28)' : alpha(cat.color, 0.1),
+          border: on ? '1px solid rgba(255,255,255,0.35)' : `1px solid ${alpha(cat.color, 0.22)}`,
           color: on ? '#ffffff' : cat.color,
-          boxShadow: on ? 'inset 0 1px 0 rgba(255,255,255,0.5)' : `0 0 14px ${alpha(cat.color, 0.28)}`,
+          boxShadow: on ? 'inset 0 1px 0 rgba(255,255,255,0.45)' : 'none',
           transition: 'all 0.2s ease',
         }}>
           {cloneElement(cat.icon, { size: compact ? (isMobile ? 17 : 19) : (isMobile ? 19 : 22) })}
@@ -193,15 +171,15 @@ export default function LogForm({
         {/* ラベル */}
         <span style={{
           fontSize: compact ? '13px' : (isMobile ? '13px' : '14px'), fontWeight: '900', lineHeight: 1,
-          color: on ? '#ffffff' : '#e0e7ff',
-          textShadow: on ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
+          color: on ? '#ffffff' : '#64748b',
+          textShadow: on ? '0 1px 2px rgba(0,0,0,0.18)' : 'none',
         }}>
           {lang === 'en' ? cat.label_en : cat.label}
         </span>
         {lang !== 'en' && (
           <span style={{
             fontSize: '9px', fontWeight: '900', letterSpacing: '0.1em', lineHeight: 1, whiteSpace: 'nowrap',
-            color: on ? 'rgba(255,255,255,0.85)' : 'rgba(199,210,254,0.5)',
+            color: on ? 'rgba(255,255,255,0.85)' : '#c3cade',
           }}>
             {cat.label_en.toUpperCase()}
           </span>
@@ -263,11 +241,11 @@ export default function LogForm({
 
       {/* ===== 技能選択 HUD ===== */}
       <div style={{ ...hudPanel, marginBottom: '14px' }}>
-        {hudHeading(lang === 'en' ? 'SKILL SELECT' : '技能を選ぶ')}
+        <HudHeading text={lang === 'en' ? 'SKILL SELECT' : '技能を選ぶ'} isMobile={isMobile}/>
 
         {/* 4技能の達成ドット */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '11px', minHeight: '18px' }}>
-          <span style={{ fontSize: '10px', fontWeight: '900', color: '#a5b4fc', letterSpacing: '0.16em' }}>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label, letterSpacing: '0.16em' }}>
             {lang === 'en' ? '4 SKILLS' : '4技能'}
           </span>
           <span style={{ display: 'flex', gap: '5px' }}>
@@ -276,15 +254,15 @@ export default function LogForm({
               return (
                 <span key={c.id} style={{
                   width: '8px', height: '8px', borderRadius: '50%',
-                  background: on ? c.color : 'rgba(199,210,254,0.22)',
-                  boxShadow: on ? `0 0 10px ${c.color}, 0 0 0 3px ${alpha(c.color, 0.2)}` : 'none',
+                  background: on ? c.color : hud.track,
+                  boxShadow: on ? `0 0 0 3px ${alpha(c.color, 0.18)}` : 'none',
                   transition: 'all 0.25s ease',
                 }}/>
               );
             })}
           </span>
           {coreDone === coreSkills.length && (
-            <span style={{ fontSize: '10px', fontWeight: '900', color: '#22d3ee', letterSpacing: '0.08em', textShadow: '0 0 12px rgba(34,211,238,0.8)', animation: 'popIn 0.4s ease-out', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '10px', fontWeight: '900', color: '#4f46e5', letterSpacing: '0.08em', animation: 'popIn 0.4s ease-out', whiteSpace: 'nowrap' }}>
               {lang === 'en' ? '🎉 ALL 4 SKILLS' : '🎉 4技能コンプリート'}
             </span>
           )}
@@ -303,16 +281,15 @@ export default function LogForm({
               position: 'absolute', top: '-16px', left: isMobile ? '25%' : '62.5%',
               transform: 'translateX(-50%)', width: '2px', height: '16px',
               background: 'linear-gradient(180deg, rgba(251,113,133,0) 0%, #fb7185 100%)',
-              boxShadow: '0 0 8px rgba(251,113,133,0.8)',
             }}/>
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? '8px' : '12px',
               flexWrap: 'wrap', padding: isMobile ? '12px 10px' : '13px 18px', borderRadius: '16px',
-              background: 'linear-gradient(160deg, rgba(244,63,94,0.18) 0%, rgba(190,18,60,0.12) 100%)',
-              border: '1.5px solid rgba(253,164,175,0.4)',
-              boxShadow: '0 0 22px rgba(244,63,94,0.18) inset, 0 10px 24px rgba(0,0,0,0.25)',
+              background: 'linear-gradient(160deg, #fff6f7 0%, #ffedef 100%)',
+              border: '1.5px solid #fbd9de',
+              boxShadow: '0 6px 16px rgba(244,63,94,0.08)',
             }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: '900', color: '#fda4af', letterSpacing: '0.12em' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', fontWeight: '900', color: '#f87f90', letterSpacing: '0.12em' }}>
                 <MessageCircle size={13}/> {T.speakingTypeLabel.replace(/^↳\s*/, '')}
               </span>
               {speakingTypes.map(({ key, value }, idx) => {
@@ -324,16 +301,16 @@ export default function LogForm({
                       display: 'flex', alignItems: 'center', gap: '7px',
                       padding: isMobile ? '9px 14px' : '10px 20px',
                       borderRadius: '50px',
-                      border: on ? '1.5px solid #fda4af' : '1.5px solid rgba(253,164,175,0.35)',
-                      background: on ? 'linear-gradient(150deg, #fb7185 0%, #f43f5e 45%, #be123c 100%)' : 'rgba(255,241,242,0.08)',
-                      color: on ? '#ffffff' : '#fda4af',
+                      border: on ? '1.5px solid #ec5a72' : '1.5px solid #fbd9de',
+                      background: on ? 'linear-gradient(150deg, #fb7185 0%, #f43f5e 55%, #e11d48 100%)' : '#ffffff',
+                      color: on ? '#ffffff' : '#f4788c',
                       fontSize: isMobile ? '12px' : '13px', fontWeight: '900', cursor: 'pointer',
-                      textShadow: on ? '0 1px 3px rgba(0,0,0,0.3)' : 'none',
+                      textShadow: on ? '0 1px 2px rgba(0,0,0,0.18)' : 'none',
                       WebkitTapHighlightColor: 'transparent',
-                      '--edge': on ? '#881337' : 'rgba(12,10,45,0.7)',
+                      '--edge': on ? '#be123c' : '#f6dde1',
                       '--edge-h': on ? '5px' : '4px',
-                      '--glow': on ? 'rgba(244,63,94,0.55)' : 'rgba(10,8,40,0.35)',
-                      '--sheen': on ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.08)',
+                      '--glow': on ? 'rgba(244,63,94,0.28)' : 'rgba(30,27,75,0.05)',
+                      '--sheen': on ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0)',
                     }}>
                     <TypeIcon size={15}/> {key}
                     {on && <Check size={13} strokeWidth={4}/>}
@@ -345,11 +322,11 @@ export default function LogForm({
         )}
 
         {/* 区切り線 */}
-        <div style={{ height: '1px', margin: isMobile ? '16px 0 13px' : '18px 0 14px', background: 'linear-gradient(90deg, transparent, rgba(129,140,248,0.35), transparent)' }}/>
+        <HudDivider margin={isMobile ? '16px 0 13px' : '18px 0 14px'}/>
 
         {/* 補助カテゴリ（単語・音読・授業） */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '11px' }}>
-          <span style={{ fontSize: '10px', fontWeight: '900', color: '#a5b4fc', letterSpacing: '0.16em' }}>
+          <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label, letterSpacing: '0.16em' }}>
             {lang === 'en' ? 'MORE' : 'その他'}
           </span>
         </div>
@@ -360,7 +337,7 @@ export default function LogForm({
 
       {/* ===== 数値入力 HUD（学習時間 / 集中度 / 単語数） ===== */}
       <div style={{ ...hudPanel, marginBottom: '14px' }}>
-        {hudHeading(lang === 'en' ? 'SESSION INPUT' : 'セッション入力')}
+        <HudHeading text={lang === 'en' ? 'SESSION INPUT' : 'セッション入力'} isMobile={isMobile}/>
 
         <div style={{
           display: 'grid',
@@ -368,9 +345,9 @@ export default function LogForm({
           gap: isMobile ? '18px' : '22px',
         }}>
           {[
-            { label: T.fieldTime,  sub: 'TIME',  icon: <Clock size={14}/>,    value: minutes,    unit: T.unitMin,   target: 'log_min',     accent: '#818cf8', min: 1, max: 90,  step: 5, presets: [15, 25, 45, 60] },
-            { label: T.fieldFocus, sub: 'FOCUS', icon: <Zap size={14}/>,      value: quality,    unit: T.unitPct,   target: 'log_quality', accent: '#fbbf24', min: 0, max: 100, step: 5, presets: [50, 70, 85, 100] },
-            ...(showVocab ? [{ label: T.fieldVocab, sub: 'WORDS', icon: <BookOpen size={14}/>, value: vocabCount, unit: T.unitWords, target: 'log_vocab', accent: '#d8b4fe', min: 0, max: 150, step: 5, presets: [10, 30, 50, 100] }] : []),
+            { label: T.fieldTime,  sub: 'TIME',  icon: <Clock size={14}/>,    value: minutes,    unit: T.unitMin,   target: 'log_min',     accent: '#6366f1', min: 1, max: 90,  step: 5, presets: [15, 25, 45, 60] },
+            { label: T.fieldFocus, sub: 'FOCUS', icon: <Zap size={14}/>,      value: quality,    unit: T.unitPct,   target: 'log_quality', accent: '#f59e0b', min: 0, max: 100, step: 5, presets: [50, 70, 85, 100] },
+            ...(showVocab ? [{ label: T.fieldVocab, sub: 'WORDS', icon: <BookOpen size={14}/>, value: vocabCount, unit: T.unitWords, target: 'log_vocab', accent: '#a855f7', min: 0, max: 150, step: 5, presets: [10, 30, 50, 100] }] : []),
           ].map(({ label, sub, icon, value, unit, target, accent, min, max, step, presets }) => {
             const setter = target === 'log_min' ? v => setMinutes(Math.max(1, Math.min(v, 90)))
                          : target === 'log_quality' ? v => setQuality(Math.max(0, Math.min(v, 100)))
@@ -381,20 +358,21 @@ export default function LogForm({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '34px', height: '34px', flexShrink: 0,
               borderRadius: '50%', cursor: 'pointer',
-              border: `1.5px solid ${alpha(accent, 0.45)}`,
-              background: alpha(accent, 0.12),
+              border: `1.5px solid ${alpha(accent, 0.3)}`,
+              background: '#ffffff',
               color: accent,
+              boxShadow: '0 2px 6px rgba(30,27,75,0.06)',
               WebkitTapHighlightColor: 'transparent',
             };
             return (
               <div key={target} style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
                 {/* ラベル */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '9px', background: alpha(accent, 0.16), border: `1px solid ${alpha(accent, 0.38)}`, color: accent, flexShrink: 0 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '9px', background: alpha(accent, 0.11), border: `1px solid ${alpha(accent, 0.22)}`, color: accent, flexShrink: 0 }}>
                     {icon}
                   </span>
-                  <span style={{ fontSize: '12px', fontWeight: '900', color: '#e0e7ff' }}>{label}</span>
-                  <span style={{ fontSize: '9px', fontWeight: '900', letterSpacing: '0.16em', color: alpha(accent, 0.75) }}>{sub}</span>
+                  <span style={{ fontSize: '12px', fontWeight: '900', color: hud.ink }}>{label}</span>
+                  <span style={{ fontSize: '9px', fontWeight: '900', letterSpacing: '0.16em', color: hud.label }}>{sub}</span>
                 </div>
 
                 {/* 数値 + ステッパー */}
@@ -405,11 +383,11 @@ export default function LogForm({
                   <div className="draggable-number" onPointerDown={e => handlePointerDown(e, target)}
                     style={{ display: 'flex', alignItems: 'baseline', gap: '5px', cursor: 'ns-resize', userSelect: 'none', touchAction: 'none' }}>
                     <span className="timer-text" style={{
-                      fontSize: isMobile ? 'clamp(42px,12vw,54px)' : '48px', fontWeight: '900', color: '#ffffff',
+                      fontSize: isMobile ? 'clamp(42px,12vw,54px)' : '48px', fontWeight: '900', color: accent,
                       lineHeight: 1, letterSpacing: '-0.03em', pointerEvents: 'none',
-                      textShadow: `0 0 14px ${alpha(accent, 0.95)}, 0 0 38px ${alpha(accent, 0.5)}`,
+                      textShadow: `0 3px 10px ${alpha(accent, 0.28)}`,
                     }}>{value}</span>
-                    <span style={{ fontSize: '14px', fontWeight: '900', color: accent, pointerEvents: 'none' }}>{unit}</span>
+                    <span style={{ fontSize: '14px', fontWeight: '900', color: alpha(accent, 0.7), pointerEvents: 'none' }}>{unit}</span>
                   </div>
                   <button type="button" className="hud-step" onClick={() => setter(value + step)} style={stepBtn}>
                     <Plus size={17} strokeWidth={3}/>
@@ -428,8 +406,8 @@ export default function LogForm({
                     return (
                       <span key={i} style={{
                         flex: 1, height: lit ? '100%' : '48%', borderRadius: '3px',
-                        background: lit ? `linear-gradient(180deg, ${accent} 0%, ${alpha(accent, 0.45)} 100%)` : 'rgba(199,210,254,0.14)',
-                        boxShadow: lit ? `0 0 9px ${alpha(accent, 0.7)}` : 'none',
+                        background: lit ? `linear-gradient(180deg, ${accent} 0%, ${alpha(accent, 0.55)} 100%)` : hud.track,
+                        boxShadow: lit ? `0 2px 6px ${alpha(accent, 0.3)}` : 'none',
                         transition: 'height 0.15s ease, background 0.15s ease, box-shadow 0.15s ease',
                         pointerEvents: 'none',
                       }}/>
@@ -445,11 +423,11 @@ export default function LogForm({
                       <button key={pv} type="button" className="hud-preset" onClick={() => setter(pv)}
                         style={{
                           padding: '5px 12px', borderRadius: '9px', cursor: 'pointer',
-                          border: `1px solid ${on ? accent : 'rgba(199,210,254,0.22)'}`,
-                          background: on ? alpha(accent, 0.24) : 'rgba(199,210,254,0.06)',
-                          color: on ? '#ffffff' : '#c7d2fe',
+                          border: `1px solid ${on ? accent : hud.chipIn}`,
+                          background: on ? accent : '#ffffff',
+                          color: on ? '#ffffff' : '#7c86a8',
                           fontSize: '11px', fontWeight: '900',
-                          boxShadow: on ? `0 0 14px ${alpha(accent, 0.45)}` : 'none',
+                          boxShadow: on ? `0 4px 10px ${alpha(accent, 0.3)}` : '0 1px 3px rgba(30,27,75,0.05)',
                           WebkitTapHighlightColor: 'transparent',
                         }}>
                         {pv}{unit}

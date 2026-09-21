@@ -5,153 +5,26 @@ export const useStopwatch = () => {
   const [isSwRunning, setIsSwRunning] = useState(false);
   const [wordCount, setWordCount]     = useState('');
   const [materialName, setMaterialName] = useState('');
-  const [transcript, setTranscript] = useState('');
   const [readingRecords, setReadingRecords] = useState([]);
-  const [recordVoice, setRecordVoice] = useState(false);
-  const [micError, setMicError] = useState('');
-  const speechSupported = typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
-  const startTimeRef     = useRef(null);
-  const baseElapsedRef    = useRef(0);
-  const mediaRecorderRef  = useRef(null);
-  const chunksRef         = useRef([]);
-  const streamRef         = useRef(null);
-  const recognitionRef    = useRef(null);
-  const recordVoiceRef    = useRef(recordVoice);
-  const isSwRunningRef    = useRef(isSwRunning);
-  const swElapsedRef      = useRef(swElapsed);
-  useEffect(() => { recordVoiceRef.current = recordVoice; }, [recordVoice]);
-  useEffect(() => { isSwRunningRef.current = isSwRunning; }, [isSwRunning]);
-  useEffect(() => { swElapsedRef.current = swElapsed; }, [swElapsed]);
-
-  const startSpeechRecognition = () => {
-    // 同じラウンド内の一時停止→再開では既存セッションをそのまま使い続ける（ラウンド境界では resetStopwatch が事前に停止・解放済み）
-    if (recognitionRef.current) return;
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return;
-    const recog = new SR();
-    recog.lang = 'en-US';
-    recog.continuous = true;
-    recog.interimResults = false;
-    recog.onresult = (e) => {
-      let text = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) text += e.results[i][0].transcript;
-      }
-      if (text.trim()) setTranscript(prev => (prev ? `${prev} ${text.trim()}` : text.trim()));
-    };
-    recog.onerror = () => {};
-    recog.onend = () => {
-      if (recognitionRef.current !== recog) return; // すでに別のセッションに置き換わっている
-      if (isSwRunningRef.current && recordVoiceRef.current) {
-        try { recog.start(); return; } catch {}
-      }
-      // 再開しない場合はセッションが本当に終了しているので参照を解放し、次回 startSpeechRecognition で新規作成できるようにする
-      recognitionRef.current = null;
-    };
-    try { recog.start(); recognitionRef.current = recog; } catch {}
-  };
-
-  const stopSpeechRecognition = () => {
-    const recog = recognitionRef.current;
-    if (!recog) return;
-    recog.onend = null;
-    recog.onerror = null;
-    try { recog.stop(); } catch {}
-    recognitionRef.current = null;
-  };
-
-  const PREFERRED_MIME_TYPES = ['audio/mp4', 'audio/webm', 'audio/ogg', 'audio/wav'];
-  const getSupportedMimeType = () => {
-    if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return undefined;
-    return PREFERRED_MIME_TYPES.find(t => MediaRecorder.isTypeSupported(t));
-  };
-
-  const startAudioRecording = async () => {
-    if (typeof MediaRecorder === 'undefined') {
-      setMicError('このブラウザは録音に対応していません');
-      return;
-    }
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setMicError('このページは安全な接続（HTTPS）で開く必要があります');
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      chunksRef.current = [];
-      const mimeType = getSupportedMimeType();
-      const mr = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      mr.start();
-      mediaRecorderRef.current = mr;
-      setMicError('');
-    } catch (err) {
-      mediaRecorderRef.current = null;
-      if (err?.name === 'NotFoundError') {
-        setMicError('マイクが見つかりませんでした（デバイスにマイクが接続されているかご確認ください）');
-      } else if (err?.name === 'NotReadableError' || err?.name === 'AbortError') {
-        setMicError('マイクを使用できませんでした（他のアプリで使用中、または端末側でミュートになっていないかご確認ください）');
-      } else {
-        setMicError('マイクを使用できませんでした（権限をご確認ください）');
-      }
-    }
-  };
-
-  const stopAudioRecording = () => new Promise((resolve) => {
-    const mr = mediaRecorderRef.current;
-    if (!mr) { resolve(null); return; }
-    const mimeType = mr.mimeType || 'audio/webm';
-    mr.onstop = () => {
-      streamRef.current?.getTracks().forEach(t => t.stop());
-      mediaRecorderRef.current = null;
-      resolve(chunksRef.current.length > 0 ? URL.createObjectURL(new Blob(chunksRef.current, { type: mimeType })) : null);
-    };
-    mr.stop();
-  });
-
-  const discardAudioRecording = () => {
-    const mr = mediaRecorderRef.current;
-    if (!mr) return;
-    mr.onstop = null;
-    try { mr.stop(); } catch {}
-    streamRef.current?.getTracks().forEach(t => t.stop());
-    mediaRecorderRef.current = null;
-  };
+  const startTimeRef   = useRef(null);
+  const baseElapsedRef = useRef(0);
 
   const toggleStopwatch = useCallback(() => {
     setIsSwRunning(prev => {
       const next = !prev;
-      if (next) {
-        if (swElapsedRef.current === 0) setTranscript('');
-        startTimeRef.current = Date.now();
-        if (recordVoice) {
-          if (mediaRecorderRef.current?.state === 'paused') mediaRecorderRef.current.resume();
-          else startAudioRecording();
-          startSpeechRecognition();
-        }
-      } else {
-        baseElapsedRef.current += Date.now() - startTimeRef.current;
-        if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.pause();
-      }
+      if (next) startTimeRef.current = Date.now();
+      else      baseElapsedRef.current += Date.now() - startTimeRef.current;
       return next;
     });
-  }, [recordVoice]);
+  }, []);
 
   const resetStopwatch = useCallback(() => {
     setIsSwRunning(false);
     setSwElapsed(0);
     baseElapsedRef.current = 0;
     startTimeRef.current = null;
-    discardAudioRecording();
-    stopSpeechRecognition();
   }, []);
-
-  // アンマウント時や録音チェックを外した時に音声認識を完全に停止する
-  useEffect(() => {
-    if (!recordVoice) stopSpeechRecognition();
-    return () => stopSpeechRecognition();
-  }, [recordVoice]);
 
   useEffect(() => {
     if (!isSwRunning) return;
@@ -172,11 +45,10 @@ export const useStopwatch = () => {
   const words = Number(wordCount) || 0;
   const wpm = words > 0 && swElapsed > 0 ? Math.round(words / (swElapsed / 60000)) : 0;
 
-  const recordReading = useCallback(async () => {
-    const audioUrl = recordVoice ? await stopAudioRecording() : null;
-    setReadingRecords(prev => [...prev, { wordCount: words, elapsedMs: swElapsed, wpm, audioUrl, transcript }]);
+  const recordReading = useCallback(() => {
+    setReadingRecords(prev => [...prev, { wordCount: words, elapsedMs: swElapsed, wpm }]);
     resetStopwatch();
-  }, [words, swElapsed, wpm, recordVoice, transcript, resetStopwatch]);
+  }, [words, swElapsed, wpm, resetStopwatch]);
 
   const clearReadingRecords = useCallback(() => setReadingRecords([]), []);
 
@@ -185,10 +57,6 @@ export const useStopwatch = () => {
     isSwRunning,
     wordCount, setWordCount,
     materialName, setMaterialName,
-    transcript, setTranscript,
-    recordVoice, setRecordVoice,
-    micError,
-    speechSupported,
     toggleStopwatch,
     resetStopwatch,
     formatStopwatch,
