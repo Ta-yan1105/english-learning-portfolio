@@ -2,8 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { quotesData } from '../quotes_data';
 import { Volume2, ChevronDown, ChevronUp } from 'lucide-react';
 
+/* 直前と同じものを避けてランダムに1件選ぶ */
+const pickRandomQuote = (exclude) => {
+  if (quotesData.length === 0) return null;
+  if (quotesData.length === 1) return quotesData[0];
+  let next;
+  do {
+    next = quotesData[Math.floor(Math.random() * quotesData.length)];
+  } while (next === exclude);
+  return next;
+};
+
 export default function DailyQuote() {
-  const [currentQuote, setCurrentQuote] = useState(quotesData[0]);
+  // 初期表示もランダムにする（関数を渡すと初回マウント時に1度だけ実行される）
+  const [currentQuote, setCurrentQuote] = useState(() => pickRandomQuote());
 
   // 画像の読み込みエラーを検知するState
   const [imageError, setImageError] = useState(false);
@@ -23,8 +35,7 @@ export default function DailyQuote() {
   }, [currentQuote]);
 
   const drawRandomQuote = () => {
-    const randomIndex = Math.floor(Math.random() * quotesData.length);
-    setCurrentQuote(quotesData[randomIndex]);
+    setCurrentQuote(prev => pickRandomQuote(prev));
     setShowExplanation(false); // 次の名言に切り替わったら解説を閉じる
   };
 
