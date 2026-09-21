@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Timer as TimerIcon, Play, Pause, RefreshCw,
-  List, Maximize, Minimize, Volume2, VolumeX, Watch, Save, Check, BookOpen, Plus, Minus, Gauge,
+  List, Maximize, Minimize, Volume2, VolumeX, Watch, Save, Check, BookOpen, Triangle, Gauge,
 } from 'lucide-react';
 import { useTimer } from '../hooks/useTimer';
 import { useStopwatch } from '../hooks/useStopwatch';
@@ -118,6 +118,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const isEn = lang === 'en';
   const [mode, setMode] = useState('timer'); // 'timer' | 'stopwatch'
   const [readingSaveStatus, setReadingSaveStatus] = useState('idle'); // 'idle' | 'saved'
+  const [readingMode, setReadingMode] = useState(false); // 音読スピード計測を使うかどうか
   const [showMaterialPrompt, setShowMaterialPrompt] = useState(false);
   const materialInputRef = useRef(null);
 
@@ -165,6 +166,24 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     setReadingSaveStatus('saved');
     setTimeout(() => setReadingSaveStatus('idle'), 2500);
   };
+
+  /* ── 単語数の増減：1語ずつ。長押しすると加速して連続で増減する ── */
+  const holdTimerRef = useRef(null);
+  const stepWords = (delta) => setWordCount(prev => String(Math.max(0, Math.min((Number(prev) || 0) + delta, 1000))));
+  const endWordHold = () => { clearTimeout(holdTimerRef.current); holdTimerRef.current = null; };
+  const startWordHold = (delta) => {
+    stepWords(delta);
+    let held = 0;
+    const run = (wait) => {
+      holdTimerRef.current = setTimeout(() => {
+        stepWords(delta);
+        held += wait;
+        run(held > 1800 ? 35 : held > 800 ? 70 : 140);
+      }, wait);
+    };
+    run(420); // 長押しと判定するまでの待ち時間
+  };
+  useEffect(() => endWordHold, []);
 
   const dragStartY   = useRef(null);
   const dragStartVal = useRef(null);
@@ -267,22 +286,61 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const wpmLevel  = wpm > 0 ? getWpmLevel(wpm) : null;
   const markerPct = Math.min(100, (wpm / WPM_SCALE_MAX) * 100);
 
+  /* ── 音読スピード計測のオン・オフ ── */
+  const readingToggle = (large = false) => {
+    const accent = '#0891b2';
+    const on = readingMode;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: large ? '26px' : '22px' }}>
+        <button type="button" className="skill-tile" onClick={() => setReadingMode(v => !v)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: large ? '12px 26px' : '11px 22px',
+            borderRadius: '50px',
+            border: on ? `1.5px solid ${accent}` : '1.5px solid rgba(8,145,178,0.28)',
+            background: on ? `linear-gradient(150deg, #22b8cf 0%, ${accent} 55%, #0e7490 100%)` : '#ffffff',
+            color: on ? '#ffffff' : accent,
+            fontSize: large ? '15px' : '14px', fontWeight: '900', cursor: 'pointer',
+            textShadow: on ? '0 1px 2px rgba(0,0,0,0.18)' : 'none',
+            WebkitTapHighlightColor: 'transparent',
+            '--edge': on ? '#0e7490' : '#dbe6ec',
+            '--edge-h': on ? '5px' : '4px',
+            '--glow': on ? 'rgba(8,145,178,0.3)' : 'rgba(30,27,75,0.06)',
+            '--sheen': on ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0)',
+          }}>
+          <BookOpen size={large ? 19 : 17}/>
+          {isEn ? 'Reading Speed' : '音読スピードを測る'}
+          {on && <Check size={large ? 17 : 15} strokeWidth={4}/>}
+        </button>
+      </div>
+    );
+  };
+
   /* ── 音読スピードの入力パネル（単語数 + WPM 表示） ── */
   const readingPanel = (large = false) => {
     const words = Number(wordCount) || 0;
     const setWords = (v) => setWordCount(String(Math.max(0, Math.min(v, 1000))));
     const presets = [50, 100, 150, 200];
     const accent = '#0891b2';
-    const stepBtn = {
+    /* △▽ボタン：1タップで1語、長押しで連続増減 */
+    const spinBtn = (delta) => ({
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      width: '36px', height: '36px', flexShrink: 0,
-      borderRadius: '50%', cursor: 'pointer',
+      width: '46px', height: '30px', flexShrink: 0,
+      borderRadius: delta > 0 ? '10px 10px 4px 4px' : '4px 4px 10px 10px',
+      cursor: 'pointer',
       border: '1.5px solid rgba(8,145,178,0.3)',
       background: '#ffffff',
       color: accent,
       boxShadow: '0 2px 6px rgba(30,27,75,0.06)',
+      touchAction: 'none',
       WebkitTapHighlightColor: 'transparent',
-    };
+    });
+    const spinHandlers = (delta) => ({
+      onPointerDown: (e) => { e.preventDefault(); startWordHold(delta); },
+      onPointerUp: endWordHold,
+      onPointerLeave: endWordHold,
+      onPointerCancel: endWordHold,
+    });
     return (
       <div style={{ ...hudPanelStyle(isMobile), width: large ? '560px' : '100%', maxWidth: '100%', margin: '0 auto 20px' }}>
         <HudHeading text={isEn ? 'READING SPEED' : '音読スピード'} isMobile={isMobile}/>
@@ -298,10 +356,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           <span style={{ fontSize: '9px', fontWeight: '900', letterSpacing: '0.16em', color: hud.label }}>WORDS</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '12px' }}>
-          <button type="button" className="hud-step" onClick={() => setWords(words - 10)} style={stepBtn}>
-            <Minus size={17} strokeWidth={3}/>
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
             <input
               type="text" inputMode="numeric" value={wordCount}
@@ -321,9 +376,18 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
             />
             <span style={{ fontSize: '14px', fontWeight: '900', color: 'rgba(8,145,178,0.7)' }}>{isEn ? 'words' : '語'}</span>
           </div>
-          <button type="button" className="hud-step" onClick={() => setWords(words + 10)} style={stepBtn}>
-            <Plus size={17} strokeWidth={3}/>
-          </button>
+
+          {/* △▽ スピナー（1語単位・長押しで連続） */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <button type="button" className="hud-step" style={spinBtn(1)} {...spinHandlers(1)}
+              aria-label={isEn ? 'Increase by 1 word' : '1語増やす'}>
+              <Triangle size={13} fill="currentColor" strokeWidth={0}/>
+            </button>
+            <button type="button" className="hud-step" style={spinBtn(-1)} {...spinHandlers(-1)}
+              aria-label={isEn ? 'Decrease by 1 word' : '1語減らす'}>
+              <Triangle size={13} fill="currentColor" strokeWidth={0} style={{ transform: 'rotate(180deg)' }}/>
+            </button>
+          </div>
         </div>
 
         {/* ワンタップ・プリセット */}
@@ -423,7 +487,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
         <button className="action-btn" onClick={resetStopwatch} style={{ padding: pad, borderRadius: '50px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <RefreshCw size={icon}/> {isEn ? 'Reset' : 'リセット'}
         </button>
-        {!isSwRunning && swElapsed > 0 && Number(wordCount) > 0 && (
+        {readingMode && !isSwRunning && swElapsed > 0 && Number(wordCount) > 0 && (
           <button className="action-btn" onClick={recordReading} style={{ padding: pad, borderRadius: '50px', border: 'none', background: '#22c55e', color: 'white', fontWeight: '900', cursor: 'pointer', fontSize: fs, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
             <List size={icon}/> {isEn ? 'Record' : '記録して次へ'}
           </button>
@@ -470,7 +534,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   };
 
   const modeTabs = (
-    <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '12px', margin: '0 auto 18px', width: 'fit-content' }}>
+    <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '4px', borderRadius: '12px', margin: '0 auto', width: 'fit-content' }}>
       {[
         ['timer', isEn ? 'Timer' : 'タイマー', TimerIcon],
         ['stopwatch', isEn ? 'Stopwatch' : 'ストップウォッチ', Watch],
@@ -517,8 +581,6 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
   const card = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 22px 50px rgba(30, 27, 75, 0.20), 0 8px 16px rgba(30, 27, 75, 0.10), 0 0 0 1px rgba(79, 70, 229, 0.07)', boxSizing: 'border-box', width: '100%', textAlign: 'center' };
   const isStopwatch = mode === 'stopwatch';
-  const title = isStopwatch ? (isEn ? 'Stopwatch' : 'ストップウォッチ') : (isEn ? 'Study Timer' : '学習タイマー');
-  const HeaderIcon = isStopwatch ? Watch : TimerIcon;
   const swipeHint = isEn ? '👆 Swipe min/sec up or down to set time' : '👆 分・秒の数字を上下にスワイプして時間を調整';
 
   return (
@@ -529,12 +591,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
-        {modeTabs}
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative' }}>
+        {/* タブがモードを示すので見出しは置かず、左右に操作アイコンだけ添える */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '18px' }}>
           {soundBtn(false)}
-          <HeaderIcon size={24} color="#4f46e5" style={{ marginRight: '8px' }}/>
-          <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', margin: 0 }}>{title}</h2>
+          {modeTabs}
           <button className="action-btn" onClick={handleEnterFullscreen} title={isEn ? 'Fullscreen' : '全画面表示'}
             style={{ position: 'absolute', right: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Maximize size={20}/>
@@ -543,10 +603,15 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
         {isStopwatch ? (
           <>
-            {readingPanel(false)}
             {swFace(numStyle, isMobile ? '50px 20px' : '80px 50px', isMobile ? '40px' : '60px')}
             {swControls(false)}
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+            {readingToggle(false)}
+            {readingMode && (
+              <div style={{ marginTop: '16px', animation: 'popIn 0.3s ease-out' }}>
+                {readingPanel(false)}
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
               {chartBlock()}
             </div>
             {readingSaveButton(false)}
@@ -581,17 +646,16 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           >
             {!isMobile && !isStopwatch && <div style={{ flex: 1 }}/>}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                <HeaderIcon size={32} color="#4f46e5" style={{ marginRight: '10px' }}/>
-                <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b', margin: 0 }}>{title}</h2>
-              </div>
               {isStopwatch ? (
                 <>
                   {swFace(numStyleFS, isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)', isMobile ? 'min(8vw, 40px)' : 'min(9vh, 140px)')}
                   {swControls(true)}
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
-                    {readingPanel(true)}
-                  </div>
+                  {readingToggle(true)}
+                  {readingMode && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px', animation: 'popIn 0.3s ease-out' }}>
+                      {readingPanel(true)}
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     {chartBlock()}
                   </div>
