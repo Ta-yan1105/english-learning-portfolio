@@ -74,6 +74,15 @@ export default function DailyQuote() {
 
   const showImage = isValidUrlFormat && !imageError;
 
+  /* 英文の長さで字の大きさを変え、どの名言も1〜2行に収める
+     （収録365件：中央値53字、95%が89字以内、最長106字） */
+  const len = currentQuote.english.length;
+  const quoteFontSize =
+      len <= 40 ? 'clamp(1.6rem, 6vw, 2.4rem)'
+    : len <= 60 ? 'clamp(1.35rem, 4.8vw, 1.85rem)'
+    : len <= 90 ? 'clamp(1.15rem, 3.9vw, 1.5rem)'
+    :             'clamp(1.05rem, 3.4vw, 1.3rem)';
+
   // 全ボタン共通のベーススタイル
   const baseButtonStyle = {
     display: 'flex',
@@ -110,101 +119,132 @@ export default function DailyQuote() {
         <div style={{
           position: 'relative',
           overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
           background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 55%, #3730a3 100%)',
           color: 'white',
           zIndex: 1,
           boxShadow: '0 10px 24px rgba(30, 27, 75, 0.28)'
         }}>
-
-          {showImage && (
-            <div style={{
-              position: 'relative',
-              zIndex: 1,
-              flex: '1 1 250px',
-              padding: 'clamp(20px, 5vw, 40px)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              background: 'transparent',
-              boxSizing: 'border-box'
-            }}>
-              <img
-                src={imageUrl}
-                alt={currentQuote.author}
-                onError={() => setImageError(true)}
-                style={{
-                  width: '100%',
-                  maxWidth: '240px',
-                  aspectRatio: '1 / 1',
-                  borderRadius: '20px',
-                  objectFit: 'contain',
-                  backgroundColor: 'white',
-                  border: 'clamp(4px, 2vw, 8px) solid rgba(255,255,255,0.1)',
-                  boxShadow: '0 15px 35px rgba(0,0,0,0.4)'
-                }}
-              />
-            </div>
-          )}
-
-          {/* 右側：名言テキスト */}
+          {/* 方眼と光：奥行きを出すための下地 */}
           <div style={{
-            position: 'relative',
-            zIndex: 1,
-            flex: showImage ? '2 1 300px' : '1 1 100%',
-            padding: 'clamp(20px, 5vw, 40px)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            background: 'radial-gradient(ellipse at center, rgba(30, 27, 75, 0.85) 0%, rgba(30, 27, 75, 0.55) 60%, transparent 100%)',
-            boxSizing: 'border-box',
-            width: '100%'
-          }}>
-            <h2 style={{
-              fontSize: 'clamp(1.5rem, 5vw, 2.4rem)',
-              fontStyle: 'italic',
-              margin: '0 0 12px 0',
-              lineHeight: '1.3',
-              fontWeight: '900',
-              textShadow: '0 2px 4px rgba(0,0,0,0.55), 0 8px 20px rgba(0,0,0,0.45)',
-              wordBreak: 'break-word',
-              overflowWrap: 'break-word'
+            position: 'absolute', inset: 0, pointerEvents: 'none',
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+              radial-gradient(ellipse at 14% -25%, rgba(165,180,252,0.42) 0%, transparent 60%)
+            `,
+            backgroundSize: '26px 26px, 26px 26px, 100% 100%',
+          }}/>
+
+          {/* 引用符のウォーターマーク */}
+          <span style={{
+            position: 'absolute', top: 'clamp(-34px, -5vw, -20px)', right: 'clamp(8px, 3vw, 28px)',
+            fontFamily: 'Georgia, "Times New Roman", serif',
+            fontSize: 'clamp(140px, 24vw, 240px)', lineHeight: 1, fontWeight: 700,
+            color: 'rgba(255,255,255,0.085)', pointerEvents: 'none', userSelect: 'none',
+          }}>”</span>
+
+          <div
+            key={currentQuote.english}
+            style={{
+              position: 'relative', zIndex: 1,
+              padding: 'clamp(22px, 5vw, 40px)',
+              boxSizing: 'border-box',
+              animation: 'quoteIn 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
             }}>
-              "{currentQuote.english}"
+
+            {/* HUD見出し */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: 'clamp(14px, 2.6vw, 20px)' }}>
+              <span style={{
+                width: '6px', height: '6px', borderRadius: '50%', background: '#a5b4fc',
+                boxShadow: '0 0 8px #a5b4fc', animation: 'hudPulse 1.8s ease-in-out infinite',
+              }}/>
+              <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.22em', color: 'rgba(199,210,254,0.9)' }}>
+                QUOTE
+              </span>
+            </div>
+
+            {/* 発言者：写真を主役に、名前と紹介を横に添える */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 'clamp(16px, 3.5vw, 26px)', flexWrap: 'wrap',
+              marginBottom: 'clamp(20px, 4vw, 30px)',
+            }}>
+              {showImage && (
+                <img
+                  src={imageUrl}
+                  alt={currentQuote.author}
+                  onError={() => setImageError(true)}
+                  style={{
+                    /* 元画像は幅250pxの縦長サムネイル。同じ縦横比の枠にしてトリミングを最小にする */
+                    width: 'clamp(140px, 34vw, 210px)',
+                    aspectRatio: '4 / 5',
+                    borderRadius: 'clamp(12px, 2.5vw, 18px)',
+                    objectFit: 'cover',
+                    objectPosition: 'top center',
+                    backgroundColor: 'rgba(255,255,255,0.12)',
+                    flexShrink: 0,
+                    boxShadow: '0 0 0 3px rgba(255,255,255,0.4), 0 0 0 10px rgba(255,255,255,0.12), 0 22px 46px rgba(15,12,60,0.55)',
+                  }}
+                />
+              )}
+
+              <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                {/* 名前の上の細いアクセント */}
+                <div style={{
+                  width: '30px', height: '2px', borderRadius: '2px', marginBottom: '10px',
+                  background: 'linear-gradient(90deg, #fcd34d, rgba(252,211,77,0.15))',
+                }}/>
+                <div style={{
+                  fontSize: 'clamp(1.15rem, 3.6vw, 1.5rem)', fontWeight: '900', color: '#ffffff',
+                  lineHeight: 1.25, letterSpacing: '-0.01em', wordBreak: 'break-word',
+                  textShadow: '0 2px 10px rgba(15,12,60,0.4)',
+                }}>
+                  {currentQuote.author}
+                </div>
+                {currentQuote.info && (
+                  <p style={{
+                    margin: 'clamp(8px, 1.8vw, 11px) 0 0 0',
+                    fontSize: 'clamp(0.78rem, 2.3vw, 0.88rem)',
+                    fontWeight: '700',
+                    lineHeight: 1.7,
+                    color: 'rgba(199,210,254,0.85)',
+                    wordBreak: 'break-word',
+                  }}>
+                    {currentQuote.info}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 英文：横幅をすべて使い、長さに応じて字を詰めて1〜2行に収める */}
+            <h2 style={{
+              fontSize: quoteFontSize,
+              fontStyle: 'italic',
+              margin: '0 0 clamp(12px, 2.4vw, 18px) 0',
+              lineHeight: 1.3,
+              letterSpacing: '-0.015em',
+              fontWeight: '800',
+              textShadow: '0 2px 12px rgba(15,12,60,0.45)',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+            }}>
+              {currentQuote.english}
             </h2>
 
-            <p style={{
-              fontSize: 'clamp(1.1rem, 4vw, 1.4rem)',
-              fontWeight: '900',
-              color: '#f8fafc',
-              margin: '0 0 20px 0',
-              lineHeight: '1.4',
-              textShadow: '0 1px 5px rgba(0,0,0,0.8)',
-              wordBreak: 'keep-all',
-              overflowWrap: 'break-word'
-            }}>
-              {currentQuote.japanese}
-            </p>
+            <div style={{
+              width: '46px', height: '2px', borderRadius: '2px', marginBottom: 'clamp(12px, 2.4vw, 16px)',
+              background: 'linear-gradient(90deg, rgba(255,255,255,0.75), rgba(255,255,255,0.1))',
+            }}/>
 
             <p style={{
-              fontSize: 'clamp(1rem, 3vw, 1.2rem)',
-              color: '#bae6fd',
+              fontSize: 'clamp(0.98rem, 3.2vw, 1.2rem)',
+              fontWeight: '700',
+              color: 'rgba(237,240,255,0.95)',
               margin: 0,
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'baseline',
-              flexWrap: 'wrap',
-              gap: '8px',
-              textShadow: '0 1px 3px rgba(0,0,0,0.6)',
-              wordBreak: 'break-word',
-              overflowWrap: 'break-word'
+              lineHeight: 1.75,
+              wordBreak: 'keep-all',
+              overflowWrap: 'break-word',
             }}>
-              <span>— {currentQuote.author}</span>
-              <span style={{ fontSize: '0.85em', fontWeight: 'bold', color: '#fef08a' }}>
-                💡 {currentQuote.info}
-              </span>
+              {currentQuote.japanese}
             </p>
           </div>
         </div>

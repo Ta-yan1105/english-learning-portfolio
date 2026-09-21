@@ -18,6 +18,12 @@
   100% { transform: translateY(0) rotate(0deg); } 
 }
 
+/* 名言の切り替え：下からすっと入る */
+@keyframes quoteIn {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 /* HUD パネルのステータスランプ */
 @keyframes hudPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
