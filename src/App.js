@@ -10,6 +10,7 @@ import { auth, db, provider } from './firebase';
 import { getLocalDateString, PRAISE_MESSAGES } from './constants';
 import { useLogs } from './hooks/useLogs';
 import { usePlans } from './hooks/usePlans';
+import { useTodos } from './hooks/useTodos';
 import i18n from './i18n';
 
 import Timer      from './components/Timer';
@@ -110,6 +111,7 @@ export default function App() {
 
   const { logs, getFilteredLogs, getTimeStats, streak, saveLog, deleteLog, exportLogs } = useLogs(user);
   const { plans, savePlan } = usePlans(user);
+  const { todos, addTodo, updateTodo, removeTodo, clearDone } = useTodos(user);
   const filteredLogs = useMemo(() => getFilteredLogs(date, selectedRange), [getFilteredLogs, date, selectedRange]);
   const timeStats    = useMemo(() => getTimeStats(date), [getTimeStats, date]);
 
@@ -536,6 +538,11 @@ export default function App() {
         onProfileUpdate={handleProfileUpdate}
         plans={plans}
         onSavePlan={savePlan}
+        todos={todos}
+        onAddTodo={addTodo}
+        onUpdateTodo={updateTodo}
+        onRemoveTodo={removeTodo}
+        onClearDone={clearDone}
       />
 
       <Timer isMobile={isMobile} lang={lang} onTimerComplete={handleTimerComplete} onSaveReadingRecords={handleSaveReadingRecords}/>

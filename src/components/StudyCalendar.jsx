@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Star, Plus, X,
-  LayoutGrid, ListChecks,
+  LayoutGrid, ListChecks, CheckSquare, Check, Trash2, CalendarDays, Flag, Tag,
 } from 'lucide-react';
 import { formatMinutes, getUnit, getLocalDateString } from '../constants';
 import { hudPanelStyle, HudHeading, hud } from './hud';
@@ -22,6 +22,14 @@ const HOLIDAY_INK   = '#db2777';
 /* 試験の色（先頭が英検。以降は登録順に割り当てる） */
 const EXAM_COLORS = ['#eb6834', '#db2777', '#0e9aa7', '#15803d', '#4a3aa7', '#2a78d6'];
 
+/* TODO の分類。色は検証済みパレット（隣り合う色が見分けられる並び） */
+const TODO_COLORS = ['#2a78d6', '#4a3aa7', '#15803d', '#eb6834', '#db2777', '#0e9aa7', '#eda100'];
+const DEFAULT_TODO_CATS = [
+  { id: 'english', name: '英語学習',     color: TODO_COLORS[0] },
+  { id: 'work',    name: '仕事',         color: TODO_COLORS[1] },
+  { id: 'private', name: 'プライベート', color: TODO_COLORS[2] },
+];
+
 /* 色は「並び順」ではなく「その試験」に紐づける（並べ替えても色が入れ替わらない） */
 const examColor = (id) => {
   if (id === 'eiken') return EXAM_COLORS[0];
@@ -39,6 +47,7 @@ const HOURS = Array.from({ length: 20 }, (_, i) => i + 4); // 4時〜23時
 export default function StudyCalendar({
   isMobile, lang = 'ja', logs, date, setDate, onSelectDate,
   profile = {}, onProfileUpdate, plans = {}, onSavePlan,
+  todos = [], onAddTodo, onUpdateTodo, onRemoveTodo, onClearDone,
 }) {
   const isEn = lang === 'en';
   const [view, setView] = useState('month'); // 'month' | 'agenda'
@@ -161,6 +170,42 @@ export default function StudyCalendar({
     return m;
   }, [exams]);
 
+  /* TODO の分類（ユーザーが追加・変更できる） */
+  const [showCatEditor, setShowCatEditor] = useState(false);
+  const todoCats = useMemo(
+    () => (Array.isArray(profile.todoCats) && profile.todoCats.length > 0 ? profile.todoCats : DEFAULT_TODO_CATS),
+    [profile.todoCats]
+  );
+  const catOf = (id) => todoCats.find(c => c.id === id) || todoCats[0];
+  const updateCats = (next) => onProfileUpdate?.('todoCats', next);
+
+  /* 分類タブ。選んだタブに追加していく */
+  const [todoTab, setTodoTab] = useState('all');
+  const activeCatId = todoTab === 'all' ? (todoCats[0]?.id || 'english') : todoTab;
+  const shownTodos = todoTab === 'all' ? todos : todos.filter(t => catOf(t.cat).id === todoTab);
+  /* 分類チップを押すと次の分類へ移す（プルダウンの代わり） */
+  const cycleCat = (t) => {
+    const i = todoCats.findIndex(c => c.id === catOf(t.cat).id);
+    onUpdateTodo?.(t.id, { cat: todoCats[(i + 1) % todoCats.length].id });
+  };
+
+  /* 日付ごとの TODO（実施日と期限をそれぞれ引けるようにする） */
+  const todosByDate = useMemo(() => {
+    const m = {};
+    todos.forEach(t => {
+      if (t.date) (m[t.date] ||= { on: [], due: [] }).on.push(t);
+      if (t.due && t.due !== t.date) (m[t.due] ||= { on: [], due: [] }).due.push(t);
+    });
+    return m;
+  }, [todos]);
+
+  /* 入力済みタグの候補 */
+  const allTags = useMemo(() => {
+    const set = new Set();
+    todos.forEach(t => (t.tags || []).forEach(x => set.add(x)));
+    return [...set].sort();
+  }, [todos]);
+
   const handlePick = (d) => { if (!d) return; setDate?.(d); onSelectDate?.(d); };
 
   /* 月表示でマスを選んだら、その日を含む週の時間割へ移動する */
@@ -201,6 +246,12 @@ export default function StudyCalendar({
     width: '20px', height: '14px', padding: 0, borderRadius: '4px',
     border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#6b74a0',
   };
+  const miniField = {
+    boxSizing: 'border-box', padding: '3px 6px', borderRadius: '6px',
+    border: `1px solid ${hud.line}`, background: '#fbfcff',
+    fontSize: '10px', fontWeight: '700', color: '#334155',
+    outline: 'none', fontFamily: 'inherit',
+  };
   const fieldStyle = {
     flex: 1, minWidth: 0, boxSizing: 'border-box',
     padding: '6px 9px', borderRadius: '8px',
@@ -224,6 +275,7 @@ export default function StudyCalendar({
             {[
               ['month',  isEn ? 'Month'    : '月',   <LayoutGrid size={14}/>],
               ['agenda', isEn ? 'Schedule' : '予定', <ListChecks size={14}/>],
+              ['todo',   'TODO',                     <CheckSquare size={14}/>],
             ].map(([v, label, icon]) => (
               <button key={v} type="button" className="action-btn" onClick={() => setView(v)}
                 style={{
@@ -254,7 +306,271 @@ export default function StudyCalendar({
           </div>
         </div>
 
-        {view === 'month' ? (
+        {view === 'todo' ? (
+          /* TODO：分類つきのチェックリスト */
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+              {/* 分類の凡例 */}
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                {[{ id: 'all', name: isEn ? 'All' : 'すべて', color: '#6b74a0' }, ...todoCats].map(c => {
+                  const on = todoTab === c.id;
+                  const count = c.id === 'all' ? todos.length : todos.filter(t => catOf(t.cat).id === c.id).length;
+                  return (
+                    <button key={c.id} type="button" className="action-btn" onClick={() => setTodoTab(c.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        padding: '5px 12px', borderRadius: '50px', cursor: 'pointer',
+                        border: on ? `1.5px solid ${c.color}` : `1px solid ${hud.line}`,
+                        background: on ? c.color : '#ffffff',
+                        color: on ? '#ffffff' : c.color,
+                        fontSize: '11px', fontWeight: '900',
+                        boxShadow: on ? `0 4px 10px ${c.color}44` : 'none',
+                      }}>
+                      {c.name}
+                      <span style={{
+                        fontSize: '9px', fontWeight: '900',
+                        padding: '1px 6px', borderRadius: '50px',
+                        background: on ? 'rgba(255,255,255,0.25)' : '#eef1fa',
+                        color: on ? '#ffffff' : hud.label,
+                      }}>{count}</span>
+                    </button>
+                  );
+                })}
+                {onProfileUpdate && (
+                  <button type="button" className="action-btn" onClick={() => setShowCatEditor(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '4px',
+                      padding: '4px 10px', borderRadius: '50px', cursor: 'pointer',
+                      border: `1px dashed ${hud.chipIn}`, background: '#ffffff', color: '#6b74a0',
+                      fontSize: '10.5px', fontWeight: '900',
+                    }}>
+                    <Tag size={11}/>{isEn ? (showCatEditor ? 'Close' : 'Edit tags') : (showCatEditor ? '閉じる' : '分類を編集')}
+                  </button>
+                )}
+              </span>
+
+              <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {todos.some(t => t.done) && onClearDone && (
+                  <button type="button" className="action-btn" onClick={onClearDone}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      padding: '5px 11px', borderRadius: '8px', cursor: 'pointer',
+                      border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#7c86a8',
+                      fontSize: '10px', fontWeight: '900',
+                    }}>
+                    <Trash2 size={12}/>{isEn ? 'Clear done' : '完了を消す'}
+                  </button>
+                )}
+                {onAddTodo && (
+                  <button type="button" className="action-btn" onClick={() => onAddTodo(activeCatId)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      padding: '6px 13px', borderRadius: '8px', cursor: 'pointer',
+                      border: 'none', background: '#4f46e5', color: '#ffffff',
+                      fontSize: '11px', fontWeight: '900', boxShadow: '0 4px 10px rgba(79,70,229,0.3)',
+                    }}>
+                    <Plus size={13} strokeWidth={3}/>{isEn ? 'Add' : 'TODOを追加'}
+                  </button>
+                )}
+              </span>
+            </div>
+
+            {/* 分類の編集 */}
+            {showCatEditor && onProfileUpdate && (
+              <div style={{
+                marginBottom: '10px', padding: '10px 12px', borderRadius: '12px',
+                background: '#ffffff', border: `1px dashed ${hud.chipIn}`,
+              }}>
+                <div style={{ fontSize: '10px', fontWeight: '700', color: hud.label, marginBottom: '8px' }}>
+                  {isEn ? 'Rename, recolor (tap the swatch) or add your own.' : '名前の変更、色の変更（四角をタップ）、追加ができます。'}
+                </div>
+                {todoCats.map((c, i) => (
+                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+                    <button type="button" className="hud-step"
+                      onClick={() => {
+                        const next = TODO_COLORS[(TODO_COLORS.indexOf(c.color) + 1) % TODO_COLORS.length];
+                        updateCats(todoCats.map((x, j) => j === i ? { ...x, color: next } : x));
+                      }}
+                      title={isEn ? 'Change color' : '色を変える'}
+                      style={{
+                        width: '22px', height: '22px', flexShrink: 0, padding: 0, cursor: 'pointer',
+                        borderRadius: '7px', border: `1px solid ${c.color}`, background: c.color,
+                      }}/>
+                    <input
+                      value={c.name}
+                      onChange={e => updateCats(todoCats.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
+                      placeholder={isEn ? 'Name' : '分類名'}
+                      style={{ ...fieldStyle, flex: '1 1 160px', minWidth: 0 }}
+                    />
+                    {todoCats.length > 1 && (
+                      <button type="button" className="hud-step"
+                        onClick={() => updateCats(todoCats.filter((_, j) => j !== i))}
+                        title={isEn ? 'Remove' : '削除'}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          width: '26px', height: '26px', flexShrink: 0, borderRadius: '8px', cursor: 'pointer',
+                          border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#a8b1d1',
+                        }}>
+                        <X size={13} strokeWidth={3}/>
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" className="action-btn"
+                  onClick={() => updateCats([...todoCats, {
+                    id: `c${Date.now()}`, name: '',
+                    color: TODO_COLORS[todoCats.length % TODO_COLORS.length],
+                  }])}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                    padding: '5px 12px', borderRadius: '8px', cursor: 'pointer',
+                    border: `1px dashed ${hud.chipIn}`, background: '#fbfcff', color: '#4f46e5',
+                    fontSize: '11px', fontWeight: '900',
+                  }}>
+                  <Plus size={13} strokeWidth={3}/>{isEn ? 'Add a category' : '分類を追加'}
+                </button>
+              </div>
+            )}
+
+            {shownTodos.length === 0 ? (
+              <div style={{ padding: '26px 10px', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: hud.label }}>
+                {isEn
+                  ? 'No tasks here yet. Press Add to start.'
+                  : `${todoTab === 'all' ? '' : `「${catOf(todoTab).name}」に`}まだTODOがありません。「TODOを追加」から入力できます。`}
+              </div>
+            ) : (
+              <div className="custom-scrollbar" style={{ maxHeight: '420px', overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {shownTodos.map(t => {
+                  const cat = catOf(t.cat);
+                  const overdue = t.due && !t.done && t.due < today;
+                  return (
+                    <div key={t.id} style={{
+                      display: 'flex', flexDirection: 'column', gap: '6px',
+                      padding: '9px 11px', borderRadius: '11px',
+                      background: t.done ? '#f6f7fc' : '#ffffff',
+                      border: `1px solid ${overdue ? '#f3c7cf' : hud.line}`,
+                    }}>
+                      {/* 1行目：チェック・分類・内容・削除 */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                        <button type="button" className="hud-step"
+                          onClick={() => onUpdateTodo?.(t.id, { done: !t.done })}
+                          title={isEn ? 'Done' : '完了'}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: '20px', height: '20px', flexShrink: 0, padding: 0,
+                            borderRadius: '6px', cursor: 'pointer',
+                            border: t.done ? `1px solid ${cat.color}` : `1.5px solid ${hud.chipIn}`,
+                            background: t.done ? cat.color : '#ffffff', color: '#ffffff',
+                          }}>
+                          {t.done && <Check size={13} strokeWidth={4}/>}
+                        </button>
+
+                        {/* 押すたびに次の分類へ移る（プルダウンなし） */}
+                        <button type="button" className="action-btn" onClick={() => cycleCat(t)}
+                          title={isEn ? 'Change category' : '分類を変える（押すと次へ）'}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
+                            maxWidth: isMobile ? '96px' : '128px',
+                            padding: '4px 10px', borderRadius: '50px', cursor: 'pointer',
+                            border: `1px solid ${cat.color}55`, background: `${cat.color}14`,
+                            color: cat.color, fontSize: '10px', fontWeight: '900',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          }}>
+                          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: cat.color, flexShrink: 0 }}/>
+                          {cat.name}
+                        </button>
+
+                        <input
+                          value={t.text || ''}
+                          onChange={e => onUpdateTodo?.(t.id, { text: e.target.value })}
+                          placeholder={isEn ? 'What needs doing?' : 'やることを入力'}
+                          style={{
+                            ...fieldStyle, flex: 1, minWidth: 0,
+                            border: '1px solid transparent', background: 'transparent',
+                            fontSize: '12.5px',
+                            color: t.done ? '#98a1c0' : '#334155',
+                            textDecoration: t.done ? 'line-through' : 'none',
+                          }}
+                        />
+
+                        {onRemoveTodo && (
+                          <button type="button" className="slot-clear" onClick={() => onRemoveTodo(t.id)}
+                            title={isEn ? 'Delete' : '削除'}
+                            style={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              width: '22px', height: '22px', flexShrink: 0, padding: 0,
+                              borderRadius: '6px', border: 'none', background: 'transparent',
+                              color: '#98a1c0', cursor: 'pointer',
+                            }}>
+                            <X size={13} strokeWidth={3}/>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 2行目：日付・期限・タグ */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingLeft: '29px' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <CalendarDays size={12} color={hud.label}/>
+                          <span style={{ fontSize: '9px', fontWeight: '900', color: hud.label }}>{isEn ? 'On' : '日付'}</span>
+                          <input type="date" value={t.date || ''}
+                            onChange={e => onUpdateTodo?.(t.id, { date: e.target.value })}
+                            style={{ ...miniField, borderColor: t.date ? hud.chipIn : hud.line }}/>
+                        </span>
+
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Flag size={12} color={overdue ? '#db2777' : hud.label}/>
+                          <span style={{ fontSize: '9px', fontWeight: '900', color: overdue ? '#db2777' : hud.label }}>{isEn ? 'Due' : '期限'}</span>
+                          <input type="date" value={t.due || ''}
+                            onChange={e => onUpdateTodo?.(t.id, { due: e.target.value })}
+                            style={{
+                              ...miniField,
+                              borderColor: overdue ? '#f0a8b8' : t.due ? hud.chipIn : hud.line,
+                              background: overdue ? '#fff5f7' : '#fbfcff',
+                              color: overdue ? '#be123c' : '#334155',
+                            }}/>
+                        </span>
+
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 1 160px', minWidth: 0 }}>
+                          <Tag size={12} color={hud.label}/>
+                          <input
+                            list="todo-tag-list"
+                            value={(t.tags || []).join(', ')}
+                            onChange={e => onUpdateTodo?.(t.id, {
+                              tags: e.target.value.split(',').map(x => x.trim()).filter(Boolean),
+                            })}
+                            placeholder={isEn ? 'tags (comma separated)' : 'タグ（カンマ区切り：英語授業, 重要）'}
+                            style={{ ...miniField, flex: 1, minWidth: 0 }}
+                          />
+                        </span>
+                      </div>
+
+                      {/* 付けたタグ */}
+                      {(t.tags || []).length > 0 && (
+                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', paddingLeft: '29px' }}>
+                          {t.tags.map(tag => (
+                            <span key={tag} style={{
+                              display: 'flex', alignItems: 'center', gap: '3px',
+                              padding: '2px 7px', borderRadius: '50px',
+                              background: '#eef1fa', border: `1px solid ${hud.chipIn}`,
+                              fontSize: '9.5px', fontWeight: '900', color: '#5b648c',
+                            }}>
+                              <Tag size={9}/>{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* 入力済みタグの候補 */}
+                <datalist id="todo-tag-list">
+                  {allTags.map(tag => <option key={tag} value={tag}/>)}
+                </datalist>
+              </div>
+            )}
+          </div>
+        ) : view === 'month' ? (
           <>
             {/* 曜日 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', marginBottom: '6px' }}>
@@ -279,6 +595,10 @@ export default function StudyCalendar({
                 const isRest  = isWeekendCol(col) || !!holiday;
                 const exam    = examByDate[d];
                 const plan    = plans[d] || firstSlotOf(d);
+                const bucket  = todosByDate[d];
+                const dayTodos = bucket
+                  ? [...bucket.on.map(t => ({ kind: 'on', t })), ...bucket.due.map(t => ({ kind: 'due', t }))]
+                  : [];
                 const isToday = d === today;
                 const isSel   = d === date;
                 const deepFill = lv && mins >= 60; // 濃い下地は白文字にする
@@ -347,6 +667,36 @@ export default function StudyCalendar({
                         {plan}
                       </span>
                     ))}
+
+                    {/* その日の TODO と期限 */}
+                    {!isMobile && dayTodos.slice(0, plan ? 1 : 2).map(item => (
+                      <span key={`${item.kind}-${item.t.id}`} style={{
+                        display: 'flex', alignItems: 'center', gap: '3px',
+                        fontSize: '9px', fontWeight: '800', lineHeight: 1.3,
+                        color: item.kind === 'due' ? '#be123c' : '#1e1b4b',
+                        background: item.kind === 'due' ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.86)',
+                        border: `1px solid ${item.kind === 'due' ? '#f0a8b8' : `${catOf(item.t.cat).color}66`}`,
+                        borderRadius: '5px', padding: '2px 4px',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        textDecoration: item.t.done ? 'line-through' : 'none',
+                        opacity: item.t.done ? 0.55 : 1,
+                      }}>
+                        {item.kind === 'due'
+                          ? <Flag size={8} color="#be123c" style={{ flexShrink: 0 }}/>
+                          : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: catOf(item.t.cat).color, flexShrink: 0 }}/>}
+                        {item.t.text || (isEn ? 'Task' : 'TODO')}
+                      </span>
+                    ))}
+                    {dayTodos.length > 0 && (isMobile || dayTodos.length > (plan ? 1 : 2)) && (
+                      <span style={{
+                        fontSize: '8.5px', fontWeight: '900',
+                        color: deepFill ? 'rgba(255,255,255,0.9)' : '#5b648c',
+                      }}>
+                        {isMobile
+                          ? `TODO ${dayTodos.length}`
+                          : `+${dayTodos.length - (plan ? 1 : 2)}`}
+                      </span>
+                    )}
 
                     {/* 学習時間 */}
                     {mins > 0 && (
@@ -487,6 +837,45 @@ export default function StudyCalendar({
                     </div>
                   ))}
                 </div>
+
+                {/* その日の TODO・期限 */}
+                {todos.length > 0 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: `38px repeat(7, 1fr)`, gap: '3px', marginTop: '7px', paddingTop: '7px', borderTop: `1px solid ${hud.line}` }}>
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '5px', fontSize: '9px', fontWeight: '900', color: hud.label }}>
+                      TODO
+                    </span>
+                    {weekDates.map(d => {
+                      const bucket = todosByDate[d];
+                      const items = bucket
+                        ? [...bucket.on.map(t => ({ kind: 'on', t })), ...bucket.due.map(t => ({ kind: 'due', t }))]
+                        : [];
+                      return (
+                        <div key={`todo-${d}`} style={{ display: 'flex', flexDirection: 'column', gap: '3px', minHeight: '26px' }}>
+                          {items.map(item => (
+                            <span key={`${item.kind}-${item.t.id}`}
+                              title={`${item.kind === 'due' ? (isEn ? 'Due: ' : '期限: ') : ''}${item.t.text}${(item.t.tags || []).length ? `　#${item.t.tags.join(' #')}` : ''}`}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '3px',
+                                padding: '3px 5px', borderRadius: '6px',
+                                fontSize: '9.5px', fontWeight: '800', lineHeight: 1.3,
+                                color: item.kind === 'due' ? '#be123c' : '#334155',
+                                background: item.kind === 'due' ? '#fff5f7' : `${catOf(item.t.cat).color}12`,
+                                border: `1px solid ${item.kind === 'due' ? '#f0a8b8' : `${catOf(item.t.cat).color}44`}`,
+                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                textDecoration: item.t.done ? 'line-through' : 'none',
+                                opacity: item.t.done ? 0.55 : 1,
+                              }}>
+                              {item.kind === 'due'
+                                ? <Flag size={8} color="#be123c" style={{ flexShrink: 0 }}/>
+                                : <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: catOf(item.t.cat).color, flexShrink: 0 }}/>}
+                              {item.t.text || (isEn ? 'Task' : 'TODO')}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* その日のメモ（手帳の DAILY REPORT にあたる行） */}
                 <div style={{ display: 'grid', gridTemplateColumns: `38px repeat(7, 1fr)`, gap: '3px', marginTop: '7px', paddingTop: '7px', borderTop: `1px solid ${hud.line}` }}>

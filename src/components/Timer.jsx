@@ -583,6 +583,39 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const isStopwatch = mode === 'stopwatch';
   const swipeHint = isEn ? '👆 Swipe min/sec up or down to set time' : '👆 分・秒の数字を上下にスワイプして時間を調整';
 
+  /* よく使う時間をワンタップで設定する */
+  const TIME_PRESETS = [25, 50, 75, 90];
+  const applyPreset = (min) => {
+    if (isTimerRunning) return;
+    const sec = min * 60;
+    setTimerInputTime(sec);
+    setTimerTimeLeft(sec);
+  };
+  const timePresets = (large = false) => {
+    if (isTimerRunning) return null;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', gap: large ? '10px' : '8px', flexWrap: 'wrap', marginBottom: large ? '22px' : '18px' }}>
+        {TIME_PRESETS.map(m => {
+          const on = timerInputTime === m * 60;
+          return (
+            <button key={m} type="button" className="hud-preset" onClick={() => applyPreset(m)}
+              style={{
+                padding: large ? '8px 20px' : '6px 16px', borderRadius: '50px', cursor: 'pointer',
+                border: `1px solid ${on ? '#4f46e5' : '#c9cfe8'}`,
+                background: on ? '#4f46e5' : '#ffffff',
+                color: on ? '#ffffff' : '#7c86a8',
+                fontSize: large ? '15px' : '13px', fontWeight: '900',
+                boxShadow: on ? '0 4px 12px rgba(79,70,229,0.3)' : '0 1px 3px rgba(30,27,75,0.05)',
+                WebkitTapHighlightColor: 'transparent',
+              }}>
+              {m}{isEn ? 'm' : '分'}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <>
       <section
@@ -619,6 +652,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
         ) : (
           <>
             {face(numStyle, isMobile ? '50px 20px' : '80px 50px')}
+            {timePresets(false)}
             {!isTimerRunning && timerTimeLeft !== 0 && (
               <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px' }}>
                 {swipeHint}
@@ -664,6 +698,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
               ) : (
                 <>
                   {faceFullscreen(numStyleFS)}
+                  {timePresets(true)}
                   {!isTimerRunning && timerTimeLeft !== 0 && (
                     <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px' }}>
                       {swipeHint}
