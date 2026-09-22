@@ -207,8 +207,6 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   };
   const handlePointerUp = () => { dragStartY.current = null; dragTarget.current = null; };
 
-  const remainingRatio = timerInputTime > 0 ? timerTimeLeft / timerInputTime : 0;
-  const consumedAngle  = (1 - remainingRatio) * 360;
   const timeDisplay    = formatTimerDisplay(timerTimeLeft);
   const isComplete     = timerTimeLeft === 0;
 
@@ -218,15 +216,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const numStyleFS = { ...numBase, fontSize: isMobile ? 'min(19vw, 100px)' : 'min(26vh, 380px)' };
 
   const face = (ns, pad) => (
-    <div style={{
-      background: isComplete ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
-      borderRadius: '34px', padding: '4px', margin: '20px auto 30px',
-      width: 'fit-content', boxShadow: '0 18px 38px rgba(79,70,229,0.28), 0 6px 12px rgba(79,70,229,0.16)',
-    }}>
+    <div style={{ margin: '30px auto 26px', width: 'fit-content' }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '30px',
-        padding: pad, boxShadow: 'inset 0 2px 5px rgba(255,255,255,1), inset 0 -4px 10px rgba(79,70,229,0.07)',
+        padding: pad,
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 5px' }}>
           <div className="timer-text" style={ns}>{timeDisplay.m}</div>
@@ -240,16 +233,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   );
 
   const faceFullscreen = (ns) => (
-    <div style={{
-      background: isComplete ? '#10b981' : `conic-gradient(#e2e8f0 ${consumedAngle}deg, #4f46e5 ${consumedAngle}deg)`,
-      borderRadius: '64px', padding: '8px', margin: '20px auto 30px',
-      width: 'fit-content', boxShadow: '0 28px 64px rgba(79,70,229,0.32), 0 10px 20px rgba(79,70,229,0.18)',
-    }}>
+    <div style={{ margin: '30px auto 26px', width: 'fit-content' }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '56px',
-        padding: isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)',
-        boxShadow: 'inset 0 3px 10px rgba(255,255,255,1), inset 0 -6px 16px rgba(79,70,229,0.07)',
+        padding: isMobile ? '0 12px' : '0 min(5vw, 60px)',
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
           <div className="timer-text" style={ns}>{timeDisplay.m}</div>
@@ -265,15 +252,10 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const swDisplay = formatStopwatch(swElapsed);
 
   const swFace = (ns, pad, csFontSize) => (
-    <div style={{
-      background: isSwRunning ? '#4f46e5' : '#e2e8f0',
-      borderRadius: '34px', padding: '4px', margin: '20px auto 30px',
-      width: 'fit-content', boxShadow: '0 18px 38px rgba(79,70,229,0.28), 0 6px 12px rgba(79,70,229,0.16)',
-    }}>
+    <div style={{ margin: '30px auto 26px', width: 'fit-content' }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'baseline',
-        background: 'linear-gradient(145deg,#ffffff,#f8fafc)', borderRadius: '30px',
-        padding: pad, boxShadow: 'inset 0 2px 5px rgba(255,255,255,1), inset 0 -4px 10px rgba(79,70,229,0.07)',
+        padding: pad,
       }}>
         <div className="timer-text" style={ns}>{swDisplay.m}</div>
         <div className="timer-text" style={ns}>:</div>
@@ -579,7 +561,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     </button>
   );
 
-  const card = { background: 'white', borderRadius: '24px', padding: isMobile ? '20px 15px' : '25px', marginBottom: '20px', boxShadow: '0 22px 50px rgba(30, 27, 75, 0.20), 0 8px 16px rgba(30, 27, 75, 0.10), 0 0 0 1px rgba(79, 70, 229, 0.07)', boxSizing: 'border-box', width: '100%', textAlign: 'center' };
+  const card = { background: 'white', borderRadius: '24px', padding: isMobile ? '24px 15px 30px' : '28px 25px 36px', marginBottom: '20px', boxShadow: '0 22px 50px rgba(30, 27, 75, 0.20), 0 8px 16px rgba(30, 27, 75, 0.10), 0 0 0 1px rgba(79, 70, 229, 0.07)', boxSizing: 'border-box', width: '100%', textAlign: 'center' };
   const isStopwatch = mode === 'stopwatch';
   const swipeHint = isEn ? '👆 Swipe min/sec up or down to set time' : '👆 分・秒の数字を上下にスワイプして時間を調整';
 
@@ -594,7 +576,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const timePresets = (large = false) => {
     if (isTimerRunning) return null;
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', gap: large ? '10px' : '8px', flexWrap: 'wrap', marginBottom: large ? '22px' : '18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: large ? '10px' : '8px', flexWrap: 'wrap', marginBottom: large ? '26px' : '22px' }}>
         {TIME_PRESETS.map(m => {
           const on = timerInputTime === m * 60;
           return (
@@ -636,7 +618,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
 
         {isStopwatch ? (
           <>
-            {swFace(numStyle, isMobile ? '50px 20px' : '80px 50px', isMobile ? '40px' : '60px')}
+            {swFace(numStyle, isMobile ? '0 12px' : '0 24px', isMobile ? '40px' : '60px')}
             {swControls(false)}
             {readingToggle(false)}
             {readingMode && (
@@ -651,7 +633,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
           </>
         ) : (
           <>
-            {face(numStyle, isMobile ? '50px 20px' : '80px 50px')}
+            {face(numStyle, isMobile ? '0 12px' : '0 24px')}
             {timePresets(false)}
             {!isTimerRunning && timerTimeLeft !== 0 && (
               <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px' }}>
@@ -682,7 +664,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
               {isStopwatch ? (
                 <>
-                  {swFace(numStyleFS, isMobile ? '20px 12px' : 'min(8vh, 110px) min(6vw, 80px)', isMobile ? 'min(8vw, 40px)' : 'min(9vh, 140px)')}
+                  {swFace(numStyleFS, isMobile ? '0 12px' : '0 min(5vw, 60px)', isMobile ? 'min(8vw, 40px)' : 'min(9vh, 140px)')}
                   {swControls(true)}
                   {readingToggle(true)}
                   {readingMode && (

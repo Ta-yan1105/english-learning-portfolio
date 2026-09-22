@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { quotesData } from '../quotes_data';
-import { Volume2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 /* 直前と同じものを避けてランダムに1件選ぶ */
 const pickRandomQuote = (exclude) => {
@@ -23,12 +23,6 @@ export default function DailyQuote() {
   // 解説エリアの開閉状態を管理するState
   const [showExplanation, setShowExplanation] = useState(false);
 
-  useEffect(() => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.getVoices();
-    }
-  }, []);
-
   // 名言が切り替わった時に画像エラー状態をリセットする
   useEffect(() => {
     setImageError(false);
@@ -37,28 +31,6 @@ export default function DailyQuote() {
   const drawRandomQuote = () => {
     setCurrentQuote(prev => pickRandomQuote(prev));
     setShowExplanation(false); // 次の名言に切り替わったら解説を閉じる
-  };
-
-  const playAudio = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(currentQuote.english);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.85;
-
-      const voices = window.speechSynthesis.getVoices();
-      const naturalVoice = voices.find(v =>
-        (v.lang === 'en-US' || v.lang === 'en-GB') &&
-        (v.name.includes('Natural') || v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Premium'))
-      );
-      if (naturalVoice) {
-        utterance.voice = naturalVoice;
-      }
-
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert('お使いのブラウザは音声読み上げに対応していません。');
-    }
   };
 
   if (!currentQuote) return null;
@@ -119,18 +91,18 @@ export default function DailyQuote() {
         <div style={{
           position: 'relative',
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 55%, #3730a3 100%)',
+          background: 'linear-gradient(135deg, #4c4a86 0%, #403e70 55%, #333158 100%)',
           color: 'white',
           zIndex: 1,
-          boxShadow: '0 10px 24px rgba(30, 27, 75, 0.28)'
+          boxShadow: '0 10px 24px rgba(30, 27, 75, 0.22)'
         }}>
           {/* 方眼と光：奥行きを出すための下地 */}
           <div style={{
             position: 'absolute', inset: 0, pointerEvents: 'none',
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
-              radial-gradient(ellipse at 14% -25%, rgba(165,180,252,0.42) 0%, transparent 60%)
+              linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+              radial-gradient(ellipse at 14% -25%, rgba(165,180,252,0.28) 0%, transparent 60%)
             `,
             backgroundSize: '26px 26px, 26px 26px, 100% 100%',
           }}/>
@@ -221,11 +193,11 @@ export default function DailyQuote() {
             <h2 style={{
               fontSize: quoteFontSize,
               fontStyle: 'italic',
-              margin: '0 0 clamp(12px, 2.4vw, 18px) 0',
-              lineHeight: 1.3,
-              letterSpacing: '-0.015em',
-              fontWeight: '800',
-              textShadow: '0 2px 12px rgba(15,12,60,0.45)',
+              margin: '0 0 clamp(14px, 2.6vw, 20px) 0',
+              lineHeight: 1.45,
+              letterSpacing: '0.005em',
+              fontWeight: '700',
+              textShadow: '0 1px 3px rgba(15,12,60,0.5)',
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
             }}>
@@ -238,11 +210,13 @@ export default function DailyQuote() {
             }}/>
 
             <p style={{
-              fontSize: 'clamp(0.98rem, 3.2vw, 1.2rem)',
-              fontWeight: '700',
-              color: 'rgba(237,240,255,0.95)',
+              fontSize: 'clamp(1.02rem, 3.4vw, 1.28rem)',
+              fontWeight: '600',
+              color: '#ffffff',
               margin: 0,
-              lineHeight: 1.75,
+              lineHeight: 2,
+              letterSpacing: '0.03em',
+              textShadow: '0 1px 3px rgba(15,12,60,0.45)',
               wordBreak: 'keep-all',
               overflowWrap: 'break-word',
             }}>
@@ -275,15 +249,6 @@ export default function DailyQuote() {
               }}
             >
               {showExplanation ? <><ChevronUp size={18} /> 解説を閉じる</> : <><ChevronDown size={18} /> 名言解説</>}
-            </button>
-
-            <button
-              onClick={playAudio}
-              style={baseButtonStyle}
-              onMouseOver={(e) => { Object.assign(e.currentTarget.style, buttonHoverStyle); }}
-              onMouseOut={(e) => { Object.assign(e.currentTarget.style, baseButtonStyle, { transform: 'translateY(0)' }); }}
-            >
-              <Volume2 size={18} /> お手本を聞く
             </button>
 
             {/* 「次の名言」ボタン */}

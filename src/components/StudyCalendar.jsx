@@ -61,6 +61,15 @@ export default function StudyCalendar({
   todos = [], onAddTodo, onUpdateTodo, onRemoveTodo, onClearDone,
 }) {
   const isEn = lang === 'en';
+  /* カレンダーは既定で畳んでおき、必要なときだけ開く（前回の状態を端末に覚える） */
+  const [open, setOpen] = useState(() => {
+    try { return localStorage.getItem('calendarOpen') === '1'; } catch { return false; }
+  });
+  const toggleOpen = () => setOpen(v => {
+    try { localStorage.setItem('calendarOpen', v ? '0' : '1'); } catch {}
+    return !v;
+  });
+
   const [view, setView] = useState('month'); // 'month' | 'agenda'
   const [showExamForm, setShowExamForm] = useState(false);
   const [cursor, setCursor] = useState(() => {
@@ -88,6 +97,11 @@ export default function StudyCalendar({
   }, [cursor]);
 
   const monthDays   = useMemo(() => cells.filter(Boolean), [cells]);
+  /* 帯の長さを決める基準：その月で一番学習した日 */
+  const maxDayMinutes = useMemo(
+    () => Math.max(60, ...monthDays.map(d => minutesByDate[d] || 0)),
+    [monthDays, minutesByDate]
+  );
 
   const today = getLocalDateString(new Date());
   const shiftMonth = (n) => setCursor(c => new Date(c.getFullYear(), c.getMonth() + n, 1));
@@ -317,7 +331,131 @@ export default function StudyCalendar({
         borderRadius: 'clamp(16px, 4vw, 24px)',
         boxShadow: '0 22px 50px rgba(30, 27, 75, 0.18), 0 8px 16px rgba(30, 27, 75, 0.08), 0 0 0 1px rgba(79, 70, 229, 0.07)',
       }}>
-        <HudHeading text={isEn ? 'STUDY CALENDAR' : '学習カレンダー'} isMobile={isMobile}/>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: open ? (isMobile ? '14px' : '16px') : '0' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <span style={{
+              width: '7px', height: '7px', borderRadius: '50%', background: '#818cf8',
+              boxShadow: '0 0 7px #818cf8', animation: 'hudPulse 1.8s ease-in-out infinite',
+            }}/>
+            <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.22em', color: hud.label }}>
+              {isEn ? 'STUDY CALENDAR' : '学習カレンダー'}
+            </span>
+          </span>
+
+          {/* 閉じているときは、直近の試験だけ小さく残す */}
+          {!open && exams.filter(e => e.daysLeft >= 0).slice(0, 2).map(e => (
+            <span key={e.date} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '900', color: hud.label }}>
+              <Star size={10} color={e.color} fill={e.color} strokeWidth={0}/>
+              <span style={{ color: '#334155' }}>{e.name}</span>
+              <span style={{ color: e.color }}>{isEn ? `in ${e.daysLeft}d` : `あと${e.daysLeft}日`}</span>
+            </span>
+          ))}
+
+          {onProfileUpdate && (
+            <button type="button" className="action-btn" onClick={() => setShowExamForm(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '5px', marginLeft: 'auto',
+                padding: '5px 12px', borderRadius: '50px', cursor: 'pointer',
+                border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#6b74a0',
+                fontSize: '11px', fontWeight: '900',
+              }}>
+              <Star size={12} color={EXAM_COLORS[0]}/>
+              {isEn ? (showExamForm ? 'Close' : 'Exam dates') : (showExamForm ? '閉じる' : '試験日の登録')}
+              {showExamForm ? <ChevronUp size={13} strokeWidth={3}/> : <ChevronDown size={13} strokeWidth={3}/>}
+            </button>
+          )}
+
+          <button type="button" className="action-btn" onClick={toggleOpen}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              marginLeft: onProfileUpdate ? 0 : 'auto',
+              padding: '5px 12px', borderRadius: '50px', cursor: 'pointer',
+              border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#4f46e5',
+              fontSize: '11px', fontWeight: '900',
+            }}>
+            {isEn ? (open ? 'Close' : 'Open') : (open ? '閉じる' : '開く')}
+            {open ? <ChevronUp size={13} strokeWidth={3}/> : <ChevronDown size={13} strokeWidth={3}/>}
+          </button>
+        </div>
+
+          {onProfileUpdate && showExamForm && (
+            <div style={{
+              flex: '1 1 100%', minWidth: 0,
+              padding: '10px 12px', borderRadius: '12px', background: '#ffffff', border: `1px dashed ${hud.chipIn}`,
+            }}>
+              <div style={{ fontSize: '10px', fontWeight: '700', color: hud.label, marginBottom: '8px' }}>
+                {isEn ? 'Use ↑↓ to change the order shown above.' : '↑↓ で、上の「あと◯日」の並び順を変えられます。'}
+              </div>
+
+              {examEntries.map((ex, i) => (
+                <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
+                  {/* 並べ替え */}
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
+                    <button type="button" className="hud-step" onClick={() => moveExam(ex.id, -1)}
+                      disabled={i === 0} title={isEn ? 'Move up' : '上へ'}
+                      style={{ ...orderBtn, opacity: i === 0 ? 0.3 : 1, cursor: i === 0 ? 'default' : 'pointer' }}>
+                      <ChevronUp size={11} strokeWidth={3}/>
+                    </button>
+                    <button type="button" className="hud-step" onClick={() => moveExam(ex.id, 1)}
+                      disabled={i === examEntries.length - 1} title={isEn ? 'Move down' : '下へ'}
+                      style={{ ...orderBtn, opacity: i === examEntries.length - 1 ? 0.3 : 1, cursor: i === examEntries.length - 1 ? 'default' : 'pointer' }}>
+                      <ChevronDown size={11} strokeWidth={3}/>
+                    </button>
+                  </span>
+
+                  <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: ex.color, flexShrink: 0 }}/>
+
+                  {/* 英検・TOEIC は名前固定、その他は自由入力 */}
+                  {ex.fixed ? (
+                    <span style={{ flex: '1 1 150px', minWidth: 0, fontSize: '12px', fontWeight: '900', color: '#334155' }}>
+                      {ex.name}
+                    </span>
+                  ) : (
+                    <input
+                      value={ex.name}
+                      onChange={e => updateCustomExams(customExams.map((x, j) => j === ex.index ? { ...x, name: e.target.value } : x))}
+                      placeholder={isEn ? 'Test name' : 'テスト名（例：2学期中間テスト）'}
+                      style={{ ...fieldStyle, flex: '1 1 150px', minWidth: 0 }}
+                    />
+                  )}
+
+                  <input type="date" value={ex.date}
+                    onChange={e => ex.fixed
+                      ? onProfileUpdate(ex.dateKey, e.target.value)
+                      : updateCustomExams(customExams.map((x, j) => j === ex.index ? { ...x, date: e.target.value } : x))}
+                    style={{ ...fieldStyle, flex: '0 0 148px' }}/>
+
+                  {ex.fixed ? (
+                    <span style={{ width: '26px', flexShrink: 0 }}/>
+                  ) : (
+                    <button type="button" className="hud-step"
+                      onClick={() => updateCustomExams(customExams.filter((_, j) => j !== ex.index))}
+                      title={isEn ? 'Remove' : '削除'}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: '26px', height: '26px', flexShrink: 0, borderRadius: '8px', cursor: 'pointer',
+                        border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#a8b1d1',
+                      }}>
+                      <X size={13} strokeWidth={3}/>
+                    </button>
+                  )}
+                </div>
+              ))}
+
+                              <button type="button" className="action-btn"
+                onClick={() => updateCustomExams([...customExams, { id: `ex${Date.now()}`, name: '', date: '' }])}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '5px',
+                  padding: '5px 12px', borderRadius: '8px', cursor: 'pointer',
+                  border: `1px dashed ${hud.chipIn}`, background: '#fbfcff', color: '#4f46e5',
+                  fontSize: '11px', fontWeight: '900',
+                }}>
+                <Plus size={13} strokeWidth={3}/>{isEn ? 'Add a test' : 'テストを追加'}
+              </button>
+            </div>
+          )}
+
+        {open && (<>
 
         {/* タブ + 月の切り替え */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '14px' }}>
@@ -655,18 +793,20 @@ export default function StudyCalendar({
         ) : view === 'month' ? (
           <>
             {/* 曜日 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', marginBottom: '6px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px', marginBottom: '5px' }}>
               {weekLabels.map((w, i) => (
                 <div key={i} style={{
                   textAlign: 'center', fontSize: '11px', fontWeight: '900',
-                  color: isWeekendCol(i) ? weekendInk(i) : hud.label,
+                  padding: '5px 0', borderRadius: '7px',
+                  color: isWeekendCol(i) ? weekendInk(i) : '#5b648c',
+                  background: isWeekendCol(i) ? (i === 5 ? '#f2f7fd' : '#fdf2f6') : '#f3f5fd',
                 }}>
                   {w}
                 </div>
               ))}
             </div>
 
-            {/* 日付のマス（予定も表示できる大きさ） */}
+            {/* 日付のマス：中は白のまま。学習量は下の帯の長さで示す */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px' }}>
               {cells.map((d, i) => {
                 if (!d) return <div key={`e${i}`}/>;
@@ -683,7 +823,7 @@ export default function StudyCalendar({
                   : [];
                 const isToday = d === today;
                 const isSel   = d === date;
-                const deepFill = lv && mins >= 60; // 濃い下地は白文字にする
+                const numInk  = holiday ? HOLIDAY_INK : isWeekendCol(col) ? weekendInk(col) : '#334155';
                 return (
                   <button
                     key={d}
@@ -693,35 +833,34 @@ export default function StudyCalendar({
                     title={`${d}${holiday ? `（${holiday}）` : ''}　${mins > 0 ? `${formatMinutes(mins)}${getUnit(mins)}` : (isEn ? 'No record' : '記録なし')}${exam ? `　★${exam.name}` : ''}${plan ? `　📝${plan}` : ''}`}
                     style={{
                       position: 'relative',
-                      minHeight: isMobile ? '66px' : '104px',
-                      borderRadius: '11px',
-                      border: exam ? `2px solid ${exam.color}`
-                        : isSel ? '2px solid #1e1b4b'
-                        : isToday ? '2px solid #4f46e5'
-                        : '1px solid rgba(30,27,75,0.06)',
-                      background: lv ? lv.color : (holiday ? HOLIDAY_EMPTY : isRest ? REST_EMPTY : EMPTY),
+                      minHeight: isMobile ? '70px' : '110px',
+                      borderRadius: '10px',
+                      border: isSel ? '2px solid #4f46e5' : `1px solid ${hud.line}`,
+                      boxShadow: isSel ? '0 0 0 3px rgba(79,70,229,0.15)' : 'none',
+                      /* 下地は白。土日祝だけごく淡く色をのせる */
+                      background: holiday ? '#fff7f9' : isWeekendCol(col) ? '#fffaf7' : '#ffffff',
                       cursor: 'pointer',
                       display: 'flex', flexDirection: 'column', alignItems: 'stretch',
-                      gap: '3px', padding: isMobile ? '4px 5px' : '6px 7px',
+                      gap: '3px', padding: isMobile ? '5px 5px 14px' : '6px 7px 24px',
                       textAlign: 'left', overflow: 'hidden',
                       WebkitTapHighlightColor: 'transparent',
                     }}>
-                    {/* 日付と試験の印 */}
+                    {/* 日付（今日は塗りつぶしの丸） */}
                     <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
                       <span className="timer-text" style={{
-                        fontSize: isMobile ? '12px' : '13px', fontWeight: '900', lineHeight: 1,
-                        color: deepFill ? '#ffffff'
-                          : lv ? '#1e1b4b'
-                          : holiday ? HOLIDAY_INK
-                          : isRest ? weekendInk(col)
-                          : '#98a1c0',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        minWidth: '22px', height: '22px', padding: '0 5px',
+                        borderRadius: '50px',
+                        background: isToday ? '#4f46e5' : 'transparent',
+                        color: isToday ? '#ffffff' : numInk,
+                        fontSize: isMobile ? '13px' : '15px', fontWeight: '900', lineHeight: 1,
                       }}>
                         {Number(d.slice(8))}
                       </span>
-                      {exam && <Star size={11} color={exam.color} fill={exam.color} strokeWidth={0}/>}
+                      {exam && <Star size={11} color={exam.color} fill={exam.color} strokeWidth={0} style={{ flexShrink: 0 }}/>}
                     </span>
 
-                    {/* 試験日は当日と分かるように名前を出す */}
+                    {/* 試験日 */}
                     {exam && !isMobile && (
                       <span style={{
                         fontSize: '9.5px', fontWeight: '900', lineHeight: 1.3,
@@ -732,17 +871,14 @@ export default function StudyCalendar({
                       </span>
                     )}
 
-                    {/* 予定：狭い画面は文字が切れて読めないので印だけにする */}
+                    {/* 予定 */}
                     {plan && (isMobile ? (
-                      <span style={{
-                        width: '6px', height: '6px', borderRadius: '50%', marginLeft: '1px',
-                        background: deepFill ? 'rgba(255,255,255,0.95)' : '#0e9aa7',
-                      }}/>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', marginLeft: '1px', background: '#0e9aa7' }}/>
                     ) : (
                       <span style={{
                         fontSize: '9.5px', fontWeight: '800', lineHeight: 1.35,
-                        color: '#1e1b4b', background: 'rgba(255,255,255,0.88)',
-                        border: '1px solid rgba(14,154,167,0.35)', borderRadius: '5px',
+                        color: '#334155', background: '#f2fbfc',
+                        borderLeft: '2px solid #0e9aa7', borderRadius: '3px',
                         padding: '2px 4px', overflow: 'hidden',
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                       }}>
@@ -750,18 +886,15 @@ export default function StudyCalendar({
                       </span>
                     ))}
 
-                    {/* その日の TODO と期限 */}
+                    {/* TODO と期限 */}
                     {!isMobile && dayTodos.slice(0, plan ? 1 : 2).map(item => (
                       <span key={`${item.kind}-${item.t.id}`} style={{
                         display: 'flex', alignItems: 'center', gap: '3px',
                         fontSize: '9px', fontWeight: '800', lineHeight: 1.3,
-                        color: item.kind === 'due' ? '#be123c' : '#1e1b4b',
-                        background: item.kind === 'due' ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.86)',
-                        border: `1px solid ${item.kind === 'due' ? '#f0a8b8' : `${catOf(item.t.cat).color}66`}`,
-                        borderRadius: '5px', padding: '2px 4px',
+                        color: item.kind === 'due' ? '#be123c' : '#334155',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         textDecoration: item.t.done ? 'line-through' : 'none',
-                        opacity: item.t.done ? 0.55 : 1,
+                        opacity: item.t.done ? 0.5 : 1,
                       }}>
                         {item.kind === 'due'
                           ? <Flag size={8} color="#be123c" style={{ flexShrink: 0 }}/>
@@ -770,30 +903,38 @@ export default function StudyCalendar({
                       </span>
                     ))}
                     {dayTodos.length > 0 && (isMobile || dayTodos.length > (plan ? 1 : 2)) && (
-                      <span style={{
-                        fontSize: '8.5px', fontWeight: '900',
-                        color: deepFill ? 'rgba(255,255,255,0.9)' : '#5b648c',
-                      }}>
-                        {isMobile
-                          ? `TODO ${dayTodos.length}`
-                          : `+${dayTodos.length - (plan ? 1 : 2)}`}
+                      <span style={{ fontSize: '8.5px', fontWeight: '900', color: '#7c86a8' }}>
+                        {isMobile ? `TODO ${dayTodos.length}` : `+${dayTodos.length - (plan ? 1 : 2)}`}
                       </span>
                     )}
 
-                    {/* 学習時間 */}
+                    {/* 学習量：マスの下端に帯で示す（長さ＝その月で一番多い日との比） */}
                     {mins > 0 && (
-                      <span className="timer-text" style={{
-                        marginTop: 'auto', fontSize: isMobile ? '8.5px' : '9.5px', fontWeight: '900',
-                        color: deepFill ? 'rgba(255,255,255,0.9)' : '#3730a3',
-                      }}>
-                        {formatMinutes(mins)}{getUnit(mins)}
-                      </span>
+                      <>
+                        <span style={{
+                          position: 'absolute', left: '7px', right: '7px', bottom: '6px', height: '5px',
+                          borderRadius: '3px', background: hud.track,
+                        }}/>
+                        <span style={{
+                          position: 'absolute', left: '7px', bottom: '6px', height: '5px',
+                          width: `calc((100% - 14px) * ${Math.max(0.08, mins / maxDayMinutes)})`,
+                          borderRadius: '3px', background: lv.color,
+                          transition: 'width 0.3s ease',
+                        }}/>
+                        {!isMobile && (
+                          <span className="timer-text" style={{
+                            position: 'absolute', right: '7px', bottom: '14px',
+                            fontSize: '9px', fontWeight: '900', color: '#7c86a8',
+                          }}>
+                            {formatMinutes(mins)}{getUnit(mins)}
+                          </span>
+                        )}
+                      </>
                     )}
                   </button>
                 );
               })}
             </div>
-
           </>
         ) : (
           /* バーティカル週間（日を列・時間を行にした時間割） */
@@ -1018,116 +1159,26 @@ export default function StudyCalendar({
               </span>
             ))}
 
-            {onProfileUpdate && (
-              <button type="button" className="action-btn" onClick={() => setShowExamForm(v => !v)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto',
-                  padding: '4px 10px', borderRadius: '8px', cursor: 'pointer',
-                  border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#6b74a0',
-                  fontSize: '10px', fontWeight: '900',
-                }}>
-                <Star size={11} color={EXAM_COLORS[0]}/>
-                {isEn ? (showExamForm ? 'Close' : 'Exam dates') : (showExamForm ? '閉じる' : '試験日の登録')}
-                {showExamForm ? <ChevronUp size={12} strokeWidth={3}/> : <ChevronDown size={12} strokeWidth={3}/>}
-              </button>
-            )}
           </div>
 
           {/* 試験日の登録 + 凡例 */}
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginTop: '10px' }}>
-            {onProfileUpdate && showExamForm && (
-              <div style={{
-                flex: '1 1 100%', minWidth: 0,
-                padding: '10px 12px', borderRadius: '12px', background: '#ffffff', border: `1px dashed ${hud.chipIn}`,
-              }}>
-                <div style={{ fontSize: '10px', fontWeight: '700', color: hud.label, marginBottom: '8px' }}>
-                  {isEn ? 'Use ↑↓ to change the order shown above.' : '↑↓ で、上の「あと◯日」の並び順を変えられます。'}
-                </div>
-
-                {examEntries.map((ex, i) => (
-                  <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '6px' }}>
-                    {/* 並べ替え */}
-                    <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', flexShrink: 0 }}>
-                      <button type="button" className="hud-step" onClick={() => moveExam(ex.id, -1)}
-                        disabled={i === 0} title={isEn ? 'Move up' : '上へ'}
-                        style={{ ...orderBtn, opacity: i === 0 ? 0.3 : 1, cursor: i === 0 ? 'default' : 'pointer' }}>
-                        <ChevronUp size={11} strokeWidth={3}/>
-                      </button>
-                      <button type="button" className="hud-step" onClick={() => moveExam(ex.id, 1)}
-                        disabled={i === examEntries.length - 1} title={isEn ? 'Move down' : '下へ'}
-                        style={{ ...orderBtn, opacity: i === examEntries.length - 1 ? 0.3 : 1, cursor: i === examEntries.length - 1 ? 'default' : 'pointer' }}>
-                        <ChevronDown size={11} strokeWidth={3}/>
-                      </button>
-                    </span>
-
-                    <span style={{ width: '8px', height: '8px', borderRadius: '2px', background: ex.color, flexShrink: 0 }}/>
-
-                    {/* 英検・TOEIC は名前固定、その他は自由入力 */}
-                    {ex.fixed ? (
-                      <span style={{ flex: '1 1 150px', minWidth: 0, fontSize: '12px', fontWeight: '900', color: '#334155' }}>
-                        {ex.name}
-                      </span>
-                    ) : (
-                      <input
-                        value={ex.name}
-                        onChange={e => updateCustomExams(customExams.map((x, j) => j === ex.index ? { ...x, name: e.target.value } : x))}
-                        placeholder={isEn ? 'Test name' : 'テスト名（例：2学期中間テスト）'}
-                        style={{ ...fieldStyle, flex: '1 1 150px', minWidth: 0 }}
-                      />
-                    )}
-
-                    <input type="date" value={ex.date}
-                      onChange={e => ex.fixed
-                        ? onProfileUpdate(ex.dateKey, e.target.value)
-                        : updateCustomExams(customExams.map((x, j) => j === ex.index ? { ...x, date: e.target.value } : x))}
-                      style={{ ...fieldStyle, flex: '0 0 148px' }}/>
-
-                    {ex.fixed ? (
-                      <span style={{ width: '26px', flexShrink: 0 }}/>
-                    ) : (
-                      <button type="button" className="hud-step"
-                        onClick={() => updateCustomExams(customExams.filter((_, j) => j !== ex.index))}
-                        title={isEn ? 'Remove' : '削除'}
-                        style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          width: '26px', height: '26px', flexShrink: 0, borderRadius: '8px', cursor: 'pointer',
-                          border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#a8b1d1',
-                        }}>
-                        <X size={13} strokeWidth={3}/>
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                                <button type="button" className="action-btn"
-                  onClick={() => updateCustomExams([...customExams, { id: `ex${Date.now()}`, name: '', date: '' }])}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    padding: '5px 12px', borderRadius: '8px', cursor: 'pointer',
-                    border: `1px dashed ${hud.chipIn}`, background: '#fbfcff', color: '#4f46e5',
-                    fontSize: '11px', fontWeight: '900',
-                  }}>
-                  <Plus size={13} strokeWidth={3}/>{isEn ? 'Add a test' : 'テストを追加'}
-                </button>
-              </div>
-            )}
-
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-              <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label }}>{isEn ? 'Less' : '少'}</span>
-              <span style={{ width: '13px', height: '13px', borderRadius: '4px', background: EMPTY, border: '1px solid rgba(30,27,75,0.06)' }}/>
-              {LEVELS.map(l => (
-                <span key={l.min} style={{ width: '13px', height: '13px', borderRadius: '4px', background: l.color }}
-                  title={l.max === Infinity ? `${l.min}${isEn ? 'min+' : '分以上'}` : `${l.min}〜${l.max}${isEn ? 'min' : '分'}`}/>
-              ))}
-              <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label }}>{isEn ? 'More' : '多'}</span>
+              <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label }}>{isEn ? 'Study time' : '学習量'}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                {LEVELS.map((l, i) => (
+                  <span key={l.min} style={{ width: `${14 + i * 6}px`, height: '6px', borderRadius: '3px', background: l.color }}
+                    title={l.max === Infinity ? `${l.min}${isEn ? 'min+' : '分以上'}` : `${l.min}〜${l.max}${isEn ? 'min' : '分'}`}/>
+                ))}
+              </span>
+              <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label }}>{isEn ? 'more' : '多い'}</span>
               <span style={{ width: '1px', height: '13px', background: hud.line, margin: '0 3px' }}/>
-              <span style={{ width: '13px', height: '13px', borderRadius: '4px', background: REST_EMPTY, border: '1px solid rgba(219,39,119,0.18)' }}/>
-              <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label }}>{isEn ? 'Weekend' : '土日'}</span>
-              <span style={{ width: '13px', height: '13px', borderRadius: '4px', background: HOLIDAY_EMPTY, border: `1px solid ${HOLIDAY_INK}44` }}/>
-              <span style={{ fontSize: '10px', fontWeight: '900', color: hud.label }}>{isEn ? 'Holiday' : '祝日'}</span>
+              <span style={{ fontSize: '10px', fontWeight: '900', color: '#2a78d6' }}>{isEn ? 'Sat' : '土'}</span>
+              <span style={{ fontSize: '10px', fontWeight: '900', color: HOLIDAY_INK }}>{isEn ? 'Sun / Holiday' : '日・祝'}</span>
             </div>
           </div>
         </div>
+        </>)}
       </div>
 
       {/* 絵文字を選ぶポップアップ */}
