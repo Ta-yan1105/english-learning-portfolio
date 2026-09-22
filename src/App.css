@@ -159,6 +159,10 @@
 .slot-clear { opacity: 0.55; transition: opacity 0.15s ease, background 0.15s ease !important; }
 .slot-clear:hover { opacity: 1; background: rgba(30,27,75,0.08) !important; }
 
+/* 週の時間帯マス：押せることが分かる反応 */
+.slot-cell { transition: border-color 0.14s ease, background 0.14s ease !important; }
+.slot-cell:hover:not(:disabled) { border-color: #4f46e5 !important; }
+
 .modern-input { transition: all 0.3s ease !important; border-color: #c7d2fe !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1) !important; }
 .modern-input:focus { background: #ffffff !important; border-color: #4f46e5 !important; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18) !important; }
 .timer-text { font-variant-numeric: tabular-nums; font-family: 'Helvetica Neue', Arial, sans-serif; }

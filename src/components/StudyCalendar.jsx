@@ -25,10 +25,21 @@ const EXAM_COLORS = ['#eb6834', '#db2777', '#0e9aa7', '#15803d', '#4a3aa7', '#2a
 /* TODO の分類。色は検証済みパレット（隣り合う色が見分けられる並び） */
 const TODO_COLORS = ['#2a78d6', '#4a3aa7', '#15803d', '#eb6834', '#db2777', '#0e9aa7', '#eda100'];
 const DEFAULT_TODO_CATS = [
-  { id: 'english', name: '英語学習',     color: TODO_COLORS[0] },
-  { id: 'work',    name: '仕事',         color: TODO_COLORS[1] },
-  { id: 'private', name: 'プライベート', color: TODO_COLORS[2] },
+  { id: 'english', name: '英語学習',     color: TODO_COLORS[0], emoji: '📘' },
+  { id: 'work',    name: '仕事',         color: TODO_COLORS[1], emoji: '💼' },
+  { id: 'private', name: 'プライベート', color: TODO_COLORS[2], emoji: '🏠' },
 ];
+
+/* 分類につけられる絵文字（自由入力もできる） */
+const EMOJI_SETS = [
+  { label: '学習', items: ['📘', '📚', '✏️', '📝', '🎧', '🗣️', '📖', '🔤', '🧠', '🖊️', '📒', '🎓'] },
+  { label: '仕事', items: ['💼', '🏫', '👔', '📊', '📅', '📞', '💻', '📋', '🤝', '🗂️', '🖨️', '📌'] },
+  { label: '生活', items: ['🏠', '🛒', '🍳', '🧺', '🚗', '💊', '🏃', '🛁', '😴', '🎵', '🐾', '🌿'] },
+  { label: '印',   items: ['⭐', '🔥', '🎯', '✅', '⚠️', '❤️', '🎉', '🌱', '🏆', '🔖', '💡', '🚩'] },
+];
+
+/* 時間帯の予定に分類を持たせるための、予定キーと対になるキー */
+const catKeyOf = (slotKey) => `${slotKey}@cat`;
 
 /* 色は「並び順」ではなく「その試験」に紐づける（並べ替えても色が入れ替わらない） */
 const examColor = (id) => {
@@ -179,8 +190,47 @@ export default function StudyCalendar({
   const catOf = (id) => todoCats.find(c => c.id === id) || todoCats[0];
   const updateCats = (next) => onProfileUpdate?.('todoCats', next);
 
+  /* 絵文字を選ぶポップアップ */
+  const [emojiPicker, setEmojiPicker] = useState(null); // { mode:'cat'|'slot', index|key, top, left }
+  const openEmojiPicker = (target, el) => {
+    const r = el.getBoundingClientRect();
+    const W = 262;
+    setEmojiPicker({
+      ...target,
+      top: Math.min(r.bottom + 6, window.innerHeight - 300),
+      left: Math.max(8, Math.min(r.left, window.innerWidth - W - 8)),
+      width: W,
+    });
+  };
+  /* 絵文字を選んだとき：分類に設定するか、予定の文字に差し込むか */
+  const applyEmoji = (em) => {
+    if (!emojiPicker) return;
+    if (emojiPicker.mode === 'slot') {
+      onSavePlan?.(emojiPicker.key, `${plans[emojiPicker.key] || ''}${em}`);
+    } else {
+      updateCats(todoCats.map((x, j) => j === emojiPicker.index ? { ...x, emoji: em } : x));
+      setEmojiPicker(null);
+    }
+  };
+
+  /* 時間帯の予定を入れるポップアップ */
+  const [slotEditor, setSlotEditor] = useState(null); // { key, top, left }
+  const openSlot = (key, el) => {
+    if (!onSavePlan) return;
+    const r = el.getBoundingClientRect();
+    const W = 260;
+    setSlotEditor({
+      key,
+      top: Math.min(r.bottom + 6, window.innerHeight - 220),
+      left: Math.max(8, Math.min(r.left, window.innerWidth - W - 8)),
+      width: W,
+    });
+  };
+  const closeSlot = () => setSlotEditor(null);
+
   /* 分類タブ。選んだタブに追加していく */
   const [todoTab, setTodoTab] = useState('all');
+  const [expandedTodo, setExpandedTodo] = useState(null);
   const activeCatId = todoTab === 'all' ? (todoCats[0]?.id || 'english') : todoTab;
   const shownTodos = todoTab === 'all' ? todos : todos.filter(t => catOf(t.cat).id === todoTab);
   /* 分類チップを押すと次の分類へ移す（プルダウンの代わり） */
@@ -326,7 +376,7 @@ export default function StudyCalendar({
                         fontSize: '11px', fontWeight: '900',
                         boxShadow: on ? `0 4px 10px ${c.color}44` : 'none',
                       }}>
-                      {c.name}
+                      {c.id !== 'all' && c.emoji ? `${c.emoji} ` : ''}{c.name}
                       <span style={{
                         fontSize: '9px', fontWeight: '900',
                         padding: '1px 6px', borderRadius: '50px',
@@ -396,11 +446,21 @@ export default function StudyCalendar({
                         width: '22px', height: '22px', flexShrink: 0, padding: 0, cursor: 'pointer',
                         borderRadius: '7px', border: `1px solid ${c.color}`, background: c.color,
                       }}/>
+                    <button type="button" className="hud-step"
+                      onClick={e => openEmojiPicker({ mode: 'cat', index: i }, e.currentTarget)}
+                      title={isEn ? 'Pick an emoji' : '絵文字を選ぶ'}
+                      style={{
+                        ...fieldStyle, flex: '0 0 46px', textAlign: 'center', fontSize: '16px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        height: '30px', cursor: 'pointer', background: '#ffffff',
+                      }}>
+                      {c.emoji || '🙂'}
+                    </button>
                     <input
                       value={c.name}
                       onChange={e => updateCats(todoCats.map((x, j) => j === i ? { ...x, name: e.target.value } : x))}
                       placeholder={isEn ? 'Name' : '分類名'}
-                      style={{ ...fieldStyle, flex: '1 1 160px', minWidth: 0 }}
+                      style={{ ...fieldStyle, flex: '1 1 140px', minWidth: 0 }}
                     />
                     {todoCats.length > 1 && (
                       <button type="button" className="hud-step"
@@ -418,7 +478,7 @@ export default function StudyCalendar({
                 ))}
                 <button type="button" className="action-btn"
                   onClick={() => updateCats([...todoCats, {
-                    id: `c${Date.now()}`, name: '',
+                    id: `c${Date.now()}`, name: '', emoji: '🔖',
                     color: TODO_COLORS[todoCats.length % TODO_COLORS.length],
                   }])}
                   style={{
@@ -443,14 +503,16 @@ export default function StudyCalendar({
                 {shownTodos.map(t => {
                   const cat = catOf(t.cat);
                   const overdue = t.due && !t.done && t.due < today;
+                  const open = expandedTodo === t.id;
+                  const md = (d) => `${Number(d.slice(5, 7))}/${Number(d.slice(8))}`;
                   return (
                     <div key={t.id} style={{
-                      display: 'flex', flexDirection: 'column', gap: '6px',
+                      display: 'flex', flexDirection: 'column',
                       padding: '9px 11px', borderRadius: '11px',
                       background: t.done ? '#f6f7fc' : '#ffffff',
                       border: `1px solid ${overdue ? '#f3c7cf' : hud.line}`,
                     }}>
-                      {/* 1行目：チェック・分類・内容・削除 */}
+                      {/* 本体：やることだけを1行で */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
                         <button type="button" className="hud-step"
                           onClick={() => onUpdateTodo?.(t.id, { done: !t.done })}
@@ -465,19 +527,17 @@ export default function StudyCalendar({
                           {t.done && <Check size={13} strokeWidth={4}/>}
                         </button>
 
-                        {/* 押すたびに次の分類へ移る（プルダウンなし） */}
                         <button type="button" className="action-btn" onClick={() => cycleCat(t)}
                           title={isEn ? 'Change category' : '分類を変える（押すと次へ）'}
                           style={{
-                            display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0,
-                            maxWidth: isMobile ? '96px' : '128px',
-                            padding: '4px 10px', borderRadius: '50px', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0,
+                            padding: '4px 9px', borderRadius: '50px', cursor: 'pointer',
                             border: `1px solid ${cat.color}55`, background: `${cat.color}14`,
                             color: cat.color, fontSize: '10px', fontWeight: '900',
+                            maxWidth: isMobile ? '92px' : '120px',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
-                          <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: cat.color, flexShrink: 0 }}/>
-                          {cat.name}
+                          {cat.emoji}{cat.name}
                         </button>
 
                         <input
@@ -493,6 +553,39 @@ export default function StudyCalendar({
                           }}
                         />
 
+                        {/* 設定済みの内容をひと目で（閉じている時だけ） */}
+                        {!open && (t.date || t.due || (t.tags || []).length > 0) && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '7px', flexShrink: 0, fontSize: '10px', fontWeight: '900' }}>
+                            {t.date && <span style={{ color: hud.label }}>{md(t.date)}</span>}
+                            {t.due && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '2px', color: overdue ? '#be123c' : hud.label }}>
+                                <Flag size={10}/>{md(t.due)}
+                              </span>
+                            )}
+                            {(t.tags || []).slice(0, isMobile ? 1 : 2).map(tag => (
+                              <span key={tag} style={{
+                                padding: '2px 7px', borderRadius: '50px',
+                                background: '#eef1fa', border: `1px solid ${hud.chipIn}`,
+                                color: '#5b648c', fontSize: '9.5px',
+                                maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                              }}>{tag}</span>
+                            ))}
+                          </span>
+                        )}
+
+                        <button type="button" className="hud-step"
+                          onClick={() => setExpandedTodo(open ? null : t.id)}
+                          title={isEn ? 'Details' : '日付・期限・タグ'}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: '22px', height: '22px', flexShrink: 0, padding: 0,
+                            borderRadius: '6px', cursor: 'pointer',
+                            border: `1px solid ${open ? '#c9cfe8' : 'transparent'}`,
+                            background: open ? '#eef1fa' : 'transparent', color: '#98a1c0',
+                          }}>
+                          {open ? <ChevronUp size={13} strokeWidth={3}/> : <ChevronDown size={13} strokeWidth={3}/>}
+                        </button>
+
                         {onRemoveTodo && (
                           <button type="button" className="slot-clear" onClick={() => onRemoveTodo(t.id)}
                             title={isEn ? 'Delete' : '削除'}
@@ -507,56 +600,45 @@ export default function StudyCalendar({
                         )}
                       </div>
 
-                      {/* 2行目：日付・期限・タグ */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingLeft: '29px' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <CalendarDays size={12} color={hud.label}/>
-                          <span style={{ fontSize: '9px', fontWeight: '900', color: hud.label }}>{isEn ? 'On' : '日付'}</span>
-                          <input type="date" value={t.date || ''}
-                            onChange={e => onUpdateTodo?.(t.id, { date: e.target.value })}
-                            style={{ ...miniField, borderColor: t.date ? hud.chipIn : hud.line }}/>
-                        </span>
+                      {/* 詳細：開いたときだけ */}
+                      {open && (
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
+                          marginTop: '9px', paddingTop: '9px', borderTop: `1px solid ${hud.line}`,
+                        }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <CalendarDays size={12} color={hud.label}/>
+                            <span style={{ fontSize: '9px', fontWeight: '900', color: hud.label }}>{isEn ? 'On' : '日付'}</span>
+                            <input type="date" value={t.date || ''}
+                              onChange={e => onUpdateTodo?.(t.id, { date: e.target.value })}
+                              style={{ ...miniField, borderColor: t.date ? hud.chipIn : hud.line }}/>
+                          </span>
 
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Flag size={12} color={overdue ? '#db2777' : hud.label}/>
-                          <span style={{ fontSize: '9px', fontWeight: '900', color: overdue ? '#db2777' : hud.label }}>{isEn ? 'Due' : '期限'}</span>
-                          <input type="date" value={t.due || ''}
-                            onChange={e => onUpdateTodo?.(t.id, { due: e.target.value })}
-                            style={{
-                              ...miniField,
-                              borderColor: overdue ? '#f0a8b8' : t.due ? hud.chipIn : hud.line,
-                              background: overdue ? '#fff5f7' : '#fbfcff',
-                              color: overdue ? '#be123c' : '#334155',
-                            }}/>
-                        </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Flag size={12} color={overdue ? '#db2777' : hud.label}/>
+                            <span style={{ fontSize: '9px', fontWeight: '900', color: overdue ? '#db2777' : hud.label }}>{isEn ? 'Due' : '期限'}</span>
+                            <input type="date" value={t.due || ''}
+                              onChange={e => onUpdateTodo?.(t.id, { due: e.target.value })}
+                              style={{
+                                ...miniField,
+                                borderColor: overdue ? '#f0a8b8' : t.due ? hud.chipIn : hud.line,
+                                background: overdue ? '#fff5f7' : '#fbfcff',
+                                color: overdue ? '#be123c' : '#334155',
+                              }}/>
+                          </span>
 
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', flex: '1 1 160px', minWidth: 0 }}>
-                          <Tag size={12} color={hud.label}/>
-                          <input
-                            list="todo-tag-list"
-                            value={(t.tags || []).join(', ')}
-                            onChange={e => onUpdateTodo?.(t.id, {
-                              tags: e.target.value.split(',').map(x => x.trim()).filter(Boolean),
-                            })}
-                            placeholder={isEn ? 'tags (comma separated)' : 'タグ（カンマ区切り：英語授業, 重要）'}
-                            style={{ ...miniField, flex: 1, minWidth: 0 }}
-                          />
-                        </span>
-                      </div>
-
-                      {/* 付けたタグ */}
-                      {(t.tags || []).length > 0 && (
-                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', paddingLeft: '29px' }}>
-                          {t.tags.map(tag => (
-                            <span key={tag} style={{
-                              display: 'flex', alignItems: 'center', gap: '3px',
-                              padding: '2px 7px', borderRadius: '50px',
-                              background: '#eef1fa', border: `1px solid ${hud.chipIn}`,
-                              fontSize: '9.5px', fontWeight: '900', color: '#5b648c',
-                            }}>
-                              <Tag size={9}/>{tag}
-                            </span>
-                          ))}
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', flex: '1 1 180px', minWidth: 0 }}>
+                            <Tag size={12} color={hud.label}/>
+                            <input
+                              list="todo-tag-list"
+                              value={(t.tags || []).join(', ')}
+                              onChange={e => onUpdateTodo?.(t.id, {
+                                tags: e.target.value.split(',').map(x => x.trim()).filter(Boolean),
+                              })}
+                              placeholder={isEn ? 'tags (comma separated)' : 'タグ（カンマ区切り）'}
+                              style={{ ...miniField, flex: 1, minWidth: 0 }}
+                            />
+                          </span>
                         </div>
                       )}
                     </div>
@@ -798,40 +880,35 @@ export default function StudyCalendar({
                         const slotKey = `${d}T${String(h).padStart(2, '0')}`;
                         const holiday = holidayName(d);
                         const rest = isWeekendCol(i) || !!holiday;
-                        const filled = !!plans[slotKey];
+                        const text = plans[slotKey] || '';
+                        const filled = !!text;
+                        const slotCat = filled ? catOf(plans[catKeyOf(slotKey)]) : null;
                         return (
-                          <span key={slotKey} style={{ position: 'relative', display: 'block' }}>
-                            <input
-                              value={plans[slotKey] || ''}
-                              onChange={e => onSavePlan?.(slotKey, e.target.value)}
-                              disabled={!onSavePlan}
-                              style={{
-                                width: '100%', boxSizing: 'border-box', height: '26px',
-                                padding: filled ? '0 22px 0 6px' : '0 6px', borderRadius: '6px',
-                                border: `1px solid ${filled ? '#a9d8de' : hud.line}`,
-                                background: filled ? '#eefafb'
-                                  : holiday ? HOLIDAY_EMPTY
-                                  : rest ? REST_EMPTY
-                                  : '#ffffff',
-                                fontSize: '11px', fontWeight: '700', color: '#334155',
-                                outline: 'none', fontFamily: 'inherit',
-                              }}
-                            />
-                            {filled && onSavePlan && (
-                              <button type="button" className="slot-clear"
-                                onClick={() => onSavePlan(slotKey, '')}
-                                title={isEn ? 'Delete' : '削除'}
-                                style={{
-                                  position: 'absolute', top: '50%', right: '3px', transform: 'translateY(-50%)',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  width: '17px', height: '17px', padding: 0,
-                                  borderRadius: '5px', border: 'none', background: 'transparent',
-                                  color: '#7c9aa0', cursor: 'pointer',
-                                }}>
-                                <X size={11} strokeWidth={3}/>
-                              </button>
-                            )}
-                          </span>
+                          <button
+                            key={slotKey}
+                            type="button"
+                            className="slot-cell"
+                            disabled={!onSavePlan}
+                            onClick={e => openSlot(slotKey, e.currentTarget)}
+                            title={filled ? `${slotCat.emoji || ''} ${text}` : (isEn ? 'Add a plan' : '予定を入れる')}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '3px',
+                              width: '100%', boxSizing: 'border-box', height: '26px',
+                              padding: '0 6px', borderRadius: '6px', cursor: 'pointer',
+                              border: `1px solid ${filled ? `${slotCat.color}66` : hud.line}`,
+                              background: filled ? `${slotCat.color}14`
+                                : holiday ? HOLIDAY_EMPTY
+                                : rest ? REST_EMPTY
+                                : '#ffffff',
+                              fontSize: '11px', fontWeight: '700',
+                              color: filled ? slotCat.color : '#c3cade',
+                              overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+                              textAlign: 'left',
+                            }}>
+                            {filled
+                              ? <>{slotCat.emoji && <span style={{ flexShrink: 0 }}>{slotCat.emoji}</span>}<span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</span></>
+                              : <span style={{ opacity: 0.6 }}>＋</span>}
+                          </button>
                         );
                       })}
                     </div>
@@ -1052,6 +1129,158 @@ export default function StudyCalendar({
           </div>
         </div>
       </div>
+
+      {/* 絵文字を選ぶポップアップ */}
+      {emojiPicker && (
+        <>
+          <div onClick={() => setEmojiPicker(null)}
+            style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(30,27,75,0.12)' }}/>
+          <div style={{
+            position: 'fixed', zIndex: 51,
+            top: `${emojiPicker.top}px`, left: `${emojiPicker.left}px`, width: `${emojiPicker.width}px`,
+            padding: '12px', borderRadius: '14px',
+            background: '#ffffff', border: `1px solid ${hud.chipIn}`,
+            boxShadow: '0 20px 44px rgba(30,27,75,0.28)',
+            maxHeight: '290px', overflowY: 'auto',
+          }} className="custom-scrollbar">
+            {EMOJI_SETS.map(set => (
+              <div key={set.label} style={{ marginBottom: '9px' }}>
+                <div style={{ fontSize: '9px', fontWeight: '900', letterSpacing: '0.1em', color: hud.label, marginBottom: '5px' }}>
+                  {set.label}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' }}>
+                  {set.items.map(em => {
+                    const on = emojiPicker.mode === 'cat' && todoCats[emojiPicker.index]?.emoji === em;
+                    return (
+                      <button key={em} type="button" className="hud-step"
+                        onClick={() => applyEmoji(em)}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          height: '32px', padding: 0, cursor: 'pointer', fontSize: '17px',
+                          borderRadius: '8px',
+                          border: `1px solid ${on ? '#4f46e5' : hud.line}`,
+                          background: on ? '#eef1fa' : '#ffffff',
+                        }}>
+                        {em}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <div style={{ paddingTop: '8px', borderTop: `1px solid ${hud.line}`, display: 'flex', gap: '7px', alignItems: 'center' }}>
+              {emojiPicker.mode === 'cat' && (
+                <input
+                  value={todoCats[emojiPicker.index]?.emoji || ''}
+                  onChange={e => updateCats(todoCats.map((x, j) => j === emojiPicker.index ? { ...x, emoji: e.target.value.slice(0, 2) } : x))}
+                  onKeyDown={e => { if (e.key === 'Enter') setEmojiPicker(null); }}
+                  placeholder={isEn ? 'custom' : '自分で入力'}
+                  style={{ ...fieldStyle, flex: 1, textAlign: 'center', fontSize: '16px' }}
+                />
+              )}
+              <button type="button" className="action-btn" onClick={() => setEmojiPicker(null)}
+                style={{
+                  marginLeft: 'auto', padding: '6px 16px', borderRadius: '9px', cursor: 'pointer',
+                  border: 'none', background: '#4f46e5', color: '#ffffff',
+                  fontSize: '11px', fontWeight: '900',
+                }}>
+                {isEn ? 'Done' : '完了'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 時間帯の予定を入れるポップアップ */}
+      {slotEditor && (
+        <>
+          <div onClick={closeSlot}
+            style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'rgba(30,27,75,0.12)' }}/>
+          <div style={{
+            position: 'fixed', zIndex: 41,
+            top: `${slotEditor.top}px`, left: `${slotEditor.left}px`, width: `${slotEditor.width}px`,
+            padding: '12px', borderRadius: '14px',
+            background: '#ffffff', border: `1px solid ${hud.chipIn}`,
+            boxShadow: '0 20px 44px rgba(30,27,75,0.28)',
+          }}>
+            <div style={{ fontSize: '10px', fontWeight: '900', color: hud.label, marginBottom: '9px' }}>
+              {(() => {
+                const [d, h] = slotEditor.key.split('T');
+                return isEn
+                  ? `${d}  ${Number(h)}:00`
+                  : `${Number(d.slice(5, 7))}/${Number(d.slice(8))}（${weekLabels[(new Date(d + 'T00:00:00').getDay() + 6) % 7]}） ${Number(h)}:00`;
+              })()}
+            </div>
+
+            {/* 分類を選ぶ */}
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '9px' }}>
+              {todoCats.map(c => {
+                const on = catOf(plans[catKeyOf(slotEditor.key)]).id === c.id;
+                return (
+                  <button key={c.id} type="button" className="action-btn"
+                    onClick={() => onSavePlan(catKeyOf(slotEditor.key), c.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '4px',
+                      padding: '5px 10px', borderRadius: '50px', cursor: 'pointer',
+                      border: `1px solid ${on ? c.color : hud.line}`,
+                      background: on ? c.color : '#ffffff',
+                      color: on ? '#ffffff' : c.color,
+                      fontSize: '10.5px', fontWeight: '900',
+                    }}>
+                    {c.emoji}{c.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 内容（絵文字も入れられる） */}
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input
+                autoFocus
+                value={plans[slotEditor.key] || ''}
+                onChange={e => onSavePlan(slotEditor.key, e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') closeSlot(); }}
+                placeholder={isEn ? 'What will you do?' : '内容を入力（Enterで閉じる）'}
+                style={{ ...fieldStyle, flex: 1, minWidth: 0, fontSize: '12.5px', padding: '8px 10px' }}
+              />
+              <button type="button" className="hud-step"
+                onClick={e => openEmojiPicker({ mode: 'slot', key: slotEditor.key }, e.currentTarget)}
+                title={isEn ? 'Insert emoji' : '絵文字を入れる'}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: '36px', flexShrink: 0, borderRadius: '8px', cursor: 'pointer',
+                  border: `1px solid ${hud.chipIn}`, background: '#ffffff', fontSize: '15px',
+                }}>
+                🙂
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+              {plans[slotEditor.key] && (
+                <button type="button" className="action-btn"
+                  onClick={() => { onSavePlan(slotEditor.key, ''); onSavePlan(catKeyOf(slotEditor.key), ''); closeSlot(); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                    padding: '6px 12px', borderRadius: '9px', cursor: 'pointer',
+                    border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#a8b1d1',
+                    fontSize: '11px', fontWeight: '900',
+                  }}>
+                  <X size={12} strokeWidth={3}/>{isEn ? 'Delete' : '削除'}
+                </button>
+              )}
+              <button type="button" className="action-btn" onClick={closeSlot}
+                style={{
+                  marginLeft: 'auto', padding: '6px 16px', borderRadius: '9px', cursor: 'pointer',
+                  border: 'none', background: '#4f46e5', color: '#ffffff',
+                  fontSize: '11px', fontWeight: '900',
+                }}>
+                {isEn ? 'Done' : '完了'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
