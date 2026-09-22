@@ -149,11 +149,12 @@ export default function DailyQuote() {
               position: 'relative', zIndex: 1,
               padding: 'clamp(22px, 5vw, 40px)',
               boxSizing: 'border-box',
+              textAlign: 'center',
               animation: 'quoteIn 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
             }}>
 
             {/* HUD見出し */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: 'clamp(14px, 2.6vw, 20px)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: 'clamp(14px, 2.6vw, 20px)' }}>
               <span style={{
                 width: '6px', height: '6px', borderRadius: '50%', background: '#a5b4fc',
                 boxShadow: '0 0 8px #a5b4fc', animation: 'hudPulse 1.8s ease-in-out infinite',
@@ -165,7 +166,8 @@ export default function DailyQuote() {
 
             {/* 発言者：写真を主役に、名前と紹介を横に添える */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 'clamp(16px, 3.5vw, 26px)', flexWrap: 'wrap',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+              gap: 'clamp(12px, 2.6vw, 18px)',
               marginBottom: 'clamp(20px, 4vw, 30px)',
             }}>
               {showImage && (
@@ -187,11 +189,11 @@ export default function DailyQuote() {
                 />
               )}
 
-              <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+              <div style={{ width: '100%', minWidth: 0 }}>
                 {/* 名前の上の細いアクセント */}
                 <div style={{
-                  width: '30px', height: '2px', borderRadius: '2px', marginBottom: '10px',
-                  background: 'linear-gradient(90deg, #fcd34d, rgba(252,211,77,0.15))',
+                  width: '30px', height: '2px', borderRadius: '2px', margin: '0 auto 10px',
+                  background: 'linear-gradient(90deg, rgba(252,211,77,0.15), #fcd34d, rgba(252,211,77,0.15))',
                 }}/>
                 <div style={{
                   fontSize: 'clamp(1.15rem, 3.6vw, 1.5rem)', fontWeight: '900', color: '#ffffff',
@@ -231,8 +233,8 @@ export default function DailyQuote() {
             </h2>
 
             <div style={{
-              width: '46px', height: '2px', borderRadius: '2px', marginBottom: 'clamp(12px, 2.4vw, 16px)',
-              background: 'linear-gradient(90deg, rgba(255,255,255,0.75), rgba(255,255,255,0.1))',
+              width: '46px', height: '2px', borderRadius: '2px', margin: '0 auto clamp(12px, 2.4vw, 16px)',
+              background: 'linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.85), rgba(255,255,255,0.1))',
             }}/>
 
             <p style={{

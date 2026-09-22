@@ -291,8 +291,8 @@ export default function Dashboard({
           <h2 style={{ ...hStyle, margin: 0, flexShrink: 0 }}><Activity size={18} color="#4f46e5"/> {T.analysisTitle}</h2>
 
           {/* 時間統計 + 単語数 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, maxWidth: '100%' }}>
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
               {[
                 { label: T.statDay,   value: timeStats.dayTotal },
                 { label: T.statWeek,  value: timeStats.weekTotal },
@@ -311,8 +311,8 @@ export default function Dashboard({
               </div>
             </div>
             {vocabStats.total > 0 && (
-              <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f5f3ff', padding: '4px', borderRadius: '10px' }}>
-                <BookOpen size={12} color="#4a3aa7" style={{ margin: '6px 4px 0 6px', flexShrink: 0 }}/>
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#f5f3ff', padding: '4px', borderRadius: '10px' }}>
+                <BookOpen size={12} color="#4a3aa7" style={{ margin: '0 2px 0 6px', flexShrink: 0 }}/>
                 {[
                   { label: T.statDay,   value: vocabStats.day },
                   { label: T.statWeek,  value: vocabStats.week },
@@ -328,7 +328,7 @@ export default function Dashboard({
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '10px', flexShrink: 0, maxWidth: '100%' }}>
             {[
               { id: 'day',   label: 'DAY',   icon: <Sun size={14}/> },
               { id: 'week',  label: 'WEEK',  icon: <Calendar size={14}/> },
