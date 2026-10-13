@@ -7,6 +7,7 @@ import { useTimer } from '../hooks/useTimer';
 import { useStopwatch } from '../hooks/useStopwatch';
 import { WPM_SCALE_MAX, getWpmLevel } from '../utils/wpmLevels';
 import { hudPanelStyle, HudHeading, HudDivider, hud } from './hud';
+import { TOEIC_PARTS, EIKEN_GRADES, perQuestionSeconds } from '../utils/examPresets';
 
 const toHalfWidthDigits = (str) => str.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
 
@@ -215,18 +216,53 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
   const numStyle   = { ...numBase, fontSize: isMobile ? '100px' : '160px' };
   const numStyleFS = { ...numBase, fontSize: isMobile ? 'min(19vw, 100px)' : 'min(26vh, 380px)' };
 
+  /* 走っている間は数字を伏せる（刻々と減るのを見続けるのが負担になるため）。
+     「時間を見る」を押したときだけ一時的に表示する */
+  const [peek, setPeek] = useState(false);
+  useEffect(() => { if (!isTimerRunning) setPeek(false); }, [isTimerRunning]);
+  const veiled = isTimerRunning && !peek;
+  /* 伏せている間に映す値は開始時のもので固定する（毎秒変わると、ぼかしていても動きが目に入る） */
+  const shownTime = veiled ? formatTimerDisplay(timerInputTime) : timeDisplay;
+  const veilStyle = veiled
+    ? { filter: 'blur(18px)', opacity: 0.28, transition: 'filter 0.5s ease, opacity 0.5s ease', userSelect: 'none' }
+    : { filter: 'none', opacity: 1, transition: 'filter 0.35s ease, opacity 0.35s ease' };
+
+  /* 伏せている間、動いていることだけを静かに知らせる */
+  const runningMark = (large = false) => {
+    if (!isTimerRunning) return null;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: large ? '-18px' : '-12px' }}>
+        <span style={{
+          width: large ? '9px' : '7px', height: large ? '9px' : '7px', borderRadius: '50%',
+          background: '#c3cade',
+        }}/>
+        <span style={{ fontSize: large ? '13px' : '12px', fontWeight: '900', color: '#a8b1d1', letterSpacing: '0.06em' }}>
+          {isEn ? 'Running' : '計測中'}
+        </span>
+        <button type="button" className="action-btn" onClick={() => setPeek(v => !v)}
+          style={{
+            padding: '4px 11px', borderRadius: '50px', cursor: 'pointer',
+            border: `1px solid ${hud.chipIn}`, background: '#ffffff', color: '#7c86a8',
+            fontSize: '10.5px', fontWeight: '900',
+          }}>
+          {isEn ? (peek ? 'Hide' : 'Show time') : (peek ? '隠す' : '時間を見る')}
+        </button>
+      </div>
+    );
+  };
+
   const face = (ns, pad) => (
     <div style={{ margin: '30px auto 26px', width: 'fit-content' }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        padding: pad,
+        padding: pad, ...veilStyle,
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 5px' }}>
-          <div className="timer-text" style={ns}>{timeDisplay.m}</div>
+          <div className="timer-text" style={ns}>{shownTime.m}</div>
         </div>
         <div className="timer-text" style={{ ...ns, paddingBottom: isMobile ? '10px' : '15px' }}>:</div>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'sec')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 5px' }}>
-          <div className="timer-text" style={ns}>{timeDisplay.s}</div>
+          <div className="timer-text" style={ns}>{shownTime.s}</div>
         </div>
       </div>
     </div>
@@ -236,14 +272,14 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     <div style={{ margin: '30px auto 26px', width: 'fit-content' }}>
       <div style={{
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        padding: isMobile ? '0 12px' : '0 min(5vw, 60px)',
+        padding: isMobile ? '0 12px' : '0 min(5vw, 60px)', ...veilStyle,
       }}>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'min')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
-          <div className="timer-text" style={ns}>{timeDisplay.m}</div>
+          <div className="timer-text" style={ns}>{shownTime.m}</div>
         </div>
         <div className="timer-text" style={{ ...ns, paddingBottom: isMobile ? '12px' : '20px' }}>:</div>
         <div className="draggable-number" onPointerDown={e => handlePointerDown(e, 'sec')} style={{ cursor: isTimerRunning ? 'default' : 'ns-resize', padding: '0 8px' }}>
-          <div className="timer-text" style={ns}>{timeDisplay.s}</div>
+          <div className="timer-text" style={ns}>{shownTime.s}</div>
         </div>
       </div>
     </div>
@@ -573,30 +609,139 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
     setTimerInputTime(sec);
     setTimerTimeLeft(sec);
   };
+
+  /* 試験モード：TOEIC・英検のパート別タイム */
+  const [examMode, setExamMode] = useState('free'); // 'free' | 'toeic' | 'eiken'
+  const [toeicPart, setToeicPart] = useState(null);
+  const [eikenGrade, setEikenGrade] = useState('g2');
+  const [eikenSec, setEikenSec] = useState(null); // 'rw' | 'listening'
+
+  const grade = EIKEN_GRADES.find(g => g.id === eikenGrade) || EIKEN_GRADES[2];
+  const activePart = examMode === 'toeic' ? TOEIC_PARTS.find(p => p.id === toeicPart) : null;
+
+  const pickToeic = (part) => {
+    setToeicPart(part.id);
+    applyPreset(part.minutes);
+  };
+  const pickEiken = (secId) => {
+    setEikenSec(secId);
+    applyPreset(secId === 'rw' ? grade.rw : grade.listening);
+  };
+  const pickGrade = (g) => {
+    setEikenGrade(g.id);
+    if (eikenSec) applyPreset(eikenSec === 'rw' ? g.rw : g.listening);
+  };
   const timePresets = (large = false) => {
     if (isTimerRunning) return null;
+    const chip = (on, color = '#4f46e5') => ({
+      padding: large ? '7px 16px' : '6px 13px', borderRadius: '50px', cursor: 'pointer',
+      border: `1px solid ${on ? color : '#c9cfe8'}`,
+      background: on ? color : '#ffffff',
+      color: on ? '#ffffff' : '#7c86a8',
+      fontSize: large ? '13px' : '12px', fontWeight: '900',
+      boxShadow: on ? `0 4px 12px ${color}44` : '0 1px 3px rgba(30,27,75,0.05)',
+      WebkitTapHighlightColor: 'transparent',
+    });
+
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', gap: large ? '10px' : '8px', flexWrap: 'wrap', marginBottom: large ? '26px' : '22px' }}>
-        {TIME_PRESETS.map(m => {
-          const on = timerInputTime === m * 60;
-          return (
-            <button key={m} type="button" className="hud-preset" onClick={() => applyPreset(m)}
-              style={{
-                padding: large ? '8px 20px' : '6px 16px', borderRadius: '50px', cursor: 'pointer',
-                border: `1px solid ${on ? '#4f46e5' : '#c9cfe8'}`,
-                background: on ? '#4f46e5' : '#ffffff',
-                color: on ? '#ffffff' : '#7c86a8',
-                fontSize: large ? '15px' : '13px', fontWeight: '900',
-                boxShadow: on ? '0 4px 12px rgba(79,70,229,0.3)' : '0 1px 3px rgba(30,27,75,0.05)',
-                WebkitTapHighlightColor: 'transparent',
-              }}>
-              {m}{isEn ? 'm' : '分'}
+      <div style={{ marginBottom: large ? '26px' : '22px' }}>
+        {/* どの試験の時間で測るか */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          {[
+            ['free',  isEn ? 'Study' : '勉強'],
+            ['toeic', 'TOEIC'],
+            ['eiken', isEn ? 'Eiken' : '英検'],
+          ].map(([id, label]) => (
+            <button key={id} type="button" className="hud-preset" onClick={() => setExamMode(id)}
+              style={chip(examMode === id, '#3730a3')}>
+              {label}
             </button>
-          );
-        })}
+          ))}
+        </div>
+
+        {/* ふつう：よく使う時間 */}
+        {examMode === 'free' && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: large ? '10px' : '8px', flexWrap: 'wrap' }}>
+            {TIME_PRESETS.map(m => (
+              <button key={m} type="button" className="hud-preset" onClick={() => applyPreset(m)}
+                style={chip(timerInputTime === m * 60)}>
+                {m}{isEn ? 'm' : '分'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* TOEIC：パートごとの目安 */}
+        {examMode === 'toeic' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              {TOEIC_PARTS.map(part => (
+                <button key={part.id} type="button" className="hud-preset" onClick={() => pickToeic(part)}
+                  style={{ ...chip(toeicPart === part.id, '#2a78d6'), display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  {part.label}
+                  <span style={{ fontSize: '10px', opacity: toeicPart === part.id ? 0.85 : 1, color: toeicPart === part.id ? '#ffffff' : '#a8b1d1' }}>
+                    {part.minutes}{isEn ? 'm' : '分'}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {activePart && (
+              <div style={{ marginTop: '12px', textAlign: 'center' }}>
+                <div style={{ fontSize: large ? '14px' : '13px', fontWeight: '900', color: '#334155' }}>
+                  {activePart.label}（{activePart.name}）
+                </div>
+                <div style={{ marginTop: '5px', fontSize: '11px', fontWeight: '700', color: '#7c86a8' }}>
+                  {activePart.fixed
+                    ? (isEn ? 'Paced by the audio' : '音声の進行どおり・自分で調整はできません')
+                    : (isEn
+                        ? `Finish ${activePart.questions} questions in ${activePart.minutes} min — about ${perQuestionSeconds(activePart.minutes, activePart.questions)} sec each`
+                        : `${activePart.questions}問を ${activePart.minutes}分で解き切る（1問あたり約${perQuestionSeconds(activePart.minutes, activePart.questions)}秒）`)}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 英検：級とセクション */}
+        {examMode === 'eiken' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '9px' }}>
+              {EIKEN_GRADES.map(g => (
+                <button key={g.id} type="button" className="hud-preset" onClick={() => pickGrade(g)}
+                  style={{ ...chip(eikenGrade === g.id, '#eb6834'), padding: large ? '6px 14px' : '5px 11px', fontSize: large ? '12px' : '11px' }}>
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { id: 'rw',        label: isEn ? 'Reading & Writing' : 'リーディング・ライティング', min: grade.rw },
+                { id: 'listening', label: isEn ? 'Listening' : 'リスニング',                       min: grade.listening, approx: true },
+              ].map(sec => (
+                <button key={sec.id} type="button" className="hud-preset" onClick={() => pickEiken(sec.id)}
+                  style={{ ...chip(eikenSec === sec.id, '#2a78d6'), display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {sec.label}
+                  <span style={{ fontSize: '10px', opacity: eikenSec === sec.id ? 0.85 : 1, color: eikenSec === sec.id ? '#ffffff' : '#a8b1d1' }}>
+                    {sec.approx ? '約' : ''}{sec.min}{isEn ? 'm' : '分'}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {eikenSec && (
+              <div style={{ marginTop: '12px', textAlign: 'center', fontSize: '11px', fontWeight: '700', color: '#7c86a8' }}>
+                {isEn
+                  ? `Eiken ${grade.label} — finish in ${eikenSec === 'rw' ? grade.rw : grade.listening} min`
+                  : eikenSec === 'rw'
+                    ? `英検${grade.label} の筆記を ${grade.rw}分で解き切る`
+                    : `英検${grade.label} のリスニングは約${grade.listening}分（音声の進行どおり）`}
+              </div>
+            )}
+          </>
+        )}
       </div>
     );
   };
+
 
   return (
     <>
@@ -634,6 +779,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
         ) : (
           <>
             {face(numStyle, isMobile ? '0 12px' : '0 24px')}
+            {runningMark(false)}
             {timePresets(false)}
             {!isTimerRunning && timerTimeLeft !== 0 && (
               <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px' }}>
@@ -680,6 +826,7 @@ export default function Timer({ isMobile, lang = 'ja', onTimerComplete, onSaveRe
               ) : (
                 <>
                   {faceFullscreen(numStyleFS)}
+                  {runningMark(true)}
                   {timePresets(true)}
                   {!isTimerRunning && timerTimeLeft !== 0 && (
                     <div style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '25px' }}>
